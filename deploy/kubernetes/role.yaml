@@ -1,0 +1,44 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: gitops-operator
+rules:
+# needed for leader election  
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - pods
+  verbs:
+  - '*'
+# unsure  
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+# needed by operator logic  
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - '*'  
+# needed for monitoring  
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - get
+  - create
+# operator's resources  
+- apiGroups:
+  - eunomia.kohls.io
+  resources:
+  - '*'
+  verbs:
+  - '*'

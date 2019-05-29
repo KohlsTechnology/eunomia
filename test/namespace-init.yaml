@@ -1,0 +1,188 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: eunomia-operator
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  creationTimestamp: null
+  name: eunomia-operator
+rules:
+# needed for leader election
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - pods
+  verbs:
+  - '*'
+# unsure
+- apiGroups:
+  - ""
+  resources:
+  - namespaces
+  verbs:
+  - get
+# needed by operator logic
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - '*'
+# needed for monitoring
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - get
+  - create
+# operator's resources
+- apiGroups:
+  - eunomia.kohls.io
+  resources:
+  - '*'
+  verbs:
+  - '*'
+
+---
+
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: eunomia-operator
+subjects:
+- kind: ServiceAccount
+  name: eunomia-operator
+  # Replace this with the namespace the operator is deployed in.
+  namespace: gitops-operator
+roleRef:
+  kind: ClusterRole
+  name: eunomia-operator
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eunomia-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: eunomia-operator
+  template:
+    metadata:
+      labels:
+        name: eunomia-operator
+    spec:
+      serviceAccountName: eunomia-operator
+      containers:
+        - name: eunomia-operator
+          # Replace this with the built image name
+          image: quay.io/kohlstechnology/eunomia-operator:v0.0.1
+          command:
+          - eunomia-operator
+          imagePullPolicy: Always
+          env:
+            - name: JOB_TEMPLATE
+              value: /templates/job.yaml
+            - name: CRONJOB_TEMPLATE
+              value: /templates/cronjob.yaml
+            - name: WATCH_NAMESPACE
+              value: ""
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "eunomia-operator"
+          volumeMounts:
+          - name: template-volume
+            mountPath: /templates
+      volumes:
+        - name: template-volume
+          configMap:
+            name: gitops-templates
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: eunomia-operator
+spec:
+  selector:
+    name: eunomia-operator
+  ports:
+  - name: webhook
+    port: 8080
+    protocol: TCP
+    targetPort: 8080
+  - name: metrics
+    port: 8383
+    protocol: TCP
+    targetPort: 8383
+
+---
+
+apiVersion: v1
+kind: Route
+metadata:
+  name: eunomia-operator
+spec:
+  port:
+    targetPort: webhook
+  to:
+    kind: Service
+    name: eunomia-operator
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: eunomia-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: eunomia-operator
+  template:
+    metadata:
+      labels:
+        name: eunomia-operator
+    spec:
+      serviceAccountName: eunomia-operator
+      containers:
+        - name: eunomia-operator
+          # Replace this with the built image name
+          image: quay.io/kohlstechnology/eunomia-operator:v0.0.1
+          command:
+          - eunomia-operator
+          imagePullPolicy: Always
+          env:
+            - name: JOB_TEMPLATE
+              value: /templates/job.yaml
+            - name: CRONJOB_TEMPLATE
+              value: /templates/cronjob.yaml
+            - name: WATCH_NAMESPACE
+              value: ""
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "eunomia-operator"
+          volumeMounts:
+          - name: template-volume
+            mountPath: /templates
+      volumes:
+        - name: template-volume
+          configMap:
+            name: gitops-templates

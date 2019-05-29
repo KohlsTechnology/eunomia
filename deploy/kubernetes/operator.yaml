@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gitops-operator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: gitops-operator
+  template:
+    metadata:
+      labels:
+        name: gitops-operator
+    spec:
+      serviceAccountName: gitops-operator
+      containers:
+        - name: gitops-operator
+          # Replace this with the built image name
+          image: quay.io/kohlstechnology/eunomia-operator:v0.0.1
+          command:
+          - eunomia-operator
+          imagePullPolicy: Always
+          env:
+            - name: JOB_TEMPLATE
+              value: /templates/job.yaml
+            - name: CRONJOB_TEMPLATE
+              value: /templates/cronjob.yaml
+            - name: WATCH_NAMESPACE
+              value: ""
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: OPERATOR_NAME
+              value: "eunomia-operator"
+          volumeMounts:
+          - name: template-volume
+            mountPath: /templates
+      volumes:
+        - name: template-volume
+          configMap:
+            name: gitops-templates

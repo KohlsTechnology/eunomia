@@ -1,0 +1,22 @@
+apiVersion: eunomia.kohls.io/v1alpha1
+kind: GitOpsConfig
+metadata:
+  name: simple-test
+spec:
+  # Add fields here
+  templateSource:
+    uri: http://localhost:8000
+    ref: master
+    contextDir: examples/templates
+  parameterSource:
+    contextDir: examples/parameters
+  triggers:
+  - type: Change
+  - type: Webhook
+    secret: ciao
+  - type: Periodic
+    cron: "0 * * * *"
+  serviceAccountRef: gitops
+  templateProcessorImage: quay.io/kohlstechnology/eunomia-base:v0.0.1
+  resourceHandlingMode: CreateOrMerge
+  resourceDeletionMode: Delete
