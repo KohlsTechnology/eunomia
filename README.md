@@ -2,6 +2,8 @@
 
 # Eunomia - a GitOps Operator for Kubernetes
 
+[![Join the chat at https://gitter.im/KohlsTechnology/eunomia](https://badges.gitter.im/KohlsTechnology/eunomia.svg)](https://gitter.im/KohlsTechnology/eunomia?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 ## Who is Eunomia
 
 According to Wikipedia:
