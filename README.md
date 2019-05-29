@@ -235,7 +235,7 @@ kubectl create configmap gitops-templates --from-file=./templates/cronjob.yaml -
 kubectl apply -f ./deploy/kubernetes -n eunomia
 ```
 
-### Installating on OpenShift
+### Installing on OpenShift
 
 Run the following to deploy eunomia:
 
