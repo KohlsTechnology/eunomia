@@ -2,6 +2,8 @@
 
 # Eunomia - a GitOps Operator for Kubernetes
 
+[![Build Status](https://travis-ci.org/KohlsTechnology/eunomia.svg?branch=master)](https://travis-ci.org/KohlsTechnology/eunomia) [![Docker Repository on Quay](https://quay.io/repository/kohlstechnology/eunomia/status "Docker Repository on Quay")](https://quay.io/repository/kohlstechnology/eunomia)
+
 ## Who is Eunomia
 
 According to Wikipedia:

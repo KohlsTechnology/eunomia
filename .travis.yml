@@ -1,9 +1,0 @@
----
-language: minimal
-
-install:
-  - # skip
-
-script:
-  - echo hello, world!
-
