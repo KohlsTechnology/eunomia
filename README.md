@@ -220,20 +220,9 @@ This field specifies how to handle resources when the GitOpsConfig object is del
 1. `Retain`, resources previsouly created are left intact.
 2. `Delete`, resources are delete with the `cascade` option.
 
-## Installation on OpenShift
+## Installing Eunomia
 
-Run the following to deploy eunomia:
-
-```shell
-oc create namespace eunomia
-oc project eunomia
-oc apply -f ./deploy/kubernetes/crds/gitops_v1alpha1_gitopsconfig_crd.yaml -n eunomia
-oc delete configmap gitops-templates -n eunomia
-oc create configmap gitops-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia
-oc apply -f ./deploy/kuberetes -f ./deploy/openshift -n eunomia
-```
-
-### Using Minikube
+### Installing on Kubernetes/Minikube
 
 Here are some preliminary instructions. This still needs a lot of TLC. Feel free to send in PRs.
 
@@ -244,6 +233,19 @@ kubectl apply -f ./deploy/kubernetes/crds/gitops_v1alpha1_gitopsconfig_crd.yaml 
 kubectl delete configmap gitops-templates -n eunomia
 kubectl create configmap gitops-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia
 kubectl apply -f ./deploy/kubernetes -n eunomia
+```
+
+### Installing on OpenShift
+
+Run the following to deploy eunomia:
+
+```shell
+oc create namespace eunomia
+oc project eunomia
+oc apply -f ./deploy/kubernetes/crds/gitops_v1alpha1_gitopsconfig_crd.yaml -n eunomia
+oc delete configmap gitops-templates -n eunomia
+oc create configmap gitops-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia
+oc apply -f ./deploy/kuberetes -f ./deploy/openshift -n eunomia
 ```
 
 ## Development
