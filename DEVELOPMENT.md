@@ -17,7 +17,7 @@ In order to build Eunomia, you'll need the following:
 
 To check out this repository:
 
-1. Create a (fork)[https://help.github.com/en/articles/fork-a-repo] of this repo
+1. Create a [fork](https://help.github.com/en/articles/fork-a-repo) of this repo
 2. Create the directories and clone your fork
 
 ```
