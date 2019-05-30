@@ -24,14 +24,14 @@ import (
 
 	"time"
 
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	util "github.com/KohlsTechnology/eunomia/pkg/util"
+	opsutil "github.com/redhat-cop/operator-utils/pkg/util"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	util "github.com/KohlsTechnology/eunomia/pkg/util"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -49,6 +49,7 @@ var log = logf.Log.WithName("controller_gitopsconfig")
 
 const initLabel string = "gitopsconfig.eunomia.kohls.io/initialized"
 const kubeGitopsFinalizer string = "eunomia-finalizer"
+const contrllerName = "gitopsconfig_controller"
 
 // PushEvents channel on which we get the github webhook push events
 var PushEvents = make(chan event.GenericEvent)
@@ -66,12 +67,16 @@ func Add(mgr manager.Manager) error {
 
 // NewGitOpsReconciler creates a new git ops reconciler
 func NewGitOpsReconciler(mgr manager.Manager) ReconcileGitOpsConfig {
-	return ReconcileGitOpsConfig{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return ReconcileGitOpsConfig{
+		ReconcilerBase: opsutil.NewReconcilerBase(mgr.GetClient(), mgr.GetScheme(), mgr.GetConfig(), mgr.GetRecorder(controllerName)),
+	}
 }
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileGitOpsConfig{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &ReconcileGitOpsConfig{
+		ReconcilerBase: opsutil.NewReconcilerBase(mgr.GetClient(), mgr.GetScheme(), mgr.GetConfig(), mgr.GetRecorder(controllerName)),
+	}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -105,8 +110,7 @@ var _ reconcile.Reconciler = &ReconcileGitOpsConfig{}
 type ReconcileGitOpsConfig struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
-	client client.Client
-	scheme *runtime.Scheme
+	opsutil.ReconcilerBase
 }
 
 // Reconcile reads that state of the cluster for a GitOpsConfig object and makes changes based on the state read
@@ -140,15 +144,26 @@ func (r *ReconcileGitOpsConfig) Reconcile(request reconcile.Request) (reconcile.
 	}
 	reqLogger.Info("found instance", "instance", instance.GetName())
 
+	// check if CR is valid
+	if ok, err := r.IsValid(instance); !ok {
+		return r.ManageError(instance, err)
+	}
+
+	// check if CR is initialized
+	if ok := r.IsInitialized(instance); !ok {
+		err := r.GetClient().Update(context.TODO(), instance)
+		if err != nil {
+			log.Error(err, "unable to update instance", "instance", instance)
+			return r.ManageError(instance, err)
+		}
+		return reconcile.Result{}, nil
+	}
+
 	//object is being deleted
 	if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
 		return r.manageDeletion(instance)
 	}
 
-	if _, ok := instance.GetAnnotations()[initLabel]; !ok {
-		reqLogger.Info("Instance needs to be initialized", "instance", instance.GetName())
-		return r.initializeGitOpsConfig(instance)
-	}
 
 	reqLogger.Info("Instance is initialized", "instance", instance.GetName())
 
@@ -265,80 +280,9 @@ func (r *ReconcileGitOpsConfig) GetAllGitOpsConfig() (gitopsv1alpha1.GitOpsConfi
 	return *instanceList, nil
 }
 
-func (r *ReconcileGitOpsConfig) initializeGitOpsConfig(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
-	// verify mandatory field exist and set defaults
-	if instance.Spec.TemplateSource.URI == "" {
-		//TODO set wrong status
-		return reconcile.Result{}, goerrors.New("template source URI cannot be empty")
-	}
-
-	if instance.Spec.TemplateSource.Ref == "" {
-		instance.Spec.TemplateSource.Ref = "master"
-	}
-
-	if instance.Spec.TemplateSource.ContextDir == "" {
-		instance.Spec.TemplateSource.ContextDir = "."
-	}
-
-	if instance.Spec.ParameterSource.URI == "" {
-		instance.Spec.ParameterSource.URI = instance.Spec.TemplateSource.URI
-	}
-	if instance.Spec.ParameterSource.Ref == "" {
-		instance.Spec.ParameterSource.Ref = "master"
-	}
-
-	if instance.Spec.ParameterSource.ContextDir == "" {
-		instance.Spec.ParameterSource.ContextDir = "."
-	}
-
-	if instance.Spec.ServiceAccountRef == "" {
-		instance.Spec.ServiceAccountRef = "default"
-	}
-
-	if instance.Spec.ResourceHandlingMode == "" {
-		instance.Spec.ResourceHandlingMode = "CreateOrMerge"
-	}
-
-	if instance.Spec.ResourceDeletionMode == "" {
-		instance.Spec.ResourceDeletionMode = "Delete"
-	}
-
-	instance.ObjectMeta.Annotations[initLabel] = "true"
-
-	if !containsString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer) && instance.Spec.ResourceDeletionMode != "Retain" {
-		instance.ObjectMeta.Finalizers = append(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer)
-	}
-
-	err := r.client.Update(context.TODO(), instance)
-	if err != nil {
-		log.Error(err, "unable to update initialized GitOpsCionfig", "instance", instance)
-		return reconcile.Result{}, err
-	}
-	return reconcile.Result{}, nil
-}
-
-func containsString(slice []string, s string) bool {
-	for _, item := range slice {
-		if item == s {
-			return true
-		}
-	}
-	return false
-}
-
-func removeString(slice []string, s string) (result []string) {
-	for _, item := range slice {
-		if item == s {
-			continue
-		}
-		result = append(result, item)
-	}
-	return
-}
-
 func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
 	log.Info("Instance is being deleted", "instance", instance.GetName())
-	if containsString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer) {
+	if opsutil.HasFinalizer(instance, kubeGitopsFinalizer) {
 		// we need to lookup the delete job and if it doesn't exist we launch it, then we see if it is completed successfully if yes we remove the finalizers, if no we return.
 		jobList := &batchv1.JobList{}
 		selector, err := labels.Parse("action=delete")
@@ -376,7 +320,7 @@ func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsCo
 			if !ns.ObjectMeta.DeletionTimestamp.IsZero() {
 				//namespace is being deleted
 				// the best we can do in this situation is to let the instance be deleted and hope that this instance was creating objects only in this namespace
-				instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer)
+				opsutil.RemoveFinalizer(instance,kubeGitopsFinalizer)
 				if err := r.client.Update(context.TODO(), instance); err != nil {
 					log.Error(err, "unable to create update instace to remove finalizers")
 					return reconcile.Result{}, err
@@ -398,7 +342,7 @@ func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsCo
 		//There should be only one pending job
 		job := applicableJobList[0]
 		if job.Status.Succeeded > 0 {
-			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer)
+			opsutil.RemoveFinalizer(instance,kubeGitopsFinalizer)
 			if err := r.client.Update(context.TODO(), instance); err != nil {
 				log.Error(err, "unable to create update instace to remove finalizers")
 				return reconcile.Result{}, err
@@ -426,4 +370,69 @@ func isOwner(owner, owned metav1.Object) bool {
 		}
 	}
 	return false
+}
+
+func (r *ReconcileGitOpsConfig) IsValid(obj metav1.Object) (bool, error) {
+	instance, ok := obj.(*gitopsv1alpha1.GitOpsConfig)
+	if !ok {
+		return false, goerrors.New("instance is not of gitopsv1alpha1.GitOpsConfig type")
+	}
+	if instance.Spec.TemplateSource.URI == "" {
+		//TODO set wrong status
+		return false, goerrors.New("template source URI cannot be empty")
+	}
+	return true, nil
+}
+
+func (r *ReconcileGitOpsConfig) IsInitialized(obj metav1.Object) bool {
+	instance, ok := obj.(*examplev1alpha1.MyCRD)
+	if !ok {
+		return false
+	}
+	bool initialzied=true
+	if instance.Spec.TemplateSource.Ref == "" {
+		instance.Spec.TemplateSource.Ref = "master"
+		initialized=false
+	}
+
+	if instance.Spec.TemplateSource.ContextDir == "" {
+		instance.Spec.TemplateSource.ContextDir = "."
+		initialized=false
+	}
+
+	if instance.Spec.ParameterSource.URI == "" {
+		instance.Spec.ParameterSource.URI = instance.Spec.TemplateSource.URI
+		initialized=false
+	}
+	if instance.Spec.ParameterSource.Ref == "" {
+		instance.Spec.ParameterSource.Ref = "master"
+		initialized=false
+	}
+
+	if instance.Spec.ParameterSource.ContextDir == "" {
+		instance.Spec.ParameterSource.ContextDir = "."
+		initialized=false
+	}
+
+	if instance.Spec.ServiceAccountRef == "" {
+		instance.Spec.ServiceAccountRef = "default"
+		initialized=false
+	}
+
+	if instance.Spec.ResourceHandlingMode == "" {
+		instance.Spec.ResourceHandlingMode = "CreateOrMerge"
+		initialized=false
+	}
+
+	if instance.Spec.ResourceDeletionMode == "" {
+		instance.Spec.ResourceDeletionMode = "Delete"
+		initialized=false
+	}
+
+	if !opsutil.HasFinalizer(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer) && instance.Spec.ResourceDeletionMode != "Retain" {
+		opsutil.AddFinalizer(instance,kubeGitopsFinalizer)
+		initialized=false
+	}
+
+	return initialized	
 }
