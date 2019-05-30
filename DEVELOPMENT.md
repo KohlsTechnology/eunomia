@@ -13,7 +13,19 @@ In order to build Eunomia, you'll need the following:
   - [Minikube](https://kubernetes.io/docs/setup/minikube/) (optional)
   - [Minishift](https://www.okd.io/minishift/) (optional)
 
-Additionally, this project should be cloned to `$GOPATH/src/github.com/KohlsTechnology/eunomia`.
+### Checkout your fork
+
+To check out this repository:
+
+1. Create a [fork](https://help.github.com/en/articles/fork-a-repo) of this repo
+2. Create the directories and clone your fork
+
+```
+mkdir -p $GOPATH/src/github.com/KohlsTechnology
+cd $GOPATH/src/github.com/KohlsTechnology
+git clone https://github.com/<YOUR FORK>/eunomia.git
+cd eunomia
+```
 
 ### Installing on a Mac
 
@@ -35,10 +47,12 @@ The most efficient way to develop the operator locally is run the code on your l
 
 ```
 minikube start
-kubectl create namespace eunomia
-kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml -n eunomia
+kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
 export JOB_TEMPLATE=./templates/job.yaml
 export CRONJOB_TEMPLATE=./templates/cronjob.yaml
+export WATCH_NAMESPACE=""
+export OPERATOR_NAME=eunomia-operator
+dep ensure
 operator-sdk up local
 ```
 
