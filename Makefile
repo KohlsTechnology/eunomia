@@ -82,7 +82,7 @@ docker-push:
 
 # Push the template processor images
 build-push-template-processor-images:
-	build-images.sh
+	./build-images.sh
 
 # Travis Latest Tag Deployment
 travis-latest-deploy: docker-login docker-build docker-push build-push-template-processor-images
