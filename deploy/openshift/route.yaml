@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: Route
 metadata:
-  name: gitops-operator
+  name: eunomia-operator
 spec:
   port:
     targetPort: webhook  
   to:
     kind: Service
-    name: gitops-operator
+    name: eunomia-operator

@@ -1,20 +1,20 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gitops-operator
+  name: eunomia-operator
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: gitops-operator
+      name: eunomia-operator
   template:
     metadata:
       labels:
-        name: gitops-operator
+        name: eunomia-operator
     spec:
-      serviceAccountName: gitops-operator
+      serviceAccountName: eunomia-operator
       containers:
-        - name: gitops-operator
+        - name: eunomia-operator
           # Replace this with the built image name
           image: quay.io/kohlstechnology/eunomia-operator:v0.0.1
           command:
@@ -39,4 +39,4 @@ spec:
       volumes:
         - name: template-volume
           configMap:
-            name: gitops-templates
+            name: eunomia-templates
