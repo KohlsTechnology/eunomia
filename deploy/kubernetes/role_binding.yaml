@@ -1,13 +1,25 @@
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gitops-operator
+  name: eunomia-operator
 subjects:
 - kind: ServiceAccount
-  name: gitops-operator
+  name: eunomia-operator
   # Replace this with the namespace the operator is deployed in.
-  namespace: gitops-operator
+  namespace: eunomia-operator
 roleRef:
   kind: ClusterRole
-  name: gitops-operator
+  name: eunomia-operator
   apiGroup: rbac.authorization.k8s.io
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: eunomia-operator
+subjects: 
+- kind: ServiceAccount
+  name: eunomia-operator
+roleRef:
+  kind: Role
+  name: eunomia-operator
+  apiGroup: rbac.authorization.k8s.io  
