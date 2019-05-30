@@ -13,7 +13,19 @@ In order to build Eunomia, you'll need the following:
   - [Minikube](https://kubernetes.io/docs/setup/minikube/) (optional)
   - [Minishift](https://www.okd.io/minishift/) (optional)
 
-Additionally, this project should be cloned to `$GOPATH/src/github.com/KohlsTechnology/eunomia`.
+### Checkout your fork
+
+To check out this repository:
+
+1. Create a (fork)[https://help.github.com/en/articles/fork-a-repo] of this repo
+2. Create the directories and clone your fork
+
+```
+mkdir -p $GOPATH/src/github.com/KohlsTechnology
+cd $GOPATH/src/github.com/KohlsTechnology
+git clone https://github.com/<YOUR FORK>/eunomia.git
+cd eunomia
+```
 
 ### Installing on a Mac
 
