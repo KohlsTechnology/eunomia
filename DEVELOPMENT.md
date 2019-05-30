@@ -47,10 +47,11 @@ The most efficient way to develop the operator locally is run the code on your l
 
 ```
 minikube start
-kubectl create namespace eunomia
-kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml -n eunomia
+kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
 export JOB_TEMPLATE=./templates/job.yaml
 export CRONJOB_TEMPLATE=./templates/cronjob.yaml
+export WATCH_NAMESPACE=""
+export OPERATOR_NAME=eunomia-operator
 dep ensure
 operator-sdk up local
 ```
