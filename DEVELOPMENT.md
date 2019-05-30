@@ -39,6 +39,7 @@ kubectl create namespace eunomia
 kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml -n eunomia
 export JOB_TEMPLATE=./templates/job.yaml
 export CRONJOB_TEMPLATE=./templates/cronjob.yaml
+dep ensure
 operator-sdk up local
 ```
 
