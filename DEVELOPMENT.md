@@ -13,6 +13,8 @@ In order to build Eunomia, you'll need the following:
   - [Minikube](https://kubernetes.io/docs/setup/minikube/) (optional)
   - [Minishift](https://www.okd.io/minishift/) (optional)
 
+Additionally, this project should be cloned to `$GOPATH/src/github.com/KohlsTechnology/eunomia`.
+
 ### Installing on a Mac
 
 All the components can easily be installed via [Homebrew](https://brew.sh/) on a Mac:
