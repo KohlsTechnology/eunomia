@@ -46,8 +46,7 @@ rules:
   - replicasets
   - deployments
   verbs: 
-  - "get"
-  - "list"
+  - "*"
 # Metrics  
 - apiGroups:
   - monitoring.coreos.com

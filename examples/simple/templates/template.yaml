@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Template
+metadata:
+  labels:
+    app: helloworld
+  name: helloworld
+  namespace: test-eunomia-operator
+objects:
+- apiVersion: v1
+  kind: Pod
+  metadata:
+    name: helloworld
+  spec:
+    serviceAccount: eunomia-operator
+    serviceAccountName: eunomia-operator
+    containers:
+    - image: hello-world:latest
+      imagePullPolicy: Always
+      name: helloworld
+      ports:
+      - containerPort: 8080
+        protocol: TCP
+      - containerPort: 8888
+        protocol: TCP

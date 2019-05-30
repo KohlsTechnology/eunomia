@@ -1,0 +1,5 @@
+image:
+  repository: hello-world
+  tag: latest
+  pullPolicy: IfNotPresent
+
