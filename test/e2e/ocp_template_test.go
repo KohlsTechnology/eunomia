@@ -19,28 +19,16 @@ package e2e
 import (
 	goctx "context"
 	"fmt"
-	gitopsv1alpha1 "gitops-operator/pkg/apis/eunomia/v1alpha1"
-	test "gitops-operator/test"
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	test "github.com/KohlsTechnology/eunomia/test"
 	"testing"
-	"time"
-
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
-)
-
-var (
-	retryInterval        = time.Second * 5
-	timeout              = time.Second * 60
-	cleanupRetryInterval = time.Second * 1
-	cleanupTimeout       = time.Second * 5
-	name                 = "gitops"
 )
 
 func TestOCPTemplate(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
-	//test.Initialize()
 	test.AddToFrameworkSchemeForTests(t, ctx)
 	if err := ocpTemplateTestDeploy(t, framework.Global, ctx); err != nil {
 		t.Fatal(err)
@@ -59,19 +47,19 @@ func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.
 			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "gitops",
+			Name:      "gitops-ocp",
 			Namespace: namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/KohlsTechnology/eunomia",
+				URI:        "https://github.com/KohlsTechnology/eunomia/examples",
 				Ref:        "master",
-				ContextDir: "example/templates",
+				ContextDir: "simple/templates",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/KohlsTechnology/eunomia",
+				URI:        "https://github.com/KohlsTechnology/eunomia/examples",
 				Ref:        "master",
-				ContextDir: "example/parameters",
+				ContextDir: "simple/parameters",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
 				{
@@ -79,7 +67,7 @@ func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.
 				},
 			},
 			ResourceDeletionMode:   "Delete",
-			TemplateProcessorImage: "quay.io/kohlstechnology/eunomia-ocp-templates:v0.0.1",
+			TemplateProcessorImage: "quay.io/KohlsTechnology/eunomia-ocp-templates:v0.0.1",
 			ResourceHandlingMode:   "CreateOrMerge",
 			ServiceAccountRef:      "gitops-operator",
 		},
@@ -91,10 +79,5 @@ func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.
 		return err
 	}
 
-	// Check if the CRD has been created
-	crd := &gitopsv1alpha1.GitOpsConfig{}
-	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "gitops", Namespace: namespace}, crd)
-	fmt.Printf("test %v+", crd)
-
-	return WaitForPod(t, f, ctx, namespace, "hello-openshift", retryInterval, timeout)
+	return WaitForPod(t, f, ctx, namespace, "helloworld", retryInterval, timeout)
 }

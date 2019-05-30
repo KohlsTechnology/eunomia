@@ -12,10 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+export JOB_TEMPLATE=$GOPATH/src/github.com/KohlsTechnology/eunomia/templates/job.yaml
+export CRONJOB_TEMPLATE=$GOPATH/src/github.com/KohlsTechnology/eunomia/templates/cronjob.yaml
+export WATCH_NAMESPACE=""
+export OPERATOR_NAME=eunomia-operator
+
 oc create namespace test-gitops-operator
 oc project test-gitops-operator
 oc create configmap gitops-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n test-gitops-operator
-oc apply -f ./test/deploy -n test-gitops-operator
-operator-sdk test local ./test/e2e --namespace test-gitops-operator --no-setup
-oc delete project test-gitops-operator
-
+oc apply -f ./deploy/kubernetes/service_account.yaml -n test-eunomia-operator
+oc apply -f ./deploy/kubernetes/service.yaml -n test-eunomia-operator
+oc apply -f ./deploy/kubernetes/role.yaml -n test-eunomia-operator
+oc apply -f ./deploy/kubernetes/role_binding.yaml -n test-eunomia-operator
+operator-sdk test local ./test/e2e --namespace test-eunomia-operator --up-local --no-setup
+oc delete project test-eunomia-operator
