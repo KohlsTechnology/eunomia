@@ -8,7 +8,7 @@ In order to build Eunomia, you'll need the following:
 - [Go](https://golang.org/dl/)
 - [Dep](https://golang.github.io/dep/docs/installation.html)
 - [Docker](https://docs.docker.com/install/)
-- [Operator SDK](https://github.com/operator-framework/operator-sdk)
+- [Operator SDK v0.8.1](https://github.com/operator-framework/operator-sdk/blob/v0.8.1/doc/user/install-operator-sdk.md)
 - Access to a Kubernetes cluster
   - [Minikube](https://kubernetes.io/docs/setup/minikube/) (optional)
   - [Minishift](https://www.okd.io/minishift/) (optional)
