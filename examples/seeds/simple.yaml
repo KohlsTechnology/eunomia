@@ -1,0 +1,23 @@
+apiVersion: gitops.systems/v1alpha1
+kind: GitOpsConfig
+metadata:
+  name: simple-test
+  namespace: gitops-operator
+spec:
+  # Add fields here
+  templateSource:
+    uri: https://github.com/cnuland/gitops-operator-example
+    ref: master
+    contextDir: simple/templates
+  parameterSource:
+    contextDir: simple/parameters
+  triggers:
+  - type: Change
+  - type: Webhook
+    secret: ciao
+  - type: Periodic
+    cron: "0 * * * *"
+  serviceAccountRef: gitops
+  templateProcessorImage: quay.io/cnuland/kube-gitops-ocp-templates:v0.0.1
+  resourceHandlingMode: CreateOrMerge
+  resourceDeletionMode: Delete                     
