@@ -22,17 +22,15 @@ import (
 
 	"k8s.io/apimachinery/pkg/labels"
 
+	"text/template"
 	"time"
 
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	util "github.com/KohlsTechnology/eunomia/pkg/util"
 	opsutil "github.com/redhat-cop/operator-utils/pkg/util"
 	batchv1 "k8s.io/api/batch/v1"
-	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -46,10 +44,12 @@ import (
 )
 
 var log = logf.Log.WithName("controller_gitopsconfig")
+var jobTemplate *template.Template
+var cronJobTemplate *template.Template
 
 const initLabel string = "gitopsconfig.eunomia.kohls.io/initialized"
 const kubeGitopsFinalizer string = "eunomia-finalizer"
-const contrllerName = "gitopsconfig_controller"
+const controllerName = "gitopsconfig_controller"
 
 // PushEvents channel on which we get the github webhook push events
 var PushEvents = make(chan event.GenericEvent)
@@ -131,7 +131,7 @@ func (r *ReconcileGitOpsConfig) Reconcile(request reconcile.Request) (reconcile.
 
 	// Fetch the GitOpsConfig instance
 	instance := &gitopsv1alpha1.GitOpsConfig{}
-	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
+	err := r.GetClient().Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
 		if errors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
@@ -164,115 +164,78 @@ func (r *ReconcileGitOpsConfig) Reconcile(request reconcile.Request) (reconcile.
 		return r.manageDeletion(instance)
 	}
 
-
 	reqLogger.Info("Instance is initialized", "instance", instance.GetName())
 
 	if ContainsTrigger(instance, "Periodic") {
 		reqLogger.Info("Instance has a periodic trigger, creating/updating cronjob", "instance", instance.GetName())
-		_, err = r.createCronJob(instance)
+		err = r.createCronJob(instance)
 		if err != nil {
-			reqLogger.Error(err, "error creating the cronjob, continuing...")
+			r.ManageError(instance, err)
 		}
 	}
 
 	if ContainsTrigger(instance, "Change") || ContainsTrigger(instance, "Webhook") {
 		reqLogger.Info("Instance has a change or Webhook trigger, creating job", "instance", instance.GetName())
-		_, err = r.CreateJob("create", instance)
+		err = r.CreateJob("create", instance)
 		if err != nil {
-			reqLogger.Error(err, "error creating the job, continuing...")
+			r.ManageError(instance, err)
 		}
 	}
 
-	return reconcile.Result{}, err
-}
-
-// ContainsTrigger returns true if the passed instance contains the given trigger
-func ContainsTrigger(instance *gitopsv1alpha1.GitOpsConfig, triggeType string) bool {
-	for _, trigger := range instance.Spec.Triggers {
-		if trigger.Type == triggeType {
-			return true
-		}
-	}
-	return false
+	return r.ManageSuccess(instance)
 }
 
 // CreateJob creates a new gitops job for the passed instance
-func (r *ReconcileGitOpsConfig) CreateJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
+func (r *ReconcileGitOpsConfig) CreateJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) error {
 	//TODO add logic to ignore if another job was created sooner than x (5 minutes?) time and it is still running.
-	mergedata := util.JobMergeData{
+	mergedata := JobMergeData{
 		Config: *instance,
 		Action: jobtype,
 	}
-	job, err := util.CreateJob(mergedata)
+	job, err := opsutil.ProcessTemplate(mergedata, jobTemplate)
 	if err != nil {
 		log.Error(err, "unable to create job manifest from merge data", "mergedata", mergedata)
-		return reconcile.Result{}, err
+		return err
 	}
-	err = controllerutil.SetControllerReference(instance, &job, r.scheme)
+	err = controllerutil.SetControllerReference(instance, job, r.GetScheme())
 	if err != nil {
 		log.Error(err, "unable to the owner for job", "job", job)
-		return reconcile.Result{}, err
+		return err
 	}
 
-	log.Info("Creating a new Job", "job.Namespace", job.Namespace, "job.Name", job.Name)
-	err = r.client.Create(context.TODO(), &job)
+	log.Info("Creating a new Job", "job.Namespace", job.GetNamespace(), "job.Name", job.GetName())
+	err = r.GetClient().Create(context.TODO(), job)
 	if err != nil {
 		log.Error(err, "unable to create the job", "job", job)
-		return reconcile.Result{}, err
+		return err
 	}
-	return reconcile.Result{}, nil
+	return nil
 }
 
-func (r *ReconcileGitOpsConfig) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
-	mergedata := util.JobMergeData{
+func (r *ReconcileGitOpsConfig) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error {
+	mergedata := JobMergeData{
 		Config: *instance,
 		Action: "create",
 	}
 
-	var update bool
-
-	cronjob, err := util.CreateCronJob(mergedata)
+	cronjob, err := opsutil.ProcessTemplate(mergedata, cronJobTemplate)
 	if err != nil {
 		log.Error(err, "unable to create cronjob manifest from merge data", "mergedata", mergedata)
-		return reconcile.Result{}, err
+		return err
 	}
-
-	pCronjob := batchv1beta1.CronJob{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: cronjob.GetName(), Namespace: cronjob.GetNamespace()}, &pCronjob)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			update = false
-		} else {
-			// Error reading the object - requeue the request.
-			return reconcile.Result{}, err
-		}
-	} else {
-		update = true
-	}
-
-	err = controllerutil.SetControllerReference(instance, &cronjob, r.scheme)
-	if err != nil {
-		log.Error(err, "unable to the owner for cronjob", "cronjob", cronjob)
-		return reconcile.Result{}, err
-	}
-	log.Info("Creating/updating CronJob", "cronjob.Namespace", cronjob.Namespace, "cronjob.Name", cronjob.Name)
-	if update {
-		err = r.client.Update(context.TODO(), &cronjob)
-	} else {
-		err = r.client.Create(context.TODO(), &cronjob)
-	}
+	err = r.CreateOrUpdateResource(instance, "", cronjob)
 
 	if err != nil {
 		log.Error(err, "unable to create/update the cronjob", "cronjob", cronjob)
-		return reconcile.Result{}, err
+		return err
 	}
-	return reconcile.Result{}, nil
+	return nil
 }
 
 // GetAllGitOpsConfig retrieves all the gitops config in the cluster
 func (r *ReconcileGitOpsConfig) GetAllGitOpsConfig() (gitopsv1alpha1.GitOpsConfigList, error) {
 	instanceList := &gitopsv1alpha1.GitOpsConfigList{}
-	err := r.client.List(context.TODO(), &client.ListOptions{}, instanceList)
+	err := r.GetClient().List(context.TODO(), &client.ListOptions{}, instanceList)
 	if err != nil {
 		log.Error(err, "unable to get the list of GitOpsCionfig")
 		return *instanceList, err
@@ -291,7 +254,7 @@ func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsCo
 			return reconcile.Result{}, err
 		}
 		// looking up all delete jobs
-		err = r.client.List(context.TODO(), &client.ListOptions{
+		err = r.GetClient().List(context.TODO(), &client.ListOptions{
 			Namespace:     instance.GetNamespace(),
 			LabelSelector: selector,
 		}, jobList)
@@ -303,14 +266,14 @@ func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsCo
 		//filtering by those that are might have been created by this gitopsconfig
 		// TODO better filter by owner reference
 		for _, job := range jobList.Items {
-			if isOwner(instance, &job) && job.GetLabels()["action"] == "delete" {
+			if opsutil.IsOwner(instance, &job) && job.GetLabels()["action"] == "delete" {
 				applicableJobList = append(applicableJobList, job)
 			}
 		}
 		if len(applicableJobList) == 0 {
 			// to avoid a deadlock situation let's check that the namespace in which we are is not being deleted
 			ns := &corev1.Namespace{}
-			err := r.client.Get(context.TODO(), types.NamespacedName{
+			err := r.GetClient().Get(context.TODO(), types.NamespacedName{
 				Name: instance.GetNamespace(),
 			}, ns)
 			if err != nil {
@@ -320,15 +283,15 @@ func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsCo
 			if !ns.ObjectMeta.DeletionTimestamp.IsZero() {
 				//namespace is being deleted
 				// the best we can do in this situation is to let the instance be deleted and hope that this instance was creating objects only in this namespace
-				opsutil.RemoveFinalizer(instance,kubeGitopsFinalizer)
-				if err := r.client.Update(context.TODO(), instance); err != nil {
+				opsutil.RemoveFinalizer(instance, kubeGitopsFinalizer)
+				if err := r.GetClient().Update(context.TODO(), instance); err != nil {
 					log.Error(err, "unable to create update instace to remove finalizers")
 					return reconcile.Result{}, err
 				}
 				return reconcile.Result{}, nil
 			}
 			log.Info("Launching delete job for instance", "instance", instance.GetName())
-			_, err = r.CreateJob("delete", instance)
+			err = r.CreateJob("delete", instance)
 			if err != nil {
 				log.Error(err, "unable to create deletion job")
 				return reconcile.Result{}, err
@@ -342,8 +305,8 @@ func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsCo
 		//There should be only one pending job
 		job := applicableJobList[0]
 		if job.Status.Succeeded > 0 {
-			opsutil.RemoveFinalizer(instance,kubeGitopsFinalizer)
-			if err := r.client.Update(context.TODO(), instance); err != nil {
+			opsutil.RemoveFinalizer(instance, kubeGitopsFinalizer)
+			if err := r.GetClient().Update(context.TODO(), instance); err != nil {
 				log.Error(err, "unable to create update instace to remove finalizers")
 				return reconcile.Result{}, err
 			}
@@ -359,19 +322,6 @@ func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsCo
 	return reconcile.Result{}, nil
 }
 
-func isOwner(owner, owned metav1.Object) bool {
-	runtimeObj, ok := (owner).(runtime.Object)
-	if !ok {
-		return false
-	}
-	for _, ownerRef := range owned.GetOwnerReferences() {
-		if ownerRef.Name == owner.GetName() && ownerRef.UID == owner.GetUID() && ownerRef.Kind == runtimeObj.GetObjectKind().GroupVersionKind().Kind {
-			return true
-		}
-	}
-	return false
-}
-
 func (r *ReconcileGitOpsConfig) IsValid(obj metav1.Object) (bool, error) {
 	instance, ok := obj.(*gitopsv1alpha1.GitOpsConfig)
 	if !ok {
@@ -385,54 +335,54 @@ func (r *ReconcileGitOpsConfig) IsValid(obj metav1.Object) (bool, error) {
 }
 
 func (r *ReconcileGitOpsConfig) IsInitialized(obj metav1.Object) bool {
-	instance, ok := obj.(*examplev1alpha1.MyCRD)
+	instance, ok := obj.(*gitopsv1alpha1.GitOpsConfig)
 	if !ok {
 		return false
 	}
-	bool initialzied=true
+	var initialized = true
 	if instance.Spec.TemplateSource.Ref == "" {
 		instance.Spec.TemplateSource.Ref = "master"
-		initialized=false
+		initialized = false
 	}
 
 	if instance.Spec.TemplateSource.ContextDir == "" {
 		instance.Spec.TemplateSource.ContextDir = "."
-		initialized=false
+		initialized = false
 	}
 
 	if instance.Spec.ParameterSource.URI == "" {
 		instance.Spec.ParameterSource.URI = instance.Spec.TemplateSource.URI
-		initialized=false
+		initialized = false
 	}
 	if instance.Spec.ParameterSource.Ref == "" {
 		instance.Spec.ParameterSource.Ref = "master"
-		initialized=false
+		initialized = false
 	}
 
 	if instance.Spec.ParameterSource.ContextDir == "" {
 		instance.Spec.ParameterSource.ContextDir = "."
-		initialized=false
+		initialized = false
 	}
 
 	if instance.Spec.ServiceAccountRef == "" {
 		instance.Spec.ServiceAccountRef = "default"
-		initialized=false
+		initialized = false
 	}
 
 	if instance.Spec.ResourceHandlingMode == "" {
 		instance.Spec.ResourceHandlingMode = "CreateOrMerge"
-		initialized=false
+		initialized = false
 	}
 
 	if instance.Spec.ResourceDeletionMode == "" {
 		instance.Spec.ResourceDeletionMode = "Delete"
-		initialized=false
+		initialized = false
 	}
 
-	if !opsutil.HasFinalizer(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer) && instance.Spec.ResourceDeletionMode != "Retain" {
-		opsutil.AddFinalizer(instance,kubeGitopsFinalizer)
-		initialized=false
+	if !opsutil.HasFinalizer(instance, kubeGitopsFinalizer) && instance.Spec.ResourceDeletionMode != "Retain" {
+		opsutil.AddFinalizer(instance, kubeGitopsFinalizer)
+		initialized = false
 	}
 
-	return initialized	
+	return initialized
 }

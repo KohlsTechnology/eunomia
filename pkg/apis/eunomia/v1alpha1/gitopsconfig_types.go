@@ -1,6 +1,7 @@
 package v1alpha1
 
 import (
+	"github.com/redhat-cop/operator-utils/pkg/util/apis"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -62,6 +63,15 @@ type GitOpsConfigStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
+	apis.ReconcileStatus `json:",inline"`
+}
+
+func (m *GitOpsConfig) GetReconcileStatus() apis.ReconcileStatus {
+	return m.Status.ReconcileStatus
+}
+
+func (m *GitOpsConfig) SetReconcileStatus(reconcileStatus apis.ReconcileStatus) {
+	m.Status.ReconcileStatus = reconcileStatus
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

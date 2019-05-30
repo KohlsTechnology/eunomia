@@ -117,6 +117,17 @@ spec:
               type: array
           type: object
         status:
+          properties:
+            lastUpdate:
+              format: date-time
+              type: string
+            reason:
+              type: string
+            status:
+              enum:
+              - Success
+              - Failure
+              type: string
           type: object
   version: v1alpha1
   versions:

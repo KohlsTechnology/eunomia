@@ -28,7 +28,6 @@ import (
 	"github.com/KohlsTechnology/eunomia/pkg/controller"
 	"github.com/KohlsTechnology/eunomia/pkg/controller/gitopsconfig"
 	"github.com/KohlsTechnology/eunomia/pkg/handler"
-	"github.com/KohlsTechnology/eunomia/pkg/util"
 
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
@@ -95,7 +94,7 @@ func main() {
 		log.Info("Error: CRONJOB_TEMPLATE must be set")
 		os.Exit(1)
 	}
-	util.InitializeTemplates(jt, cjt)
+	gitopsconfig.InitializeTemplates(jt, cjt)
 	log.Info("Templates initialized correctly")
 
 	// Get a config to talk to the apiserver
