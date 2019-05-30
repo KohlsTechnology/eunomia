@@ -118,7 +118,7 @@ For testing and CI purposes, we manage several set of tests. These tests can be 
 ./unit-tests.sh
 ```
 
-### Running End-to-End Tests`
+### Running End-to-End Tests
 
 ```shell
 ./e2e-tests.sh
