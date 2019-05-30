@@ -41,14 +41,6 @@
   version = "v0.3.1"
 
 [[projects]]
-  digest = "1:a26f8da48b22e6176c1c6a2459904bb30bd0c49ada04b2963c2c3a203e81a620"
-  name = "github.com/Masterminds/semver"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "c7af12943936e8c39859482e61f0574c2fd7fc75"
-  version = "v1.4.2"
-
-[[projects]]
   digest = "1:0a111edd8693fd977f42a0c4f199a0efb13c20aec9da99ad8830c7bb6a87e8d6"
   name = "github.com/PuerkitoBio/purell"
   packages = ["."]
@@ -94,14 +86,6 @@
   pruneopts = "NT"
   revision = "a105b96453fe85139acc07b68de48f2cbdd71249"
   version = "v0.2.0"
-
-[[projects]]
-  digest = "1:8449bb0c1da0fd7ec4706afb5ae46ad0ad658fd87f17a7eb067c5a307ffe3818"
-  name = "github.com/cyphar/filepath-securejoin"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "a261ee33d7a517f054effbf451841abaafe3e0fd"
-  version = "v0.2.2"
 
 [[projects]]
   digest = "1:4b8b5811da6970495e04d1f4e98bb89518cc3cfc3b3f456bdb876ed7b6c74049"
@@ -209,23 +193,6 @@
   pruneopts = "NT"
   revision = "fa0dfdc10b5366ce365b7d9d1755a03e4e797bc5"
   version = "v1.6.15"
-
-[[projects]]
-  digest = "1:fb7b2a3e97946b9886007313497664ab2842c7b6473c33460e97157a38935f5d"
-  name = "github.com/gobwas/glob"
-  packages = [
-    ".",
-    "compiler",
-    "match",
-    "syntax",
-    "syntax/ast",
-    "syntax/lexer",
-    "util/runes",
-    "util/strings",
-  ]
-  pruneopts = "NT"
-  revision = "5ccd90ef52e1e632236f7326478d4faa74f99438"
-  version = "v0.2.3"
 
 [[projects]]
   digest = "1:0b39706cfa32c1ba9e14435b5844d04aef81b60f44b6077e61e0607d56692603"
@@ -378,14 +345,6 @@
   version = "v0.5.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:b0b1cae9ff30d8c219dc64e5f8dcfbb3f5f3f10f9e67dec737ce0bc04bf31a54"
-  name = "github.com/iancoleman/strcase"
-  packages = ["."]
-  pruneopts = "NT"
-  revision = "e506e3ef73653e84c592ba44aab577a46678f68c"
-
-[[projects]]
   digest = "1:aaa38889f11896ee3644d77e17dc7764cc47f5f3d3b488268df2af2b52541c5f"
   name = "github.com/imdario/mergo"
   packages = ["."]
@@ -454,6 +413,14 @@
   version = "v1.0.1"
 
 [[projects]]
+  digest = "1:f9f72e583aaacf1d1ac5d6121abd4afd3c690baa9e14e1d009df26bf831ba347"
+  name = "github.com/mitchellh/go-homedir"
+  packages = ["."]
+  pruneopts = "NT"
+  revision = "af06845cf3004701891bf4fdb884bfe4920b3727"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:2f42fa12d6911c7b7659738758631bec870b7e9b4c6be5444f963cdcfccc191f"
   name = "github.com/modern-go/concurrent"
   packages = ["."]
@@ -470,14 +437,12 @@
   version = "1.0.1"
 
 [[projects]]
-  branch = "master"
-  digest = "1:31bfb4b5d13aa2a23282ebc2a288db771fb499598f5b059f3295e7d7efede71e"
+  digest = "1:fe3c97fb1956829a81d7b8221b4710c40d6dae2c6c3b4d222db5b7f96c975d99"
   name = "github.com/operator-framework/operator-sdk"
   packages = [
     "internal/pkg/scaffold",
-    "internal/pkg/scaffold/ansible",
-    "internal/pkg/scaffold/helm",
     "internal/pkg/scaffold/input",
+    "internal/pkg/scaffold/internal/deps",
     "internal/util/fileutil",
     "internal/util/k8sutil",
     "internal/util/projutil",
@@ -489,7 +454,8 @@
     "version",
   ]
   pruneopts = "NT"
-  revision = "987b9c945a0871fcc074384cc93b7fc5412341e3"
+  revision = "33b3bfe10176f8647f5354516fff29dea42b6342"
+  version = "v0.8.1"
 
 [[projects]]
   digest = "1:93b1d84c5fa6d1ea52f4114c37714cddd84d5b78f151b62bb101128dd51399bf"
@@ -688,17 +654,7 @@
   branch = "master"
   digest = "1:2c0b9b49d155596fecc071bce8db372c193f638265c11ab24914aae99fcfa704"
   name = "golang.org/x/crypto"
-  packages = [
-    "cast5",
-    "openpgp",
-    "openpgp/armor",
-    "openpgp/clearsign",
-    "openpgp/elgamal",
-    "openpgp/errors",
-    "openpgp/packet",
-    "openpgp/s2k",
-    "ssh/terminal",
-  ]
+  packages = ["ssh/terminal"]
   pruneopts = "NT"
   revision = "38d8ce5564a5b71b2e3a00553993f1b9a7ae852f"
 
@@ -1133,31 +1089,6 @@
   revision = "e17681d19d3ac4837a019ece36c2a0ec31ffe985"
 
 [[projects]]
-  digest = "1:5840664ce673278c5e0cbc3dd24a85f6ec8fad28eea38d3a815bed9d5b0b1403"
-  name = "k8s.io/helm"
-  packages = [
-    "pkg/chartutil",
-    "pkg/downloader",
-    "pkg/getter",
-    "pkg/helm/environment",
-    "pkg/helm/helmpath",
-    "pkg/ignore",
-    "pkg/plugin",
-    "pkg/proto/hapi/chart",
-    "pkg/proto/hapi/version",
-    "pkg/provenance",
-    "pkg/repo",
-    "pkg/resolver",
-    "pkg/sympath",
-    "pkg/tlsutil",
-    "pkg/urlutil",
-    "pkg/version",
-  ]
-  pruneopts = "NT"
-  revision = "618447cbf203d147601b4b9bd7f8c37a5d39fbb4"
-  version = "v2.13.1"
-
-[[projects]]
   digest = "1:29f93bb84d907a2c035e729e19d66fe52165d8c905cb3ef1920140d76ae6afaf"
   name = "k8s.io/klog"
   packages = ["."]
@@ -1220,7 +1151,7 @@
   version = "v0.1.10"
 
 [[projects]]
-  digest = "1:0a14ea9a2647d064bb9d48b2de78306e74b196681efd7b654eb0b518d90c2e8d"
+  digest = "1:00eecd8f1e0541da85a37549f6514c4b3517e2e000b74a0dc9f47cee07d7e1b5"
   name = "sigs.k8s.io/controller-tools"
   packages = [
     "pkg/crd/generator",
@@ -1231,8 +1162,7 @@
     "pkg/util",
   ]
   pruneopts = "NT"
-  revision = "950a0e88e4effb864253b3c7504b326cc83b9d11"
-  version = "v0.1.8"
+  revision = "9d55346c2bde73fb3326ac22eac2e5210a730207"
 
 [[projects]]
   digest = "1:8730e0150dfb2b7e173890c8b9868e7a273082ef8e39f4940e3506a481cf895c"
