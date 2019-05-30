@@ -19,7 +19,7 @@ To check out this repository:
 1. Create a [fork](https://help.github.com/en/articles/fork-a-repo) of this repo
 2. Create the directories and clone your fork
 
-```
+```shell
 mkdir -p $GOPATH/src/github.com/KohlsTechnology
 cd $GOPATH/src/github.com/KohlsTechnology
 git clone https://github.com/<YOUR FORK>/eunomia.git
@@ -43,7 +43,7 @@ brew install minishift
 
 The most efficient way to develop the operator locally is run the code on your local machine. This allows you to test code changes as you make them.
 
-```
+```shell
 minikube start
 kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
 export JOB_TEMPLATE=./templates/job.yaml
@@ -61,7 +61,7 @@ The Eunomia operator gets packaged as a container image for running on Kubernete
 
 ### Building the image on your local workstation
 
-See https://golang.org/doc/install to install/setup your Go Programming environment if you have not already done this.
+See [golang install instracutions](https://golang.org/doc/install) to install/setup your Go Programming environment if you have not already done this.
 
 ```shell
 export GO111MODULE=on

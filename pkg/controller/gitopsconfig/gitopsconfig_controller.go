@@ -88,7 +88,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource GitOpsConfig
-	err = c.Watch(&source.Kind{Type: &gitopsv1alpha1.GitOpsConfig{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(&source.Kind{Type: &gitopsv1alpha1.GitOpsConfig{}}, &handler.EnqueueRequestForObject{}, opsutil.ResourceGenerationOrFinalizerChangedPredicate{})
 	if err != nil {
 		return err
 	}
@@ -322,6 +322,7 @@ func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsCo
 	return reconcile.Result{}, nil
 }
 
+// IsValid returns true if the obj is balid and false with an error describing the nature of the violation if not.
 func (r *ReconcileGitOpsConfig) IsValid(obj metav1.Object) (bool, error) {
 	instance, ok := obj.(*gitopsv1alpha1.GitOpsConfig)
 	if !ok {
@@ -334,6 +335,7 @@ func (r *ReconcileGitOpsConfig) IsValid(obj metav1.Object) (bool, error) {
 	return true, nil
 }
 
+// IsInitialized determines whether obj is initialzied. if ont it returns false and obj will be changed with initilzied values, so that it can be used to update the instance.
 func (r *ReconcileGitOpsConfig) IsInitialized(obj metav1.Object) bool {
 	instance, ok := obj.(*gitopsv1alpha1.GitOpsConfig)
 	if !ok {
