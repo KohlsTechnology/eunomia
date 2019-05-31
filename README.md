@@ -190,8 +190,8 @@ The base image provides the following workflow:
     | `NAMESPACE`  | Current namespace  |
 3. `processTemplate.sh` : This shell that needs to be overwritten in order to support a different templating engine. The contract is the following:
 
-    - Templates are avaialble at the location specified by the variable: `CLONED_TEMPLATE_GIT_DIR`
-    - Parameters are avaialble at the location pecified by the variable: `CLONED_PARAMETER_GIT_DIR`
+    - Templates are available at the location specified by the variable: `CLONED_TEMPLATE_GIT_DIR`
+    - Parameters are available at the location pecified by the variable: `CLONED_PARAMETER_GIT_DIR`
     - After the template processing completes, the processed manifests should be stored at the location of this variable: `MANIFEST_DIR`
 
 4. `resourceManager.sh` :  Processes the resources in `MANIFEST_DIR`. One or more files can be present, and all will be processed.
