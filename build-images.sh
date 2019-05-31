@@ -17,8 +17,8 @@
 REGISTRY=${REGISTRY:-quay.io/kohlstechnology}
 
 # building and pushing the operator images
-GOOS=linux operator-sdk build $REGISTRY/eunomia-operator:v0.0.1
-docker push $REGISTRY/eunomia-operator:v0.0.1
+#GOOS=linux operator-sdk build $REGISTRY/eunomia-operator:v0.0.1
+#docker push $REGISTRY/eunomia-operator:v0.0.1
 
 
 # building and pushing base template processor images
