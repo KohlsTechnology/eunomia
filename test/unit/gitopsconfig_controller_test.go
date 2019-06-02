@@ -14,17 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package gitopsconfig 
+package unit
 
 import (
 	"context"
 	"os"
 	"testing"
 
+	"github.com/KohlsTechnology/eunomia/pkg/apis"
+
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	gitopscontroller "github.com/KohlsTechnology/eunomia/pkg/controller/gitopsconfig"
 	test "github.com/KohlsTechnology/eunomia/test"
+	opsutil "github.com/redhat-cop/operator-utils/pkg/util"
 	"github.com/stretchr/testify/assert"
-	batch "k8s.io/api/batch/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -36,10 +39,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
+var log = logf.Log.WithName("controller_gitopsconfig")
 var gitops *gitopsv1alpha1.GitOpsConfig
-var deleteJob *batch.Job
+var deleteJob *batchv1.Job
 var deleteJobName = "gitops-operator-delete"
 var name = "gitops-operator"
 var namespace = "gitops"
@@ -55,8 +60,9 @@ func TestMain(m *testing.M) {
 			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
-			Namespace: namespace,
+			Name:       name,
+			Namespace:  namespace,
+			Finalizers: []string{"eunomia-finalizer"},
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
@@ -96,10 +102,10 @@ func TestMain(m *testing.M) {
 	controller := true
 	blockDelete := true
 
-	deleteJob = &batch.Job{
+	deleteJob = &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
-			APIVersion: "eunomia.kohls.io/v1alpha1",
+			APIVersion: "batch/v1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      deleteJobName,
@@ -115,12 +121,12 @@ func TestMain(m *testing.M) {
 				},
 			},
 		},
-		Spec: batch.JobSpec{
+		Spec: batchv1.JobSpec{
 			Parallelism:  &parallelism,
 			Completions:  &completions,
 			BackoffLimit: &backoffLimit,
 		},
-		Status: batch.JobStatus{
+		Status: batchv1.JobStatus{
 			Succeeded: 2,
 		},
 	}
@@ -137,8 +143,6 @@ func TestMain(m *testing.M) {
 }
 
 func TestCRDInitialization(t *testing.T) {
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	// Objects to track in the fake client.
 	objs := []runtime.Object{
@@ -146,10 +150,11 @@ func TestCRDInitialization(t *testing.T) {
 	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
-	// Initialize fake client
+	apis.AddToScheme(s)
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
+	r := &gitopscontroller.ReconcileGitOpsConfig{
+		ReconcilerBase: opsutil.NewReconcilerBase(cl, s, nil, nil),
+	}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -176,8 +181,6 @@ func TestCRDInitialization(t *testing.T) {
 }
 
 func TestPeriodicTrigger(t *testing.T) {
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	// Objects to track in the fake client.
 	objs := []runtime.Object{
@@ -185,10 +188,12 @@ func TestPeriodicTrigger(t *testing.T) {
 	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
+	apis.AddToScheme(s)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
+	r := &gitopscontroller.ReconcileGitOpsConfig{
+		ReconcilerBase: opsutil.NewReconcilerBase(cl, s, nil, nil),
+	}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -206,7 +211,7 @@ func TestPeriodicTrigger(t *testing.T) {
 	err := cl.Get(context.TODO(), types.NamespacedName{Name: "gitopsconfig-gitops-operator", Namespace: namespace}, cron)
 
 	if err != nil {
-		log.Error(err, "Get Cron", "Failed retrieving type of CronJob")
+		log.Error(err, "Get Cron - Failed retrieving type of CronJob")
 	}
 
 	// Check if the name matches what was deployed
@@ -216,8 +221,6 @@ func TestPeriodicTrigger(t *testing.T) {
 }
 
 func TestChangeTrigger(t *testing.T) {
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	// Set trigger type to Change
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
 		{
@@ -230,10 +233,13 @@ func TestChangeTrigger(t *testing.T) {
 	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
+	apis.AddToScheme(s)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
+
+	r := &gitopscontroller.ReconcileGitOpsConfig{
+		ReconcilerBase: opsutil.NewReconcilerBase(cl, s, nil, nil),
+	}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -247,11 +253,11 @@ func TestChangeTrigger(t *testing.T) {
 	r.Reconcile(req)
 
 	// Check if the CRD has been created
-	job := &batch.Job{}
+	job := &batchv1.Job{}
 	err := cl.Get(context.TODO(), types.NamespacedName{Namespace: namespace}, job)
 
 	if err != nil {
-		log.Error(err, "Get Job", "Failed retrieving type of Job")
+		log.Error(err, "Get Job - Failed retrieving type of Job")
 	}
 
 	// Check if the name matches what was deployed
@@ -261,8 +267,6 @@ func TestChangeTrigger(t *testing.T) {
 }
 
 func TestWebhookTrigger(t *testing.T) {
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	// Set trigger type to Webhook
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
 		{
@@ -275,10 +279,12 @@ func TestWebhookTrigger(t *testing.T) {
 	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
+	apis.AddToScheme(s)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
+	r := &gitopscontroller.ReconcileGitOpsConfig{
+		ReconcilerBase: opsutil.NewReconcilerBase(cl, s, nil, nil),
+	}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -292,11 +298,11 @@ func TestWebhookTrigger(t *testing.T) {
 	r.Reconcile(req)
 
 	// Check if the CRD has been created
-	job := &batch.Job{}
+	job := &batchv1.Job{}
 	err := cl.Get(context.TODO(), types.NamespacedName{Namespace: namespace}, job)
 
 	if err != nil {
-		log.Error(err, "Get Job", "Failed retrieving type of Job")
+		log.Error(err, "Get Job - Failed retrieving type of Job")
 	}
 
 	// Check if the name matches what was deployed
@@ -306,8 +312,6 @@ func TestWebhookTrigger(t *testing.T) {
 }
 
 func TestDeleteRemovingFinalizer(t *testing.T) {
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
 		{
 			Type: "Change",
@@ -320,11 +324,12 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
+	apis.AddToScheme(s)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
-
+	r := &gitopscontroller.ReconcileGitOpsConfig{
+		ReconcilerBase: opsutil.NewReconcilerBase(cl, s, nil, nil),
+	}
 	nsn := types.NamespacedName{
 		Name:      name,
 		Namespace: namespace,
@@ -336,20 +341,13 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 
 	r.Reconcile(req)
 
-	// Add a finalizer to the CRD
-	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "eunomia-finalizer")
-	err := cl.Update(context.Background(), gitops)
-	if err != nil {
-		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")
-	}
-
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
+	err := cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
 	if err != nil {
-		log.Error(err, "Get CRD", "Failed retrieving CRD type of GitOpsConfig")
+		log.Error(err, "Get CRD - Failed retrieving CRD type of GitOpsConfig")
 	}
-	// Make sure the finalizer has been added
+	// Make sure the finalizer is there
 	assert.NotEmpty(t, crd.ObjectMeta.Finalizers)
 
 	// Set deletion timestamp
@@ -358,12 +356,12 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	// Update the CRD with the new deletion timestamp
 	err = cl.Update(context.TODO(), crd)
 	if err != nil {
-		log.Error(err, "Update CRD", "Failed Updating CRD type of GitOpsConfig")
+		log.Error(err, "Update CRD - Failed Updating CRD type of GitOpsConfig")
 	}
 	// Create the deleteJob
 	err = cl.Create(context.TODO(), deleteJob)
 	if err != nil {
-		log.Error(err, "Create Job", "Failed creating Job type action of Delete")
+		log.Error(err, "Create Job - Failed creating Job type action of Delete")
 	}
 	// Reconcile so that the controller can delete the finalizer
 	r.Reconcile(req)
@@ -377,8 +375,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 }
 
 func TestCreatingDeleteJob(t *testing.T) {
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
+
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
 		{
 			Type: "Change",
@@ -391,15 +388,17 @@ func TestCreatingDeleteJob(t *testing.T) {
 	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
+	apis.AddToScheme(s)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
+	r := &gitopscontroller.ReconcileGitOpsConfig{
+		ReconcilerBase: opsutil.NewReconcilerBase(cl, s, nil, nil),
+	}
 
 	// Create a namespace
 	err := cl.Create(context.TODO(), ns)
 	if err != nil {
-		log.Error(err, "Namespace", "Failed to create namespace")
+		log.Error(err, "Namespace - Failed to create namespace")
 	}
 
 	nsn := types.NamespacedName{
@@ -421,18 +420,11 @@ func TestCreatingDeleteJob(t *testing.T) {
 		log.Error(err, "unable to lookup instance's namespace")
 	}
 
-	// Add a finalizer to the CRD
-	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "eunomia-finalizer")
-	err = cl.Update(context.Background(), gitops)
-	if err != nil {
-		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")
-	}
-
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
 	err = cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
 	if err != nil {
-		log.Error(err, "Get CRD", "Failed retrieving CRD type of GitOpsConfig")
+		log.Error(err, "Get CRD - Failed retrieving CRD type of GitOpsConfig")
 	}
 	// Make sure the finalizer has been added
 	assert.NotEmpty(t, crd.ObjectMeta.Finalizers)
@@ -447,7 +439,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	// Update the CRD with the new deletion timestamp
 	err = cl.Update(context.TODO(), crd)
 	if err != nil {
-		log.Error(err, "Update CRD", "Failed Updating CRD type of GitOpsConfig")
+		log.Error(err, "Update CRD - Failed Updating CRD type of GitOpsConfig")
 	}
 
 	// There shouldn't be a delete job at this point, the reconciler should create one
@@ -459,8 +451,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 }
 
 func TestDeleteWhileNamespaceDeleting(t *testing.T) {
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
+
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
 		{
 			Type: "Change",
@@ -473,18 +464,19 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
+	apis.AddToScheme(s)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
-
+	r := &gitopscontroller.ReconcileGitOpsConfig{
+		ReconcilerBase: opsutil.NewReconcilerBase(cl, s, nil, nil),
+	}
 	// Create a namespace
 	// Set deletion timestamp on the namespace
 	deleteTime := metav1.Now()
 	ns.ObjectMeta.DeletionTimestamp = &deleteTime
 	err := cl.Create(context.TODO(), ns)
 	if err != nil {
-		log.Error(err, "Namespace", "Failed to create namespace")
+		log.Error(err, "Namespace - Failed to create namespace")
 	}
 
 	nsn := types.NamespacedName{
@@ -506,18 +498,11 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 		log.Error(err, "unable to lookup instance's namespace")
 	}
 
-	// Add a finalizer to the CRD
-	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "eunomia-finalizer")
-	err = cl.Update(context.Background(), gitops)
-	if err != nil {
-		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")
-	}
-
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
 	err = cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
 	if err != nil {
-		log.Error(err, "Get CRD", "Failed retrieving CRD type of GitOpsConfig")
+		log.Error(err, "Get CRD - Failed retrieving CRD type of GitOpsConfig")
 	}
 	// Make sure the finalizer has been added
 	assert.NotEmpty(t, crd.ObjectMeta.Finalizers)
@@ -528,7 +513,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	// Update the CRD with the new deletion timestamp
 	err = cl.Update(context.TODO(), crd)
 	if err != nil {
-		log.Error(err, "Update CRD", "Failed Updating CRD type of GitOpsConfig")
+		log.Error(err, "Update CRD - Failed Updating CRD type of GitOpsConfig")
 	}
 
 	// There shouldn't be a delete job at this point, the reconciler should create one
@@ -542,7 +527,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func findDeleteJob(cl client.Client) batch.Job {
+func findDeleteJob(cl client.Client) batchv1.Job {
 	// At times other jobs can exist
 	jobList := &batchv1.JobList{}
 	// Looking up all jobs
@@ -551,7 +536,7 @@ func findDeleteJob(cl client.Client) batch.Job {
 	}, jobList)
 	if err != nil {
 		log.Error(err, "unable to list jobs")
-		return batch.Job{}
+		return batchv1.Job{}
 	}
 	// Return the first instance that is a delete job
 	for _, job := range jobList.Items {
@@ -559,5 +544,5 @@ func findDeleteJob(cl client.Client) batch.Job {
 			return job
 		}
 	}
-	return batch.Job{}
+	return batchv1.Job{}
 }

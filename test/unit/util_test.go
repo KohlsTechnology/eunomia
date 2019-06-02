@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package gitopsconfig
+package unit
 
 import (
 	"bytes"
@@ -23,11 +23,12 @@ import (
 	"text/template"
 
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	gitopscontroller "github.com/KohlsTechnology/eunomia/pkg/controller/gitopsconfig"
 	"github.com/dchest/uniuri"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var fullconfig = JobMergeData{
+var fullconfig = gitopscontroller.JobMergeData{
 	Action: "create",
 	Config: gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{

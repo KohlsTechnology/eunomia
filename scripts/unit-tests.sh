@@ -17,5 +17,5 @@ set -e
 export JOB_TEMPLATE=$GOPATH/src/github.com/KohlsTechnology/eunomia/templates/job.yaml
 export CRONJOB_TEMPLATE=$GOPATH/src/github.com/KohlsTechnology/eunomia/templates/cronjob.yaml
 export WATCH_NAMESPACE=""
-export OPERATOR_NAME=eunomia-operator
-go test ./pkg/...
+export OPERATOR_NAME=gitops-operator
+go test ./test/...

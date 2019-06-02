@@ -23,7 +23,7 @@ import (
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	v1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	"github.com/KohlsTechnology/eunomia/pkg/util"
+	util "github.com/KohlsTechnology/eunomia/pkg/controller/gitopsconfig"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/spf13/pflag"

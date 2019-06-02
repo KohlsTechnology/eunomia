@@ -259,7 +259,7 @@ func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsCo
 			LabelSelector: selector,
 		}, jobList)
 		if err != nil {
-			log.Error(err, "unable to list jobs ")
+			log.Error(err, "unable to list jobs")
 			return reconcile.Result{}, err
 		}
 		applicableJobList := []batchv1.Job{}

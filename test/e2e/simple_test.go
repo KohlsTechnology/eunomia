@@ -22,7 +22,6 @@ import (
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-
 	test "github.com/KohlsTechnology/eunomia/test"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/stretchr/testify/assert"
@@ -46,7 +45,7 @@ func simpleTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestC
 	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "gitops-simple", Namespace: namespace}, crd)
 	assert.Error(t, err)
 
-	gitops := &v1alpha1.GitOpsConfig{
+	gitops := &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "GitOpsConfig",
 			APIVersion: "eunomia.kohls.io/v1alpha1",
