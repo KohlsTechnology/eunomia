@@ -22,8 +22,8 @@ import (
 	"testing"
 	"text/template"
 
-	"github.com/dchest/uniuri"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/dchest/uniuri"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 

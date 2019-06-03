@@ -14,15 +14,14 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-
 package e2e
 
 import (
-    "testing"
+	"testing"
 
-    f "github.com/operator-framework/operator-sdk/pkg/test"
+	f "github.com/operator-framework/operator-sdk/pkg/test"
 )
 
 func TestMain(m *testing.M) {
-    f.MainEntry(m)
+	f.MainEntry(m)
 }
