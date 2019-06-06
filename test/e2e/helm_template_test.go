@@ -5,10 +5,11 @@ import (
 	"fmt"
 	"testing"
 	"time"
+
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	test "github.com/KohlsTechnology/eunomia/test"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 )
 
 var (
@@ -44,12 +45,20 @@ func helmTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/KohlsTechnology/eunomia/examples",
+				/*URI:        "https://github.com/kohlstechnology/eunomia/examples",
+				Ref:        "master",
+				ContextDir: "simple/helm",
+				*/
+				URI:        "https://github.com/cnuland/gitops-operator-example",
 				Ref:        "master",
 				ContextDir: "simple/helm",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/KohlsTechnology/eunomia/examples",
+				/*URI:        "https://github.com/kohlstechnology/eunomia/examples",
+				Ref:        "master",
+				ContextDir: "simple/helm",
+				*/
+				URI:        "https://github.com/cnuland/gitops-operator-example",
 				Ref:        "master",
 				ContextDir: "simple/helm",
 			},
@@ -59,9 +68,9 @@ func helmTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 				},
 			},
 			ResourceDeletionMode:   "Delete",
-			TemplateProcessorImage: "quay.io/KohlsTechnology/eunomia-helm:v0.0.1",
+			TemplateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1",
 			ResourceHandlingMode:   "CreateOrMerge",
-			ServiceAccountRef: "gitops-operator",
+			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
@@ -71,5 +80,5 @@ func helmTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		return err
 	}
 
-	return WaitForPodWithImage(t, f, ctx, namespace, "helloworld-helm","quay.io/KohlsTechnology/helloworld:v0.1.0", retryInterval, timeout)
+	return WaitForPodWithImage(t, f, ctx, namespace, "helloworld-helm", "hello-world:latest", retryInterval, timeout)
 }

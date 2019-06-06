@@ -19,14 +19,15 @@ package e2e
 import (
 	goctx "context"
 	"fmt"
+	"testing"
+
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	test "github.com/KohlsTechnology/eunomia/test"
-	"testing"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func TestOCPTemplate(t *testing.T) {
+func meowOCPTemplate(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 	test.AddToFrameworkSchemeForTests(t, ctx)
@@ -52,12 +53,22 @@ func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/KohlsTechnology/eunomia/examples",
+				/*
+					URI:        "https://github.com/KohlsTechnology/eunomia/examples",
+					Ref:        "master",
+					ContextDir: "simple/templates",
+				*/
+				URI:        "https://github.com/cnuland/gitops-operator-example",
 				Ref:        "master",
 				ContextDir: "simple/templates",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/KohlsTechnology/eunomia/examples",
+				/*
+					URI:        "https://github.com/KohlsTechnology/eunomia/examples",
+					Ref:        "master",
+					ContextDir: "simple/parameters",
+				*/
+				URI:        "https://github.com/cnuland/gitops-operator-example",
 				Ref:        "master",
 				ContextDir: "simple/parameters",
 			},
@@ -67,9 +78,9 @@ func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.
 				},
 			},
 			ResourceDeletionMode:   "Delete",
-			TemplateProcessorImage: "quay.io/KohlsTechnology/eunomia-ocp-templates:v0.0.1",
+			TemplateProcessorImage: " quay.io/kohlstechnology/eunomia-ocp-templates:v0.0.1",
 			ResourceHandlingMode:   "CreateOrMerge",
-			ServiceAccountRef:      "gitops-operator",
+			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}

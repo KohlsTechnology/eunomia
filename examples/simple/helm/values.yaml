@@ -3,15 +3,16 @@
 # Declare variables to be passed into your templates.
 
 replicaCount: 1
+namespace: test-eunomia-operator
 
 image:
-  repository: quay.io/KohlsTechnology/helloworld
-  tag: v0.1.0
+  repository: hello-world
+  tag: latest
   pullPolicy: IfNotPresent
 
 nameOverride: ""
 fullnameOverride: ""
-
+serviceAccount: eunomia-operator
 service:
   type: ClusterIP
   port: 8080

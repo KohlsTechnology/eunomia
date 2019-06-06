@@ -11,10 +11,10 @@ objects:
   metadata:
     name: helloworld
   spec:
-    serviceAccount: gitops-operator
-    serviceAccountName: gitops-operator
+    serviceAccount: eunomia-operator
+    serviceAccountName: eunomia-operator
     containers:
-    - image: quay.io/KohlsTechnology/helloworld:v0.1.0
+    - image: hello-world:latest
       imagePullPolicy: Always
       name: helloworld
       ports:

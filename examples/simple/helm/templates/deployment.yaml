@@ -1,7 +1,7 @@
-apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
   name: {{ .Chart.Name }}
+  namespace: {{ .Values.namespace }}
   labels:
 {{ include "helm.labels" . | indent 4 }}
 spec:
@@ -16,6 +16,8 @@ spec:
         app.kubernetes.io/name: {{ include "helm.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
+      serviceAccount: {{ .Values.serviceAccount }}
+      serviceAccountName: {{ .Values.serviceAccount }}
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"

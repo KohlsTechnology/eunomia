@@ -19,20 +19,21 @@ package e2e
 import (
 	goctx "context"
 	"testing"
-	"github.com/stretchr/testify/assert"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	gitopsv1alpha1 	"github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	"k8s.io/apimachinery/pkg/types"
+
 	"github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	test "github.com/KohlsTechnology/eunomia/test"
+	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	"github.com/stretchr/testify/assert"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
 func TestSimple(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 	test.AddToFrameworkSchemeForTests(t, ctx)
-	simpleTestDeploy(t, framework.Global, ctx);
+	simpleTestDeploy(t, framework.Global, ctx)
 }
 
 func simpleTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) {
@@ -50,7 +51,7 @@ func simpleTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestC
 			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "gitops-simple",
+			Name:      "gitops-simple",
 			Namespace: namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
@@ -69,15 +70,14 @@ func simpleTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestC
 					Type: "Change",
 				},
 			},
-			ResourceDeletionMode:   "Delete",
-			ResourceHandlingMode:   "CreateOrMerge",
-			ServiceAccountRef: "gitops-operator",	
+			ResourceDeletionMode: "Delete",
+			ResourceHandlingMode: "CreateOrMerge",
+			ServiceAccountRef:    "eunomia-operator",
 		},
 	}
 
 	err = f.Client.Create(goctx.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
 	assert.NoError(t, err)
-
 
 	// Check if the CRD has been created
 	crd = &gitopsv1alpha1.GitOpsConfig{}
