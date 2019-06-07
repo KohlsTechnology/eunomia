@@ -80,7 +80,7 @@ Run the following to build and push the images:
 ```shell
 export REGISTRY=<your registry>
 docker login $REGISTRY
-./build-images.sh
+./scripts/build-images.sh
 ```
 
 ## Testing
@@ -117,11 +117,11 @@ For testing and CI purposes, we manage several set of tests. These tests can be 
 ### Running Unit Tests
 
 ```shell
-./unit-tests.sh
+./scripts/unit-tests.sh
 ```
 
 ### Running End-to-End Tests
 
 ```shell
-./e2e-tests.sh
+./scripts/e2e-test.sh
 ```
