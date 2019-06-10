@@ -27,7 +27,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-func meowOCPTemplate(t *testing.T) {
+/*
+DISABLED
+TODO create a make file and have a specific minihift-e2e-test, the below  test does not work with minikube.
+*/
+func disabledOCPTemplate(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 	test.AddToFrameworkSchemeForTests(t, ctx)
@@ -53,22 +57,12 @@ func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				/*
-					URI:        "https://github.com/KohlsTechnology/eunomia/examples",
-					Ref:        "master",
-					ContextDir: "simple/templates",
-				*/
-				URI:        "https://github.com/cnuland/gitops-operator-example",
+				URI:        "https://github.com/KohlsTechnology/eunomia/examples",
 				Ref:        "master",
 				ContextDir: "simple/templates",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				/*
-					URI:        "https://github.com/KohlsTechnology/eunomia/examples",
-					Ref:        "master",
-					ContextDir: "simple/parameters",
-				*/
-				URI:        "https://github.com/cnuland/gitops-operator-example",
+				URI:        "https://github.com/KohlsTechnology/eunomia/examples",
 				Ref:        "master",
 				ContextDir: "simple/parameters",
 			},

@@ -45,20 +45,12 @@ func helmTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				/*URI:        "https://github.com/kohlstechnology/eunomia/examples",
-				Ref:        "master",
-				ContextDir: "simple/helm",
-				*/
-				URI:        "https://github.com/cnuland/gitops-operator-example",
+				URI:        "https://github.com/kohlstechnology/eunomia/examples",
 				Ref:        "master",
 				ContextDir: "simple/helm",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				/*URI:        "https://github.com/kohlstechnology/eunomia/examples",
-				Ref:        "master",
-				ContextDir: "simple/helm",
-				*/
-				URI:        "https://github.com/cnuland/gitops-operator-example",
+				URI:        "https://github.com/kohlstechnology/eunomia/examples",
 				Ref:        "master",
 				ContextDir: "simple/helm",
 			},
