@@ -21,9 +21,9 @@ import (
 	"io/ioutil"
 	"text/template"
 
+	"github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	"github.com/dchest/uniuri"
 	"github.com/ghodss/yaml"
-	"github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	batch "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"

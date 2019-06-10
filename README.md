@@ -2,7 +2,7 @@
 
 # Eunomia - a GitOps Operator for Kubernetes
 
-[![Join the chat at https://gitter.im/KohlsTechnology/eunomia](https://badges.gitter.im/KohlsTechnology/eunomia.svg)](https://gitter.im/KohlsTechnology/eunomia?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.com/KohlsTechnology/eunomia.svg?branch=master)](https://travis-ci.com/KohlsTechnology/eunomia) [![Docker Repository on Quay](https://quay.io/repository/kohlstechnology/eunomia/status "Docker Repository on Quay")](https://quay.io/repository/kohlstechnology/eunomia)
+[![Join the chat at https://gitter.im/KohlsTechnology/eunomia](https://badges.gitter.im/KohlsTechnology/eunomia.svg)](https://gitter.im/KohlsTechnology/eunomia?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.com/KohlsTechnology/eunomia.svg?branch=master)](https://travis-ci.com/KohlsTechnology/eunomia) [![Docker Repository on Quay](https://quay.io/repository/kohlstechnology/eunomia-operator/status "Docker Repository on Quay")](https://quay.io/repository/kohlstechnology/eunomia-operator) [![Go Report Card](https://goreportcard.com/badge/github.com/KohlsTechnology/eunomia)](https://goreportcard.com/report/github.com/KohlsTechnology/eunomia)
 
 ## Who is Eunomia
 
@@ -190,8 +190,8 @@ The base image provides the following workflow:
     | `NAMESPACE`  | Current namespace  |
 3. `processTemplate.sh` : This shell that needs to be overwritten in order to support a different templating engine. The contract is the following:
 
-    - Templates are avaialble at the location specified by the variable: `CLONED_TEMPLATE_GIT_DIR`
-    - Parameters are avaialble at the location pecified by the variable: `CLONED_PARAMETER_GIT_DIR`
+    - Templates are available at the location specified by the variable: `CLONED_TEMPLATE_GIT_DIR`
+    - Parameters are available at the location pecified by the variable: `CLONED_PARAMETER_GIT_DIR`
     - After the template processing completes, the processed manifests should be stored at the location of this variable: `MANIFEST_DIR`
 
 4. `resourceManager.sh` :  Processes the resources in `MANIFEST_DIR`. One or more files can be present, and all will be processed.

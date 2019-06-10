@@ -18,11 +18,11 @@ export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 
 kubectl create namespace test-eunomia-operator
-kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml -n test-eunomia-operator
-kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n test-eunomia-operator
-kubectl apply -f ./deploy/kubernetes/service_account.yaml -n test-eunomia-operator
-kubectl apply -f ./deploy/kubernetes/service.yaml -n test-eunomia-operator
-kubectl apply -f ./deploy/kubernetes/role.yaml -n test-eunomia-operator
-kubectl apply -f ./deploy/kubernetes/role_binding.yaml -n test-eunomia-operator
+kubectl apply -f $GOPATH/src/github.com/KohlsTechnology/eunomia/deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml -n test-eunomia-operator
+kubectl create configmap eunomia-templates --from-file=$GOPATH/src/github.com/KohlsTechnology/eunomia/templates/cronjob.yaml --from-file=.$GOPATH/src/github.com/KohlsTechnology/eunomia/templates/job.yaml -n test-eunomia-operator
+kubectl apply -f $GOPATH/src/github.com/KohlsTechnology/eunomia/deploy/kubernetes/service_account.yaml -n test-eunomia-operator
+kubectl apply -f $GOPATH/src/github.com/KohlsTechnology/eunomia/deploy/kubernetes/service.yaml -n test-eunomia-operator
+kubectl apply -f $GOPATH/src/github.com/KohlsTechnology/eunomia/deploy/kubernetes/role.yaml -n test-eunomia-operator
+kubectl apply -f $GOPATH/src/github.com/KohlsTechnology/eunomia/deploy/kubernetes/role_binding.yaml -n test-eunomia-operator
 operator-sdk test local ./test/e2e --namespace test-eunomia-operator --up-local --no-setup
 kubectl delete namespace test-eunomia-operator

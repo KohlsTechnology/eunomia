@@ -17,20 +17,20 @@ limitations under the License.
 package e2e
 
 import (
+	goctx "context"
+	"fmt"
+	"strings"
 	"testing"
 	"time"
-	"strings"
-	"fmt"
-	goctx "context"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	"k8s.io/apimachinery/pkg/types"
-	"k8s.io/client-go/kubernetes"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/util/wait"
-	v1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
 
+	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	v1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
+	"k8s.io/client-go/kubernetes"
+)
 
 // Original Source https://github.com/jaegertracing/jaeger-operator/blob/master/test/e2e/utils.go
 func GetPod(namespace, namePrefix, containsImage string, kubeclient kubernetes.Interface) v1.Pod {
@@ -53,7 +53,7 @@ func GetPod(namespace, namePrefix, containsImage string, kubeclient kubernetes.I
 
 func WaitForPod(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, namespace, name string, retryInterval time.Duration, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-			// Check if the CRD has been created
+		// Check if the CRD has been created
 		pod := &v1.Pod{}
 		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, pod)
 		if err != nil {
@@ -78,7 +78,7 @@ func WaitForPod(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, na
 
 func WaitForPodWithImage(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, namespace, name string, image string, retryInterval time.Duration, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-			// Check if the CRD has been created
+		// Check if the CRD has been created
 		pod := GetPod(namespace, name, image, f.KubeClient)
 		if err != nil {
 			if apierrors.IsNotFound(err) {
