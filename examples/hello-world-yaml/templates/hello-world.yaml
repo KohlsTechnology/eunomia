@@ -3,6 +3,7 @@ kind: Deployment
 metadata:
   name: hello-world
 spec:
+  namespace: eunomia-hello-world-demo
   replicas: 1
   selector:
     matchLabels:
@@ -30,6 +31,7 @@ kind: Service
 metadata:
   name: hello-world     
 spec:
+  namespace: eunomia-hello-world-demo
   selector:                  
     name: hello-world   
   ports:
