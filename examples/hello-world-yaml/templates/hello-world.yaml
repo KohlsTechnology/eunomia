@@ -24,7 +24,7 @@ spec:
               value: two
             - name: EXAMPLE_SETTING_3
               value: three
-
+---
 apiVersion: v1
 kind: Service
 metadata:

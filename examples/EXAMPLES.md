@@ -24,6 +24,7 @@ kubectl create namespace eunomia-hello-world-demo
 kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
 kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-hello-world-demo
 kubectl apply -f examples/hello-world-yaml/role_binding.yaml
+
 kubectl apply -f ./deploy/kubernetes -n eunomia-hello-world-demo
 kubectl get pods -n eunomia-hello-world-demo
 
