@@ -5,7 +5,7 @@
 ### Test everything works without Eunomia
 ```shell
 kubectl create namespace hello-world-demo
-kubectl apply -f examples/templates/hello-world.yaml -n hello-world-demo
+kubectl apply -f examples/hello-world-yaml/hello-world.yaml -n hello-world-demo
 minikube service -n hello-world-demo hello-world
 ```
 
@@ -23,7 +23,7 @@ kubectl create namespace eunomia-hello-world-demo
 
 kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
 kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-hello-world-demo
-kubectl apply -f examples/hello-world-yaml/role_binding.yaml
+kubectl apply -f examples/hello-world-yaml/service_account.yaml -n eunomia-hello-world-demo
 
 kubectl apply -f ./deploy/kubernetes -n eunomia-hello-world-demo
 kubectl get pods -n eunomia-hello-world-demo
