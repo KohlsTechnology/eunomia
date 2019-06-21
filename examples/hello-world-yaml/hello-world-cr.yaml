@@ -11,8 +11,8 @@ spec:
     contextDir: examples/hello-world-yaml/parameters
   triggers:
   - type: Change
-  #- type: Periodic
-    #cron: "*/1 * * * *"
+  - type: Periodic
+    cron: '*/1 * * * *'
   serviceAccountRef: eunomia-operator
   templateProcessorImage: quay.io/kohlstechnology/eunomia-base:v0.0.1
   resourceHandlingMode: CreateOrMerge
