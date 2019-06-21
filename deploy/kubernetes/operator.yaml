@@ -39,4 +39,4 @@ spec:
       volumes:
         - name: template-volume
           configMap:
-            name: gitops-templates
+            name: eunomia-templates
