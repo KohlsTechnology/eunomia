@@ -1,9 +1,9 @@
 apiVersion: apps/v1
 kind: Deployment
+namespace: eunomia-hello-world-demo
 metadata:
   name: hello-world
 spec:
-  namespace: eunomia-hello-world-demo
   replicas: 1
   selector:
     matchLabels:
@@ -28,10 +28,10 @@ spec:
 
 apiVersion: v1
 kind: Service
+namespace: eunomia-hello-world-demo
 metadata:
   name: hello-world     
 spec:
-  namespace: eunomia-hello-world-demo
   selector:                  
     name: hello-world   
   ports:
