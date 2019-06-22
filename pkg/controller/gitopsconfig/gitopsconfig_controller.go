@@ -405,7 +405,7 @@ func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsCo
 			}
 			return reconcile.Result{}, nil
 		}
-		//if it's not succeded we wait for 1 minute
+		//if it's not succeeded we wait for 1 minute
 		//TODO add logic to stop at a certain point ... or not ...
 		return reconcile.Result{
 			Requeue:      true,

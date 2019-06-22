@@ -18,20 +18,20 @@ package e2e
 
 import (
 	goctx "context"
-	"testing"
-	"github.com/stretchr/testify/assert"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	gitopsv1alpha1 	"gitops-operator/pkg/apis/eunomia/v1alpha1"
-	"k8s.io/apimachinery/pkg/types"
+	"github.com/stretchr/testify/assert"
 	"gitops-operator/pkg/apis/eunomia/v1alpha1"
+	gitopsv1alpha1 "gitops-operator/pkg/apis/eunomia/v1alpha1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"testing"
 )
 
 func TestSimple(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 
-	simpleTestDeploy(t, framework.Global, ctx);
+	simpleTestDeploy(t, framework.Global, ctx)
 }
 
 func simpleTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) {
@@ -49,7 +49,7 @@ func simpleTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestC
 			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: "gitops",
+			Name:      "gitops",
 			Namespace: namespace,
 		},
 		Spec: v1alpha1.GitOpsConfigSpec{},
@@ -57,7 +57,6 @@ func simpleTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestC
 
 	err = f.Client.Create(goctx.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
 	assert.NoError(t, err)
-
 
 	// Check if the CRD has been created
 	crd = &gitopsv1alpha1.GitOpsConfig{}

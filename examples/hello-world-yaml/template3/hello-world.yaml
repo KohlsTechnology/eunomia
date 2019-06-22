@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      name: hello-world
+  template:
+    metadata:
+      labels:
+        name: hello-world
+    spec:
+      containers:
+        - name: hello-world
+          image: gcr.io/google-samples/hello-app:2.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: EXAMPLE_SETTING_1
+              value: one
+            - name: EXAMPLE_SETTING_2
+              value: two
+            - name: EXAMPLE_SETTING_3
+              value: three
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: hello-world     
+spec:
+  selector:                  
+    name: hello-world   
+  ports:
+  - name: web
+    port: 8080               
+    protocol: TCP
+    targetPort: 8080
+    nodePort: 30168
+  type: "NodePort"
+  sessionAffinity: "None"

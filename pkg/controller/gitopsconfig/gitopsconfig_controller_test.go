@@ -21,9 +21,9 @@ import (
 	"os"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	test "github.com/KohlsTechnology/eunomia/test"
+	"github.com/stretchr/testify/assert"
 	batch "k8s.io/api/batch/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
