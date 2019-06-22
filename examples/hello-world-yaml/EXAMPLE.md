@@ -39,7 +39,7 @@ kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
 kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-hello-world-demo
 
 # Create the service account for the runners
-kubectl apply -f examples/hello-world-yaml/service_account.yaml -n eunomia-hello-world-demo
+kubectl apply -f examples/service_account_runner.yaml -n eunomia-hello-world-demo
 
 # Deploy the operator
 kubectl apply -f ./deploy/kubernetes -n eunomia-hello-world-demo
