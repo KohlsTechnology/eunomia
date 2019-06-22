@@ -4,8 +4,8 @@ metadata:
   name: hello-world-yaml
 spec:
   templateSource:
-    uri: https://github.com/Smiley73/eunomia
-    ref: demo
+    uri: https://github.com/KohlsTechnology/eunomia
+    ref: master
     contextDir: examples/hello-world-yaml/template2
   parameterSource:
     contextDir: examples/hello-world-yaml/parameters
