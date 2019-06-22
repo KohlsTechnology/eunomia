@@ -11,14 +11,20 @@ kubectl create namespace eunomia-hello-world-demo
 # Create the CRDs
 kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
 
+# Create the cluster role for the operator
+kubectl apply -f ./deploy/kubernetes/role.yaml
+
 # Generate the configmap with the details for the runners
 kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-hello-world-demo
+
+# Create the service account for the operator
+kubectl apply -f examples/service_account_operator.yaml -n eunomia-hello-world-demo
 
 # Create the service account for the runners
 kubectl apply -f examples/service_account_runner.yaml -n eunomia-hello-world-demo
 
 # Deploy the operator
-kubectl apply -f ./deploy/kubernetes -n eunomia-hello-world-demo
+kubectl apply -f examples/operator.yaml -n eunomia-hello-world-demo
 
 # Make sure the operator pod is running
 kubectl get pods -n eunomia-hello-world-demo
