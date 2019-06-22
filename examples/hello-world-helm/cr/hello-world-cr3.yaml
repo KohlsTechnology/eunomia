@@ -8,6 +8,7 @@ spec:
     ref: demo-helm
     contextDir: examples/hello-world-helm/templates
   parameterSource:
+    ref: demo-helm
     contextDir: examples/hello-world-helm/parameters3
   triggers:
   - type: Change
