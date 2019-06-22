@@ -1,0 +1,6 @@
+imageRegistry: "gcr.io"
+imageName: "google-samples/hello-app"
+imageTag: "1.0"
+imagePullPolicy: IfNotPresent
+nodePort: 31384
+replicas: 1

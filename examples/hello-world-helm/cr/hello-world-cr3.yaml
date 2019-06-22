@@ -1,0 +1,19 @@
+apiVersion: eunomia.kohls.io/v1alpha1
+kind: GitOpsConfig
+metadata:
+  name: hello-world-helm
+spec:
+  templateSource:
+    uri: https://github.com/Smiley73/eunomia
+    ref: demo
+    contextDir: examples/hello-world-helm/templates
+  parameterSource:
+    contextDir: examples/hello-world-helm/parameters3
+  triggers:
+  - type: Change
+  #- type: Periodic
+    #cron: '*/1 * * * *'
+  serviceAccountRef: eunomia-runner
+  templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:v0.0.1
+  resourceHandlingMode: CreateOrMerge
+  resourceDeletionMode: Delete
