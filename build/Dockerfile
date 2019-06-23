@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM registry.access.redhat.com/ubi7-dev-preview/ubi-minimal:7.6
+FROM alpine:3.10
 
 ENV OPERATOR=/usr/local/bin/eunomia-operator \
     USER_UID=1001 \
