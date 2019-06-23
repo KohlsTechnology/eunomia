@@ -258,6 +258,10 @@ We've created several examples for you to test our Eunomonia. See [EXAMPLES](exa
 
 Please see our [development documentation](DEVELOPMENT.md) for details.
 
+## Troubleshooting
+
+Please see our [troubleshooting guide](TROUBLESHOOTING.md) for details.
+
 ## License
 
 See [LICENSE](LICENSE) for details.
