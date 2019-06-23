@@ -93,8 +93,8 @@ Here are some preliminary instructions. This still needs a lot of TLC. Feel free
 minikube start
 kubectl create namespace eunomia
 kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml -n eunomia
-kubectl delete configmap gitops-templates -n eunomia
-kubectl create configmap gitops-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia
+kubectl delete configmap eunomia-templates -n eunomia
+kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia
 kubectl apply -f ./deploy/kubernetes -n eunomia
 ```
 
@@ -105,8 +105,8 @@ Here are some preliminary instructions. This still needs a lot of TLC. Feel free
 ```shell
 oc create namespace eunomia
 oc apply -f ./deploy/crds/gitops_v1alpha1_gitopsconfig_crd.yaml -n eunomia
-oc delete configmap gitops-templates -n eunomia
-oc create configmap gitops-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia
+oc delete configmap eunomia-templates -n eunomia
+oc create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia
 oc apply -f ./deploy/kubernetes -f ./deploy/openshift -n eunomia
 ```
 

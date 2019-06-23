@@ -14,7 +14,7 @@
 
 oc create namespace test-gitops-operator
 oc project test-gitops-operator
-oc create configmap gitops-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n test-gitops-operator
+oc create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n test-gitops-operator
 oc apply -f ./test/deploy -n test-gitops-operator
 operator-sdk test local ./test/e2e --namespace test-gitops-operator --no-setup
 oc delete project test-gitops-operator

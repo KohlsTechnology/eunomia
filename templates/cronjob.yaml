@@ -4,7 +4,7 @@ metadata:
   name: gitopsconfig-{{ .Config.ObjectMeta.Name }}
   namespace: {{ .Config.ObjectMeta.Namespace }}
 spec:
-  schedule: {{ getCron .Config }}  
+  schedule: "{{ getCron .Config }}"
   jobTemplate:
     spec:
       template:
