@@ -254,6 +254,10 @@ oc apply -f ./deploy/openshift -n eunomia-operator
 
 Please see our [development documentation](DEVELOPMENT.md) for details.
 
+## Troubleshooting
+
+Please see our [troubleshooting guide](TROUBLESHOOTING.md) for details.
+
 ## License
 
 See [LICENSE](LICENSE) for details.
