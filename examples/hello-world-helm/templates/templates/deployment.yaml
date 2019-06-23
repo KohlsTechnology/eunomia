@@ -1,0 +1,26 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      name: hello-world
+  template:
+    metadata:
+      labels:
+        name: hello-world
+        version: "{{ .Values.imageTag }}"
+    spec:
+      containers:
+        - name: hello-world
+          image: "{{ .Values.imageRegistry }}/{{ .Values.imageName }}:{{ .Values.imageTag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          env:
+            - name: EXAMPLE_SETTING_1
+              value: one
+            - name: EXAMPLE_SETTING_2
+              value: two
+            - name: EXAMPLE_SETTING_3
+              value: three

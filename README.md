@@ -250,6 +250,10 @@ oc apply -f ./deploy/kubernetes -n eunomia-operator
 oc apply -f ./deploy/openshift -n eunomia-operator
 ```
 
+## Examples / Demos
+
+We've created several examples for you to test our Eunomonia. See [EXAMPLES](examples/README.md) for details.
+
 ## Development
 
 Please see our [development documentation](DEVELOPMENT.md) for details.
