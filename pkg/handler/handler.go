@@ -21,9 +21,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/google/go-github/github"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	"github.com/KohlsTechnology/eunomia/pkg/controller/gitopsconfig"
+	"github.com/google/go-github/github"
 	k8sevent "sigs.k8s.io/controller-runtime/pkg/event"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
@@ -114,7 +114,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopscon
 			return
 		}
 	}
-	log.Info("webhook handling concluded correclty")
+	log.Info("webhook handling concluded correctly")
 }
 
 func repoURLMatch(instance *gitopsv1alpha1.GitOpsConfig, event *github.PushEvent) bool {
