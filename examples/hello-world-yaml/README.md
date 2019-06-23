@@ -21,6 +21,9 @@ minikube service hello-world -n eunomia-hello-world-demo
 ```
 
 ## Cleanup
+
+Once you confirmed that the hello-world application successfully runs, you can clean up the namespace to ensure we start fresh.
+
 ```shell
 kubectl delete namespace eunomia-hello-world-demo
 ```
@@ -30,31 +33,8 @@ kubectl delete namespace eunomia-hello-world-demo
 # Create the namespace
 kubectl create namespace eunomia-hello-world-demo
 
-# Configure the pre requisites for the operator
-
-# Create the CRDs
-kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
-
-# Create the cluster role for the operator
-kubectl apply -f ./deploy/kubernetes/role.yaml
-
-# Generate the configmap with the details for the runners
-kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-hello-world-demo
-
-# Create the service account for the operator
-kubectl apply -f examples/service_account_operator.yaml -n eunomia-hello-world-demo
-
 # Create the service account for the runners
 kubectl apply -f examples/service_account_runner.yaml -n eunomia-hello-world-demo
-
-# Deploy the operator
-kubectl apply -f examples/operator.yaml -n eunomia-hello-world-demo
-
-# Make sure the operator pod is running
-kubectl get pods -n eunomia-hello-world-demo
-
-# Once it's running, check the logs
-kubectl -n eunomia-hello-world-demo logs `kubectl get pods -n eunomia-hello-world-demo -o name | sed 's/pod\///g'`
 
 # Deploy the CR for the hello-world application
 kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-hello-world-demo
