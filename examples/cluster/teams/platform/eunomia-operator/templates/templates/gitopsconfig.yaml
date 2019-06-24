@@ -1,0 +1,25 @@
+apiVersion: eunomia.kohls.io/v1alpha1
+kind: GitOpsConfig
+metadata:
+  name: cluster-seed
+namespace: {{ .Values.namespace }}
+spec:
+  templateSource:
+    uri: {{ .Values.gitOpsConfig.templateSource.uri }}
+    ref: {{ .Values.gitOpsConfig.templateSource.ref }}
+    contextDir: {{ .Values.gitOpsConfig.templateSource.contextDir }}
+  parameterSource:
+    uri: {{ .Values.gitOpsConfig.parameterSource.uri }}
+    ref: {{ .Values.gitOpsConfig.parameterSource.ref }}
+    contextDir: {{ .Values.gitOpsConfig.parameterSource.contextDir }}
+  triggers:
+  - type: Change
+{{- if .Values.ingress.enabled -}}
+  - type: Webhook
+{{- end }}
+  - type: Periodic
+    cron: "{{ .Values.gitOpsConfig.triggers.cron }}"
+  serviceAccountRef: "{{ .Values.serviceAccountRef }}"
+  templateProcessorImage: "{{ .Values.gitOpsConfig.templateProcessorImage }}"
+  resourceHandlingMode: CreateOrMerge
+  resourceDeletionMode: Delete
