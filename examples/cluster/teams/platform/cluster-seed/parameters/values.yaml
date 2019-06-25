@@ -1,6 +1,6 @@
 clusterSeed:
   name: "cluster-seed"
-  namespace: "eunomia-operator"
+  namespace: "cluster-seed"
   templateSource:
     uri: "https://github.com/Smiley73/eunomia"
     ref: "clusterdemo"
