@@ -19,7 +19,7 @@ spec:
 {{- end }}
   - type: Periodic
     cron: "{{ .Values.gitOpsConfig.triggers.cron }}"
-  serviceAccountRef: "{{ .Values.serviceAccountRef }}"
+  serviceAccountRef: "{{ .Values.gitOpsConfig.serviceAccountRef }}"
   templateProcessorImage: "{{ .Values.gitOpsConfig.templateProcessorImage }}"
   resourceHandlingMode: CreateOrMerge
   resourceDeletionMode: Delete

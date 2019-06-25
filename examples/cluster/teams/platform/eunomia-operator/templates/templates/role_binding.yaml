@@ -1,3 +1,4 @@
+## role binding for operator
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
@@ -22,4 +23,18 @@ subjects:
 roleRef:
   kind: Role
   name: eunomia-operator
+  apiGroup: rbac.authorization.k8s.io  
+---
+# role binding for runner
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: "{{ .Values.gitOpsConfig.serviceAccountRef }}"
+subjects: 
+- kind: ServiceAccount
+  name: "{{ .Values.gitOpsConfig.serviceAccountRef }}"
+  namespace: "{{ .Values.namespace }}"
+roleRef:
+  kind: ClusterRole
+  name: admin
   apiGroup: rbac.authorization.k8s.io  
