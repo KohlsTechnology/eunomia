@@ -1,0 +1,12 @@
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: "{{ .Values.serviceAccountRef }}"
+subjects: 
+- kind: ServiceAccount
+  name: "{{ .Values.serviceAccountRef }}"
+  namespace: "{{ .Values.namespace }}"
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io  

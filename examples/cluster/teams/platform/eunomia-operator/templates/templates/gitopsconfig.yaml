@@ -3,7 +3,7 @@ kind: GitOpsConfig
 metadata:
   name: eunomia-operator
 spec:
-  namespace: {{ .namespace }}
+  namespace: {{ .Values.namespace }}
   templateSource:
     uri: {{ .Values.gitOpsConfig.templateSource.uri }}
     ref: {{ .Values.gitOpsConfig.templateSource.ref }}

@@ -16,14 +16,14 @@ kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
 # Create the namespace for the operator
 kubectl create namespace eunomia-operator
 
-# Install the operator
-helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ | kubectl apply -n eunomia-cluster-seed -f -
-
 # Create the namespace for the cluster-seed
 kubectl create namespace eunomia-cluster-seed
 
 # Generate the configmap with the details for the runners
 kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-operator
+
+# Initial configuration of the cluster seed
+helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ | kubectl apply -n eunomia-cluster-seed -f -
 
 # Install the eunomia operator
 helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml examples/cluster/teams/platform/eunomia-operator/templates/ | kubectl apply -n eunomia-operator -f -
