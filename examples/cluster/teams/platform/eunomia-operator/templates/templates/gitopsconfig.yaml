@@ -2,8 +2,8 @@ apiVersion: eunomia.kohls.io/v1alpha1
 kind: GitOpsConfig
 metadata:
   name: eunomia-operator
-namespace: {{ .Values.namespace }}
 spec:
+  namespace: {{ .namespace }}
   templateSource:
     uri: {{ .Values.gitOpsConfig.templateSource.uri }}
     ref: {{ .Values.gitOpsConfig.templateSource.ref }}

@@ -29,7 +29,7 @@ team1:
     ref: "master"
     contextDir: "examples/cluster/teams/team1/eunomia/parameters"
 team2:
-  name: "team1"
+  name: "team2"
   namespace: "eunomia-operator-team2"
   serviceAccountRef: "eunomia-runner"
   templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"

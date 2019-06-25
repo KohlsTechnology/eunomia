@@ -14,7 +14,7 @@ In order to keep things simple for this example, we're going to use the same git
 kubectl create namespace eunomia-cluster-seed
 
 # Install the cluster seed
-helm template -f parameters/values.yaml templates/ | kubectl apply -n eunomia-cluster-seed -f -
+helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ | kubectl apply -n eunomia-cluster-seed -f -
 ```
 
 At this point the cluster should be "magically" configuring itself and within a few minutes all resources should be available.

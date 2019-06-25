@@ -3,8 +3,8 @@ apiVersion: eunomia.kohls.io/v1alpha1
 kind: GitOpsConfig
 metadata:
   name: "{{ .name }}"
-namespace: {{ .namespace }}
 spec:
+  namespace: "{{ .namespace }}"
   serviceAccountRef: "{{ .serviceAccountRef }}"
   templateProcessorImage: "{{ .templateProcessorImage }}"
   resourceHandlingMode: CreateOrMerge
