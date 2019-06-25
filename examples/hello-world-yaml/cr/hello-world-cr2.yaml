@@ -8,6 +8,7 @@ spec:
     ref: master
     contextDir: examples/hello-world-yaml/template2
   parameterSource:
+    ref: master
     contextDir: examples/hello-world-yaml/parameters
   triggers:
   - type: Change
