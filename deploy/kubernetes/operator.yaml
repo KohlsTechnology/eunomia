@@ -19,8 +19,7 @@ spec:
           image: quay.io/kohlstechnology/eunomia-operator:v0.0.1
           command:
           - eunomia-operator
-          #imagePullPolicy: Always
-          imagePullPolicy: IfNotPresent
+          imagePullPolicy: Always
           env:
             - name: JOB_TEMPLATE
               value: /templates/job.yaml

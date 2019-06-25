@@ -12,7 +12,6 @@ spec:
           containers:
           - name: template-processor
             imagePullPolicy: Always
-            #imagePullPolicy: IfNotPresent
             image: {{ .Config.Spec.TemplateProcessorImage }}
             env:
             - name: NAMESPACE
