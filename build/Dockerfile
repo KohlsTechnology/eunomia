@@ -12,18 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-FROM alpine:3.10
+FROM gcr.io/distroless/static
 
-ENV OPERATOR=/usr/local/bin/eunomia-operator \
-    USER_UID=1001 \
-    USER_NAME=eunomia-operator
+ENV OPERATOR=/usr/local/bin/eunomia-operator
 
 # install operator binary
 COPY build/_output/bin/eunomia ${OPERATOR}
 
-COPY build/bin /usr/local/bin
-RUN  /usr/local/bin/user_setup
-
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
-
-USER ${USER_UID}
