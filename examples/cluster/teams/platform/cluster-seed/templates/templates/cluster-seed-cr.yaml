@@ -3,7 +3,7 @@ apiVersion: eunomia.kohls.io/v1alpha1
 kind: GitOpsConfig
 metadata:
   name: "{{ .name }}"
-namespace: "{{ .namespace }}"
+namespace: {{ .namespace }}
 spec:
   serviceAccountRef: "{{ .serviceAccountRef }}"
   templateProcessorImage: "{{ .templateProcessorImage }}"
@@ -13,11 +13,15 @@ spec:
   - type: Change
   - type: Periodic
     cron: "{{ .triggers.cron }}"
-    #{{- range "templateSource parameterSource" }}
-    #{{ . }}:
-    #  uri: "{{ .uri}}"
-    #  ref: "{{ .ref}}"
-    #  contextDir: "{{ .contextDir}}"
-    #  #secretName: "{{ .secretName }}
-    #{{- end }}
+  templateSource:
+    uri: "{{ .templateSource.uri }}"
+    ref: "{{ .templateSource.ref }}"
+    contextDir: "{{ .templateSource.contextDir }}"
+    #secretName: "{{ .parameterSource.secretName }}
+  parameterSource:
+    uri: "{{ .parameterSource.uri }}"
+    ref: "{{ .parameterSource.ref }}"
+    contextDir: "{{ .parameterSource.contextDir }}"
+    #secretName: "{{ .parameterSource.secretName }}
+---
 {{- end }}

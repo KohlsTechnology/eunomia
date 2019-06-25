@@ -2,7 +2,9 @@
 
 Here are some basic examples for you to try out and get a feel for what Eunomia can do for you. As always...the sky is the limit!
 
-## Install the Operator
+## Simple hello-world
+
+### Install the Operator
 
 Before you can execute any of the examples, you need to install the operator first.
 
@@ -25,8 +27,6 @@ kubectl get pods -n eunomia-operator
 # Once it is running, check the logs to make sure there are no errors
 kubectl -n eunomia-operator logs `kubectl get pods -n eunomia-operator -o name | sed 's/pod\///g'`
 ```
-
-## Simple hello-world
 
 [Static yaml file](hello-world-yaml/README.md) 
 

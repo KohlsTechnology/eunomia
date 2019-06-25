@@ -1,7 +1,7 @@
 apiVersion: eunomia.kohls.io/v1alpha1
 kind: GitOpsConfig
 metadata:
-  name: cluster-seed
+  name: eunomia-operator
 namespace: {{ .Values.namespace }}
 spec:
   templateSource:
