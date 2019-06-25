@@ -45,11 +45,11 @@ resources: {}
 gitOpsConfig:
   templateSource:
     uri: https://github.com/Smiley73/eunomia
-    ref: master
+    ref: clusterdemo
     contextDir: examples/cluster/teams/platform/cluster-seed/templates
   parameterSource:
     uri: https://github.com/Smiley73/eunomia
-    ref: master
+    ref: clusterdemo
     contextDir: examples/cluster/teams/platform/cluster-seed/parameters
   triggers:
     cron: '* */1 * * *'
