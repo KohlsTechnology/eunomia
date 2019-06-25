@@ -34,5 +34,5 @@ docker build template-processors/ocp-template -t $REGISTRY/eunomia-ocp-templates
 docker push $REGISTRY/eunomia-ocp-templates:v0.0.1
 
 # building and pushing jinja template processor images
-docker build template-processors/ocp-template -t $REGISTRY/eunomia-jinja:v0.0.1
+docker build template-processors/jinja -t $REGISTRY/eunomia-jinja:v0.0.1
 docker push $REGISTRY/eunomia-jinja:v0.0.1

@@ -16,8 +16,8 @@ spec:
         - name: HOME
           value: /tmp  
         - name: NAMESPACE
-{{ if .Config.Spec.namespace }}
-          value: {{ .Config.Spec.namespace }}
+{{ if .Config.Spec.Namespace }}
+          value: {{ .Config.Spec.Namespace }}
 {{ else }}
           valueFrom:
             fieldRef:

@@ -54,6 +54,8 @@ type GitOpsConfigSpec struct {
 	// ResourceDeletionMode represents how resource deletion should be handled. Supported values are Retain or Delete. Default is Delete
 	// +kubebuilder:validation:Enum=Retain,Delete
 	ResourceDeletionMode string `json:"resourceDeletionMode,omitempty"`
+	// Namespace defines the namespace the resources should be provisioned in. If omitted, it uses the same namespace as the CR
+	Namespace string `json:"namespace,omitempty"`
 }
 
 // GitOpsConfigStatus defines the observed state of GitOpsConfig

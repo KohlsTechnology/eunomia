@@ -73,11 +73,14 @@ spec:
   - type: Webhook
   - type: Periodic
     cron: "0 * * * *"
-  ServiceAccountRef:      "mysvcaccount",
+  ServiceAccountRef:      "mysvcaccount"
   templateProcessorImage: mydockeregistry.io:5000/gitops/eunomia-base:v0.0.1
-  ResourceDeletionMode:   "Cascade",
-  ResourceHandlingMode:   "CreateOrMerge",
+  ResourceDeletionMode:   "Cascade"
+  ResourceHandlingMode:   "CreateOrMerge"
+  namespace:              "my-awesome-namespace"
 ```
+
+If `namespace` is not defined, then it defaults to the same namespace the GitOpsConfig CR is defined in.
 
 ## TemplateSource and ParameterSource
 
@@ -252,7 +255,7 @@ oc apply -f ./deploy/openshift -n eunomia-operator
 
 ## Examples / Demos
 
-We've created several examples for you to test our Eunomonia. See [EXAMPLES](examples/README.md) for details.
+We've created several examples for you to test out Eunomonia. See [EXAMPLES](examples/README.md) for details.
 
 ## Development
 
