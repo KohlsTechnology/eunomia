@@ -5,7 +5,7 @@ serviceAccountName: "eunomia-operator"
 image:
   repository: "quay.io"
   name: "kohlstechnology/eunomia-operator"
-  tag: "0.0.1"
+  tag: "v0.0.1"
   pullPolicy: IfNotPresent
 
 imagePullSecrets: []

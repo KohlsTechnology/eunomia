@@ -11,7 +11,7 @@ clusterSeed:
     contextDir: "examples/cluster/teams/platform/cluster-seed/parameters"
   triggers:
     cron: "* */8 * * *"
-  serviceAccountRef: "eunomia-runner-cluster-admin"
+  serviceAccountRef: "eunomia-runner"
   templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
 teams:
   team1:

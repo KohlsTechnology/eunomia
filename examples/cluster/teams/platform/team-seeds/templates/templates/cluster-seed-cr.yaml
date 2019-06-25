@@ -1,4 +1,4 @@
-{{- with .Values.clusterSeed }}
+{{- range .Values }}
 apiVersion: eunomia.kohls.io/v1alpha1
 kind: GitOpsConfig
 metadata:

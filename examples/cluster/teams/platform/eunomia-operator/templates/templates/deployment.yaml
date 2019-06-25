@@ -14,8 +14,8 @@ spec:
     spec:
       serviceAccountName: {{ .Values.serviceAccountName }}
       containers:
-        - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}/{{ .Values.image.ame }}:{{ .Values.image.tag }}"
+        - name: eunomia-operator
+          image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
           - eunomia-operator
