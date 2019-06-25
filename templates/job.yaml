@@ -16,9 +16,13 @@ spec:
         - name: HOME
           value: /tmp  
         - name: NAMESPACE
+{{ if .Config.Spec.namespace }}
+          value: {{ .Config.Spec.namespace }}
+{{ else }}
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace          
+{{ end }}
         - name: TEMPLATE_GIT_URI
           value: {{ .Config.Spec.TemplateSource.URI }}
         - name: TEMPLATE_GIT_REF
