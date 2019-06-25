@@ -303,6 +303,10 @@ func (r *ReconcileGitOpsConfig) initializeGitOpsConfig(instance *gitopsv1alpha1.
 		instance.Spec.ResourceDeletionMode = "Delete"
 	}
 
+	if instance.Spec.Namespace == "" {
+		instance.Spec.Namespace = instance.GetNamespace()
+	}
+
 	instance.ObjectMeta.Annotations[initLabel] = "true"
 
 	if !containsString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer) && instance.Spec.ResourceDeletionMode != "Retain" {

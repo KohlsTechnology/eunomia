@@ -18,7 +18,11 @@ set -o nounset
 set -o errexit
 
 function setContext {
-  $kubectl config set-context current --namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+  if [ -z "${NAMESPACE}" ]; then
+    $kubectl config set-context current --namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+  else
+    $kubectl config set-context current --namespace="${NAMESPACE}"
+  fi
   $kubectl config use-context current
 }
 
@@ -38,7 +42,9 @@ function getDefaultRouteDomain {
 }
 
 function getNamespace {
-    echo export NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace) >> $HOME/envs.sh
+    if [ -z "${NAMESPACE}" ]; then
+      echo export NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace) >> $HOME/envs.sh
+    fi
 }
 
 echo Setting cluster-ralated environment variable

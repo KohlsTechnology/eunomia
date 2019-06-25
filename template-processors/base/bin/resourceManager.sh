@@ -17,14 +17,14 @@
 set -o nounset
 set -o errexit
 
-# this is needed becasue we want the current namespace to be set as default if a namespace is not specified.
+# this is needed because we want the current namespace to be set as default if a namespace is not specified.
 function setContext {
-  $kubectl config set-context current --namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+  $kubectl config set-context current --namespace="${NAMESPACE}"
   $kubectl config use-context current
 }
 
 function kube {
-  $kubectl -s https://kubernetes.default.svc:443  --token $(cat /var/run/secrets/kubernetes.io/serviceaccount/token) --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt $@
+  $kubectl -s https://kubernetes.default.svc:443  --token $(cat /var/run/secrets/kubernetes.io/serviceaccount/token) --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt -n "${NAMESPACE}" $@
 }
 
 function deleteResources {
