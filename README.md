@@ -252,7 +252,7 @@ oc apply -f ./deploy/openshift -n eunomia-operator
 
 ## Examples / Demos
 
-We've created several examples for you to test our Eunomonia. See [EXAMPLES](examples/README.md) for details.
+We've created several examples for you to test out Eunomonia. See [EXAMPLES](examples/README.md) for details.
 
 ## Development
 
