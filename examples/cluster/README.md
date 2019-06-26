@@ -22,11 +22,11 @@ kubectl create namespace eunomia-cluster-seed
 # Generate the configmap with the details for the runners
 kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-operator
 
-# Initial configuration of the cluster seed
-helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ | kubectl apply -n eunomia-cluster-seed -f -
-
 # Install the eunomia operator
 helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml examples/cluster/teams/platform/eunomia-operator/templates/ | kubectl apply -n eunomia-operator -f -
+
+# Initial configuration of the cluster seed
+helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ | kubectl apply -n eunomia-cluster-seed -f -
 ```
 
 At this point the cluster should be "magically" configuring itself and within a few minutes all resources should be available.
