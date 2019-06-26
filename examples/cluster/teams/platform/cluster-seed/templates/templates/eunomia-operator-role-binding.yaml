@@ -1,0 +1,25 @@
+# role binding for the operator
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .Values.eunomiaOperator.serviceAccountRef}}
+subjects:
+- kind: ServiceAccount
+  name: {{ .Values.eunomiaOperator.serviceAccountRef }}
+  namespace: {{ .Values.eunomiaOperator.namespace }}
+roleRef:
+  kind: ClusterRole
+  name: eunomiaOperator
+  apiGroup: rbac.authorization.k8s.io
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .Values.eunomiaOperator.serviceAccountRef }}
+subjects: 
+- kind: ServiceAccount
+  name: {{ .Values.eunomiaOperator.serviceAccountRef }}
+roleRef:
+  kind: Role
+  name: eunomiaOperator
+  apiGroup: rbac.authorization.k8s.io

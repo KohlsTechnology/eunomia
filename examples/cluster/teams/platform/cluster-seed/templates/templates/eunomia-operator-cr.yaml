@@ -1,0 +1,24 @@
+{{- with .Values.eunomiaOperator }}
+apiVersion: eunomia.kohls.io/v1alpha1
+kind: GitOpsConfig
+metadata:
+  name: eunomia-operator
+spec:
+  namespace: {{ .namespace }}
+  templateSource:
+    uri: {{ .templateSource.uri }}
+    ref: {{ .templateSource.ref }}
+    contextDir: {{ .templateSource.contextDir }}
+  parameterSource:
+    uri: {{ .parameterSource.uri }}
+    ref: {{ .parameterSource.ref }}
+    contextDir: {{ .parameterSource.contextDir }}
+  triggers:
+  - type: Change
+  - type: Periodic
+    cron: "{{ .triggers.cron }}"
+  serviceAccountRef: "{{ .serviceAccountRef }}"
+  templateProcessorImage: "{{ .templateProcessorImage }}"
+  resourceHandlingMode: CreateOrMerge
+  resourceDeletionMode: Delete
+{{- end }}
