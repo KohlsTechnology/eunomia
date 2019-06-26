@@ -11,7 +11,7 @@ Let us first make sure that the demo itself works on your kubernetes installatio
 kubectl create namespace eunomia-hello-world-demo
 
 # Deploy the application
-kubectl apply -f examples/hello-world-yaml/hello-world.yaml -n eunomia-hello-world-demo
+kubectl apply -f examples/hello-world-yaml/template1/hello-world.yaml -n eunomia-hello-world-demo
 
 # Make sure the hello-world pod(s) start successfully
 kubectl get pods -n eunomia-hello-world-demo
