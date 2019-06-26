@@ -104,4 +104,4 @@ spec:
 {{ end }}             
           restartPolicy: Never
           serviceAccountName: {{ .Config.Spec.ServiceAccountRef }}
-      backoffLimit: 4
+      backoffLimit: 2
