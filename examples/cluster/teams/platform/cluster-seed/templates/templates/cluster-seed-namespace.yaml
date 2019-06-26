@@ -1,0 +1,10 @@
+{{- with .Values.clusterSeed }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "{{ .namespace }}"
+spec:
+  finalizers:
+  - kubernetes
+---
+{{- end }}

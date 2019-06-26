@@ -1,10 +1,12 @@
+{{- if .Values.service.enabled -}}
 apiVersion: v1
 kind: Service
 metadata:
-  name: hello-world     
+  name: {{ .Values.appname }}     
+  namespace: {{ .Values.namespace }}
 spec:
   selector:                  
-    name: hello-world   
+    name: {{ .Values.appname }}   
   ports:
   - name: web
     port: 8080               
@@ -13,3 +15,5 @@ spec:
     nodePort: {{ .Values.nodePort }}
   type: "NodePort"
   sessionAffinity: "None"
+{{- end }}
+

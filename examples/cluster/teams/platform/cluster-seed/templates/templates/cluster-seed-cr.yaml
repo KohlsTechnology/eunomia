@@ -1,0 +1,27 @@
+{{- with .Values.clusterSeed }}
+apiVersion: eunomia.kohls.io/v1alpha1
+kind: GitOpsConfig
+metadata:
+  name: "{{ .name }}"
+  namespace: "{{ .namespace }}"
+spec:
+  serviceAccountRef: "{{ .serviceAccountRef }}"
+  templateProcessorImage: "{{ .templateProcessorImage }}"
+  resourceHandlingMode: CreateOrMerge
+  resourceDeletionMode: Delete
+  triggers:
+  - type: Change
+  - type: Periodic
+    cron: "{{ .triggers.cron }}"
+  templateSource:
+    uri: "{{ .templateSource.uri }}"
+    ref: "{{ .templateSource.ref }}"
+    contextDir: "{{ .templateSource.contextDir }}"
+    #secretName: "{{ .parameterSource.secretName }}
+  parameterSource:
+    uri: "{{ .parameterSource.uri }}"
+    ref: "{{ .parameterSource.ref }}"
+    contextDir: "{{ .parameterSource.contextDir }}"
+    #secretName: "{{ .parameterSource.secretName }}
+---
+{{- end }}
