@@ -25,7 +25,7 @@ eunomiaOperator:
     ref: clusterdemo
     contextDir: examples/cluster/teams/platform/eunomia-operator/parameters
   triggers:
-    cron: '* */1 * * *'
+    cron: '* */8 * * *'
   serviceAccountRef: "eunomia-runner-cluster-admin"
   templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:v0.0.1
 

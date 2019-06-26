@@ -1,3 +1,8 @@
 name: "team1"
-namespace: "eunomia-seed-team1"
-serviceAccountRef: "eunomia-runner"
+namespaces:
+  - namespace: team1-ns1
+    serviceAccountRef: "eunomia-runner"
+  - namespace: team1-ns2
+    serviceAccountRef: "eunomia-runner"
+  - namespace: team1-ns3
+    serviceAccountRef: "eunomia-runner"

@@ -1,7 +1,10 @@
+{{- range .Values.namespaces }}
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: "{{ .Values.namespace }}"
+  name: "{{ .namespace }}"
 spec:
   finalizers:
   - kubernetes
+---
+{{- end }}
