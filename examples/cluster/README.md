@@ -30,16 +30,11 @@ kubectl create namespace eunomia-cluster-seed
 
 # Initial configuration of the cluster seed
 helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ | kubectl apply -n eunomia-cluster-seed -f -
-
-# Make sure the operator pod is running
-kubectl get pods -n eunomia-operator
-
-
 ```
 
 At this point the cluster should be "magically" configuring itself and within a few minutes all resources should be available.
 
 ```shell
-# Test 1
-Do something
+# Watch the magic happening
+kubectl get pods --all-namespaces -w 
 ```
