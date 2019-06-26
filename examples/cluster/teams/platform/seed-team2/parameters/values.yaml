@@ -1,0 +1,22 @@
+teamName: "team2"
+namespaces: 
+  - name: team2-ns1
+    parameterPath: examples/cluster/teams/team2/app1/parameters
+    templatePath: examples/hello-world-helm/templates
+  - name: team2-ns2
+    parameterPath: examples/cluster/teams/team2/app2/parameters
+    templatePath: examples/hello-world-helm/templates
+  - name: team2-ns3
+    parameterPath: examples/cluster/teams/team2/app3/parameters
+    templatePath: examples/hello-world-helm/templates
+GitOpsConfig:
+  serviceAccountRef: "eunomia-runner"
+  templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
+  triggers:
+    cron: "* */8 * * *"
+  templateSource:
+    uri: "https://github.com/KohlsTechnology/eunomia"
+    ref: "master"
+  parameterSource:
+    uri: "https://github.com/KohlsTechnology/eunomia"
+    ref: "master"

@@ -1,0 +1,15 @@
+{{- with .Values.clusterSeed }}
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: eunomia-operator-cluster-admin
+  namespace: "{{ .namespace }}"
+subjects:
+- kind: ServiceAccount
+  name: "{{ .serviceAccountRef }}"
+  namespace: "{{ .namespace }}"
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}
