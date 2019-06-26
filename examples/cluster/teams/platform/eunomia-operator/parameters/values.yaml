@@ -41,17 +41,3 @@ resources: {}
   # requests:
   #   cpu: 100m
   #   memory: 128Mi
-
-gitOpsConfig:
-  templateSource:
-    uri: https://github.com/Smiley73/eunomia
-    ref: clusterdemo
-    contextDir: examples/cluster/teams/platform/eunomia-operator/templates
-  parameterSource:
-    uri: https://github.com/Smiley73/eunomia
-    ref: clusterdemo
-    contextDir: examples/cluster/teams/platform/eunomia-operator/parameters
-  triggers:
-    cron: '* */1 * * *'
-  serviceAccountRef: eunomia-runner
-  templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:v0.0.1

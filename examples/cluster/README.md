@@ -13,11 +13,11 @@ In order to keep things simple for this example, we're going to use the same git
 # Create the CRD
 kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
 
-# Create the namespace for the operator
-kubectl create namespace eunomia-operator
-
 # Create the namespace for the cluster-seed
 kubectl create namespace eunomia-cluster-seed
+
+# Initial configuration of the cluster seed
+helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ | kubectl apply -n eunomia-cluster-seed -f -
 
 # Generate the configmap with the details for the runners
 kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-operator
@@ -25,8 +25,6 @@ kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml 
 # Install the eunomia operator
 helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml examples/cluster/teams/platform/eunomia-operator/templates/ | kubectl apply -n eunomia-operator -f -
 
-# Initial configuration of the cluster seed
-helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ | kubectl apply -n eunomia-cluster-seed -f -
 ```
 
 At this point the cluster should be "magically" configuring itself and within a few minutes all resources should be available.
