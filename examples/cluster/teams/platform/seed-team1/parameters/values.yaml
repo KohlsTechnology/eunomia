@@ -15,8 +15,8 @@ GitOpsConfig:
   triggers:
     cron: "* */8 * * *"
   templateSource:
-    uri: "https://github.com/Smiley73/eunomia"
-    ref: "clusterdemo"
+    uri: "https://github.com/KohlsTechnology/eunomia"
+    ref: "master"
   parameterSource:
-    uri: "https://github.com/Smiley73/eunomia"
-    ref: "clusterdemo"
+    uri: "https://github.com/KohlsTechnology/eunomia"
+    ref: "master"
