@@ -5,8 +5,7 @@
 In order to build Eunomia, you'll need the following:
 
 - [Git](https://git-scm.com/downloads)
-- [Go](https://golang.org/dl/)
-- [Dep](https://golang.github.io/dep/docs/installation.html)
+- [Go 1.12+](https://golang.org/dl/)
 - [Docker](https://docs.docker.com/install/)
 - [Operator SDK v0.8.1](https://github.com/operator-framework/operator-sdk/blob/v0.8.1/doc/user/install-operator-sdk.md)
 - Access to a Kubernetes cluster
@@ -34,7 +33,6 @@ All the components can easily be installed via [Homebrew](https://brew.sh/) on a
 ```shell
 brew install git
 brew install go
-brew install dep
 brew install docker
 brew install operator-sdk
 brew install minikube
@@ -52,7 +50,8 @@ export JOB_TEMPLATE=./templates/job.yaml
 export CRONJOB_TEMPLATE=./templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
-dep ensure
+export GO111MODULE=on
+go mod vendor
 operator-sdk up local
 ```
 
@@ -64,10 +63,9 @@ The Eunomia operator gets packaged as a container image for running on Kubernete
 
 See https://golang.org/doc/install to install/setup your Go Programming environment if you have not already done this.
 
-Run "dep ensure" before building code. (if this is your first time running this use "dep ensure -v" ,this will take some time to complete.)
-
 ```shell
-dep ensure
+export GO111MODULE=on
+go mod vendor
 GOOS=linux operator-sdk build eunomia-operator
 ```
 
