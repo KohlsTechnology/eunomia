@@ -41,6 +41,22 @@
   version = "v0.3.1"
 
 [[projects]]
+  branch = "master"
+  digest = "1:cd1c0e3eb7bfde7c7de1a543499e37810da7e1af9e86cec17371be05d4dc2555"
+  name = "github.com/KohlsTechnology/eunomia"
+  packages = [
+    "pkg/apis",
+    "pkg/apis/eunomia/v1alpha1",
+    "pkg/controller",
+    "pkg/controller/gitopsconfig",
+    "pkg/handler",
+    "pkg/util",
+    "test",
+  ]
+  pruneopts = "NT"
+  revision = "4e94bb6e4eba30bc3ab7b58ec6b735d19362d7f6"
+
+[[projects]]
   digest = "1:0a111edd8693fd977f42a0c4f199a0efb13c20aec9da99ad8830c7bb6a87e8d6"
   name = "github.com/PuerkitoBio/purell"
   packages = ["."]
@@ -1179,6 +1195,13 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/KohlsTechnology/eunomia/pkg/apis",
+    "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1",
+    "github.com/KohlsTechnology/eunomia/pkg/controller",
+    "github.com/KohlsTechnology/eunomia/pkg/controller/gitopsconfig",
+    "github.com/KohlsTechnology/eunomia/pkg/handler",
+    "github.com/KohlsTechnology/eunomia/pkg/util",
+    "github.com/KohlsTechnology/eunomia/test",
     "github.com/dchest/uniuri",
     "github.com/ghodss/yaml",
     "github.com/go-openapi/spec",
@@ -1200,6 +1223,7 @@
     "k8s.io/apimachinery/pkg/runtime/schema",
     "k8s.io/apimachinery/pkg/types",
     "k8s.io/apimachinery/pkg/util/wait",
+    "k8s.io/client-go/kubernetes",
     "k8s.io/client-go/kubernetes/scheme",
     "k8s.io/client-go/plugin/pkg/client/auth/gcp",
     "k8s.io/code-generator/cmd/client-gen",
