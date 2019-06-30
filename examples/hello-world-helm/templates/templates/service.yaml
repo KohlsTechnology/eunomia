@@ -1,0 +1,19 @@
+{{- if .Values.service.enabled -}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.appname }}     
+  namespace: {{ .Values.namespace }}
+spec:
+  selector:                  
+    name: {{ .Values.appname }}   
+  ports:
+  - name: web
+    port: 8080               
+    protocol: TCP
+    targetPort: 8080
+    nodePort: {{ .Values.nodePort }}
+  type: "NodePort"
+  sessionAffinity: "None"
+{{- end }}
+

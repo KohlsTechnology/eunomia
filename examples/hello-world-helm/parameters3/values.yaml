@@ -1,0 +1,10 @@
+imageRegistry: "gcr.io"
+imageName: "google-samples/hello-app"
+imageTag: "2.0"
+imagePullPolicy: IfNotPresent
+nodePort: 31384
+replicas: 3
+appname: "hello-world"
+namespace: "eunomia-hello-world-demo"
+service:
+  enabled: true

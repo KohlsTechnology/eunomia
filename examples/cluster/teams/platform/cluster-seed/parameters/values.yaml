@@ -1,0 +1,72 @@
+clusterSeed:
+  name: "cluster-seed"
+  namespace: "eunomia-cluster-seed"
+  templateSource:
+    uri: "https://github.com/KohlsTechnology/eunomia"
+    ref: "master"
+    contextDir: "examples/cluster/teams/platform/cluster-seed/templates"
+  parameterSource:
+    uri: "https://github.com/KohlsTechnology/eunomia"
+    ref: "master"
+    contextDir: "examples/cluster/teams/platform/cluster-seed/parameters"
+  triggers:
+    cron: "* */8 * * *"
+  serviceAccountRef: "eunomia-runner-cluster-admin"
+  templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
+
+eunomiaOperator:
+  namespace: "eunomia-operator"
+  serviceAccount: "eunomia-operator"
+  GitOpsConfig:
+    templateSource:
+      uri: https://github.com/KohlsTechnology/eunomia
+      ref: master
+      contextDir: examples/cluster/teams/platform/eunomia-operator/templates
+    parameterSource:
+      uri: https://github.com/KohlsTechnology/eunomia
+      ref: master
+      contextDir: examples/cluster/teams/platform/eunomia-operator/parameters
+    triggers:
+      cron: '* */8 * * *'
+    serviceAccountRef: "eunomia-runner"
+    templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:v0.0.1
+
+teams:
+  team1:
+    name: "team1"
+    seedNamespace: "eunomia-seed-team1"
+    serviceAccountRef: "eunomia-runner"
+    templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
+    triggers:
+      cron: "* */8 * * *"
+    templateSource:
+      uri: "https://github.com/KohlsTechnology/eunomia"
+      ref: "master"
+      contextDir: "examples/cluster/teams/platform/seed-team1/templates"
+    parameterSource:
+      uri: "https://github.com/KohlsTechnology/eunomia"
+      ref: "master"
+      contextDir: "examples/cluster/teams/platform/seed-team1/parameters"
+    namespaces:
+      - namespace: team1-ns1
+      - namespace: team1-ns2
+      - namespace: team1-ns3
+  team2:
+    name: "team2"
+    seedNamespace: "eunomia-seed-team2"
+    serviceAccountRef: "eunomia-runner"
+    templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
+    triggers:
+      cron: "* */8 * * *"
+    templateSource:
+      uri: "https://github.com/KohlsTechnology/eunomia"
+      ref: "master"
+      contextDir: "examples/cluster/teams/platform/seed-team2/templates"
+    parameterSource:
+      uri: "https://github.com/KohlsTechnology/eunomia"
+      ref: "master"
+      contextDir: "examples/cluster/teams/platform/seed-team2/parameters"
+    namespaces:
+      - namespace: team2-ns1
+      - namespace: team2-ns2
+      - namespace: team2-ns3

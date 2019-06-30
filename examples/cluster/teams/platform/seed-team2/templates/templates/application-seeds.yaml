@@ -1,0 +1,27 @@
+{{- range .Values.namespaces }}
+apiVersion: eunomia.kohls.io/v1alpha1
+kind: GitOpsConfig
+metadata:
+  name: "gitopscfg"
+  namespace: "{{ .name }}"
+spec:
+  serviceAccountRef: "{{ $.Values.GitOpsConfig.serviceAccountRef }}"
+  templateProcessorImage: "{{ $.Values.GitOpsConfig.templateProcessorImage }}"
+  resourceHandlingMode: CreateOrMerge
+  resourceDeletionMode: Delete
+  triggers:
+  - type: Change
+  - type: Periodic
+    cron: "{{ $.Values.GitOpsConfig.triggers.cron }}"
+  templateSource:
+    uri: "{{ $.Values.GitOpsConfig.templateSource.uri }}"
+    ref: "{{ $.Values.GitOpsConfig.templateSource.ref }}"
+    contextDir: "{{ .templatePath }}"
+    #secretName: "{{ $.Values.GitOpsConfig.parameterSource.secretName }}
+  parameterSource:
+    uri: "{{ $.Values.GitOpsConfig.parameterSource.uri }}"
+    ref: "{{ $.Values.GitOpsConfig.parameterSource.ref }}"
+    contextDir: "{{ .parameterPath }}"
+    #secretName: "{{ $.Values.GitOpsConfig.parameterSource.secretName }}
+---
+{{- end }}

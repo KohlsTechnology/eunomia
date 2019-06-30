@@ -1,0 +1,71 @@
+{{- range .Values.teams }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: "{{ .seedNamespace }}"
+spec:
+  finalizers:
+  - kubernetes
+---
+apiVersion: eunomia.kohls.io/v1alpha1
+kind: GitOpsConfig
+metadata:
+  name: "seed-{{ .name }}"
+  namespace: "{{ .seedNamespace }}"
+spec:
+  serviceAccountRef: "{{ .serviceAccountRef }}"
+  templateProcessorImage: "{{ .templateProcessorImage }}"
+  resourceHandlingMode: CreateOrMerge
+  resourceDeletionMode: Delete
+  triggers:
+  - type: Change
+  - type: Periodic
+    cron: "{{ .triggers.cron }}"
+  templateSource:
+    uri: "{{ .templateSource.uri }}"
+    ref: "{{ .templateSource.ref }}"
+    contextDir: "{{ .templateSource.contextDir }}"
+    #secretName: "{{ .parameterSource.secretName }}
+  parameterSource:
+    uri: "{{ .parameterSource.uri }}"
+    ref: "{{ .parameterSource.ref }}"
+    contextDir: "{{ .parameterSource.contextDir }}"
+    #secretName: "{{ .parameterSource.secretName }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: "{{ .serviceAccountRef }}"
+  namespace: "{{ .seedNamespace }}"
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: "{{ .serviceAccountRef }}"
+  namespace: "{{ .seedNamespace }}"
+subjects: 
+- kind: ServiceAccount
+  name: "{{ .serviceAccountRef }}"
+  namespace: "{{ .seedNamespace }}"
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io  
+---
+# We need to remove this once issue #53 is figured out
+# Otherwise the team SAs wont have enough access
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: eunomia-runner-{{ .seedNamespace }}
+  namespace: "{{ .seedNamespace }}"
+subjects:
+- kind: ServiceAccount
+  name: "{{ .serviceAccountRef }}"
+  namespace: "{{ .seedNamespace }}"
+roleRef:
+  kind: ClusterRole
+  name: cluster-admin
+  apiGroup: rbac.authorization.k8s.io
+---
+{{- end }}
