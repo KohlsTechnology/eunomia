@@ -6,6 +6,10 @@ This example reflects a more real-world scenario. A "cluster seed" CR is used, w
 - Provisions required components to run the cluster
 - Creates GitOpsConfig CRs for teams to manage their own namespaces, with only access in their namespaces
 
+# Video
+
+You can watch a video of this demo here: https://youtu.be/W__MvizKo3w
+
 # Repo structure
 In order to keep things simple for this example, we're going to use the same git repo, but a folder structure under it. In the real world, you would break out the various team folders into at least one repo each. How exactly this would look like depends your requirements and organizational structure.
 
