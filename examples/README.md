@@ -31,3 +31,7 @@ kubectl -n eunomia-operator logs `kubectl get pods -n eunomia-operator -o name |
 [Static yaml file](hello-world-yaml/README.md) 
 
 [Helm chart with parameters](hello-world-helm/README.md) 
+
+## Real world-ish
+
+[Boostrapping a whole cluster via a cluster-seed](cluster-seed/README.md)
