@@ -1,17 +1,28 @@
 # Cluster Example
 
-This example reflects a more real-world scenario. A "cluster seed" CR is used, which then:
-- We trigger the initial install via command line, afterwards even the cluster-seed will get managed throuh Eunomia. No more manual activities! GitOps all the way!
-- Provisions the "cluster seed" with a service account that has cluster-admin rights
-- Provisions required components to run the cluster
-- Creates GitOpsConfig CRs for teams to manage their own namespaces, with only access in their namespaces
+This example reflects a more real-world scenario. We are starting with a completely empty cluster, then use a "cluster seed" custom resource (CR) to provision all components and end up with a fully functioning and fully configured Kubernetes cluster.
 
 # Video
 
 You can watch a video of this demo here: https://youtu.be/W__MvizKo3w
 
-# Repo structure
-In order to keep things simple for this example, we're going to use the same git repo, but a folder structure under it. In the real world, you would break out the various team folders into at least one repo each. How exactly this would look like depends your requirements and organizational structure.
+# Structure
+
+In order to keep things simple, we're going to use the same git repo with a folder structure under it. In the real world, you would break out the various team folders into at least one repo each. How exactly this would look like, heavily depends on your requirements and organizational structure.
+
+![cluster-seed-tree.png](cluster-seed-tree.png)
+
+1. Eunomia needs to be initially installed via whatever orchestration you use for your Kubernetes installation. In our example, we simply execute it via the command line.
+
+2. The cluster seed is the main custom resource and uses a service account with superpowers (cluster-admin), since it is responsible for all the cluster-level tasks.
+
+3. The cluster seed provions the "team seeds", which all use service accounts with less access (you delegate responsibilities to those teams).  It also provisions resources that are needed to run the whole K8S cluster (monitoring, logging, etc.). Our example showcases how Eunomia is used to manage itself.
+
+4. The team seeds manage the various applications. In our example, each team deploys 3 demo hello-world applications that are completely managed through GitOps.
+
+This is it! You now have a fully functiontioning and fully configured K8S cluster!
+
+# Executing the demo
 
 ```shell
 # Create the CRD
