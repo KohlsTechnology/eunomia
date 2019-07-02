@@ -34,4 +34,4 @@ kubectl -n eunomia-operator logs `kubectl get pods -n eunomia-operator -o name |
 
 ## Real world-ish
 
-[Boostrapping a whole cluster via a cluster-seed](cluster-seed/README.md)
+[Boostrapping a whole cluster via a cluster-seed](cluster/README.md)
