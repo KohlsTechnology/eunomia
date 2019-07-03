@@ -17,5 +17,6 @@ limitations under the License.
 package version
 
 var (
+	// Version to make linter happy
 	Version = "0.0.1"
 )

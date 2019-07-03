@@ -29,11 +29,13 @@ import (
 	"github.com/spf13/pflag"
 	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp" // Make linter tmp happy
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
+// Initialize initialize the test suite
 func Initialize() {
+
 	logf.Log.Info("Initializing Test")
 	// Add the zap logger flag set to the CLI. The flag set must
 	// be added before calling pflag.Parse().
@@ -67,6 +69,7 @@ func Initialize() {
 	util.InitializeTemplates(jt, cjt)
 }
 
+// AddToFrameworkSchemeForTests tests AddToFrameworkScheme
 func AddToFrameworkSchemeForTests(t *testing.T, ctx *framework.TestCtx) {
 	namespace, err := ctx.GetNamespace()
 	assert.NoError(t, err)
