@@ -12,15 +12,13 @@ before_install:
 deploy:
   - provider: script
     skip_cleanup: true
-    script: make travis-latest-deploy
+    script: make travis-deploy-images
     on:
       repo: KohlsTechnology/eunomia
       branch: master
-      tags: false
   - provider: script
     skip_cleanup: true
-    script: make travis-release-deploy
+    script: make travis-deploy-images
     on:
       repo: KohlsTechnology/eunomia
-      branch: master
       tags: true

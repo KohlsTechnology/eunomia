@@ -14,25 +14,29 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-REGISTRY=${REGISTRY:-quay.io/kohlstechnology}
+REPOSITORY=${1}
+if [ -z "${TRAVIS_TAG}" ] ; then
+    IMAGE_TAG="latest"
+else
+    IMAGE_TAG=${TRAVIS_TAG}
+fi
 
 # building and pushing the operator images
-#GOOS=linux operator-sdk build $REGISTRY/eunomia-operator:v0.0.1
-#docker push $REGISTRY/eunomia-operator:v0.0.1
-
+docker build . -t ${REPOSITORY}/eunomia-operator:${IMAGE_TAG} -f build/Dockerfile
+docker push ${REPOSITORY}/eunomia-operator:${IMAGE_TAG}
 
 # building and pushing base template processor images
-docker build template-processors/base -t $REGISTRY/eunomia-base:v0.0.1
-docker push $REGISTRY/eunomia-base:v0.0.1
+docker build template-processors/base -t ${REPOSITORY}/eunomia-base:${IMAGE_TAG}
+docker push ${REPOSITORY}/eunomia-base:${IMAGE_TAG}
 
 # building and pushing helm template processor images
-docker build template-processors/helm -t $REGISTRY/eunomia-helm:v0.0.1
-docker push $REGISTRY/eunomia-helm:v0.0.1
+docker build template-processors/helm -t ${REPOSITORY}/eunomia-helm:${IMAGE_TAG}
+docker push ${REPOSITORY}/eunomia-helm:${IMAGE_TAG}
 
 # building and pushing OCP template processor images
-docker build template-processors/ocp-template -t $REGISTRY/eunomia-ocp-templates:v0.0.1
-docker push $REGISTRY/eunomia-ocp-templates:v0.0.1
+docker build template-processors/ocp-template -t ${REPOSITORY}/eunomia-ocp-templates:${IMAGE_TAG}
+docker push ${REPOSITORY}/eunomia-ocp-templates:${IMAGE_TAG}
 
 # building and pushing jinja template processor images
-docker build template-processors/jinja -t $REGISTRY/eunomia-jinja:v0.0.1
-docker push $REGISTRY/eunomia-jinja:v0.0.1
+docker build template-processors/jinja -t ${REPOSITORY}/eunomia-jinja:${IMAGE_TAG}
+docker push ${REPOSITORY}/eunomia-jinja:${IMAGE_TAG}
