@@ -1,9 +1,7 @@
 
 # Image URL to use all building/pushing image targets
 REGISTRY ?= quay.io
-REPOSITORY ?= $(REGISTRY)/kohlstechnology/eunomia-operator
-
-IMG := $(REPOSITORY):latest
+REPOSITORY ?= $(REGISTRY)/kohlstechnology
 
 VERSION := v0.0.1
 
@@ -50,45 +48,7 @@ vet:
 generate:
 	go generate ./pkg/... ./cmd/...
 
-# Docker Login
-docker-login:
-	@docker login -u $(DOCKER_USER) -p $(DOCKER_PASSWORD) $(REGISTRY)
-
-# Tag for Dev
-docker-tag-dev:
-	@docker tag $(IMG) $(REPOSITORY):dev
-
-# Tag for Dev
-docker-tag-release:
-	@docker tag $(IMG) $(REPOSITORY):$(VERSION)
-	@docker tag $(IMG) $(REPOSITORY):latest	
-
-# Push for Dev
-docker-push-dev:  docker-tag-dev
-	@docker push $(REPOSITORY):dev
-
-# Push for Release
-docker-push-release:  docker-tag-release
-	@docker push $(REPOSITORY):$(VERSION)
-	@docker push $(REPOSITORY):latest
-
-# Build the docker image
-docker-build:
-	docker build . -t ${IMG} -f build/Dockerfile
-
-# Push the docker image
-docker-push:
-	docker push ${IMG}
-
-# Push the template processor images
-build-push-template-processor-images:
-	./scripts/build-images.sh
-
-# Travis Latest Tag Deployment
-travis-latest-deploy: docker-login docker-build docker-push build-push-template-processor-images
-
-# Travis Dev Deployment
-travis-dev-deploy: docker-login docker-build docker-push-dev
-
-# Travis Release
-travis-release-deploy: docker-login docker-build docker-push-release
+# Deploy images to Quay.io
+travis-deploy-images:
+	docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD} ${REGISTRY}
+	./scripts/build-images.sh ${REPOSITORY}
