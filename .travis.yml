@@ -8,6 +8,13 @@ env:
 
 before_install:
   - travis_retry go mod vendor
+  - go get golang.org/x/lint/golint
+
+script:
+  - gofmt -d .
+  - go vet ./pkg/... ./cmd/...
+  - golint -set_exit_status $(go list ./... | grep -v /vendor/)
+  - bash scripts/unit-tests.sh
 
 deploy:
   - provider: script
