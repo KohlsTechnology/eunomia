@@ -1,9 +1,10 @@
+{{- if .Values.executeClusterAdminTasks -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
   name: eunomia-operator
 rules:
-# needed by operator logic  
+# needed by operator logic to manage the runners
 - apiGroups:
   - batch
   resources:
@@ -23,6 +24,7 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: eunomia-operator
+  namespace: "{{ .Values.namespace }}"
 rules:
 # leader election   
 - apiGroups:
@@ -65,4 +67,4 @@ rules:
   - eunomia-operator
   verbs:
   - "update"
-
+{{- end }}

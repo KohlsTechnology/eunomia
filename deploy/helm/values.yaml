@@ -1,7 +1,7 @@
 namespace: "eunomia-operator"
 replicas: 1
-serviceAccountName: "eunomia-operator"
-executeClusterAdminTasks: false
+serviceAccount: "eunomia-operator"
+executeClusterAdminTasks: true
 
 image:
   repository: "quay.io"

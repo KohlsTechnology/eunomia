@@ -2,8 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: eunomia-operator
+  namespace: "{{ .Values.namespace }}"
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
       name: eunomia-operator
@@ -12,14 +13,13 @@ spec:
       labels:
         name: eunomia-operator
     spec:
-      serviceAccountName: eunomia-operator
+      serviceAccountName: {{ .Values.serviceAccount }}
       containers:
         - name: eunomia-operator
-          # Replace this with the built image name
-          image: quay.io/kohlstechnology/eunomia-operator:v0.0.1
+          image: "{{ .Values.image.repository }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           command:
           - eunomia-operator
-          imagePullPolicy: Always
           env:
             - name: JOB_TEMPLATE
               value: /templates/job.yaml
@@ -33,10 +33,24 @@ spec:
                   fieldPath: metadata.name
             - name: OPERATOR_NAME
               value: "eunomia-operator"
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           volumeMounts:
           - name: template-volume
             mountPath: /templates
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       volumes:
         - name: template-volume
           configMap:
             name: eunomia-templates
+    {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}
+    {{- with .Values.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+    {{- end }}

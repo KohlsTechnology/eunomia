@@ -25,23 +25,11 @@ This is it! You now have a fully functiontioning and fully configured K8S cluste
 # Executing the demo
 
 ```shell
-# Create the CRD
-kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
+# Deploy the operator and ensure cluster-admin task are executed (CRDs, roles, etc.)
+helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml deploy/helm/ --set executeClusterAdminTasks=true | kubectl apply -f -
 
-# Create the namespace
-kubectl create namespace eunomia-operator
-
-# Generate the configmap with the details for the runners
-kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-operator
-
-# Create the namespace for the cluster-seed
-kubectl create namespace eunomia-cluster-seed
-
-# Initial configuration of the cluster seed
+# Deploy the cluster seed
 helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ | kubectl apply -f -
-
-# Deploy the operator
-helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml examples/cluster/teams/platform/eunomia-operator/templates/ | kubectl apply -f -
 
 ```
 

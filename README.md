@@ -226,28 +226,18 @@ This field specifies how to handle resources when the GitOpsConfig object is del
 
 ### Installing on Kubernetes
 
-Here are some preliminary instructions. This still needs a lot of TLC. Feel free to send in PRs.
+Simply use the helm chart to install it on your flavor of Kubernetes.
 
 ```shell
-minikube start
-kubectl create namespace eunomia-operator
-kubectl apply -f ./deploy/kubernetes/crds/gitops_v1alpha1_gitopsconfig_crd.yaml
-kubectl delete configmap eunomia-templates -n eunomia-operator
-kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-operator
-kubectl apply -f ./deploy/kubernetes -n eunomia-operator
+helm template deploy/helm/ | kubectl apply -f -
 ```
 
 ### Installing on OpenShift
 
-Run the following to deploy eunomia:
+Use the below command to install Eunomia on OpenShift. This will also give you the route for the ingress webhook.
 
 ```shell
-oc project eunomia-operator
-oc apply -f ./deploy/kubernetes/crds/gitops_v1alpha1_gitopsconfig_crd.yaml
-oc delete configmap eunomia-templates -n eunomia-operator
-oc create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-operator
-oc apply -f ./deploy/kubernetes -n eunomia-operator
-oc apply -f ./deploy/openshift -n eunomia-operator
+helm template deploy/helm/ --set openshift.route.enabled=true | oc apply -f -
 ```
 
 ## Examples / Demos
