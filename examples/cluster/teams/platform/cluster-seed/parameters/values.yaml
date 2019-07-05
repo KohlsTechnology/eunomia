@@ -2,12 +2,12 @@ clusterSeed:
   name: "cluster-seed"
   namespace: "eunomia-cluster-seed"
   templateSource:
-    uri: "https://github.com/Smiley73/eunomia"
-    ref: "helm"
+    uri: "https://github.com/KohlsTechnology/eunomia"
+    ref: "master"
     contextDir: "examples/cluster/teams/platform/cluster-seed/templates"
   parameterSource:
-    uri: "https://github.com/Smiley73/eunomia"
-    ref: "helm"
+    uri: "https://github.com/KohlsTechnology/eunomia"
+    ref: "master"
     contextDir: "examples/cluster/teams/platform/cluster-seed/parameters"
   triggers:
     cron: "* */8 * * *"
@@ -19,12 +19,12 @@ eunomiaOperator:
   serviceAccount: "eunomia-operator"
   GitOpsConfig:
     templateSource:
-      uri: https://github.com/Smiley73/eunomia
-      ref: helm
+      uri: https://github.com/KohlsTechnology/eunomia
+      ref: "master"
       contextDir: deploy/helm
     parameterSource:
-      uri: https://github.com/Smiley73/eunomia
-      ref: helm
+      uri: https://github.com/KohlsTechnology/eunomia
+      ref: "master"
       contextDir: examples/cluster/teams/platform/eunomia-operator/parameters
     triggers:
       cron: '* */8 * * *'
@@ -40,12 +40,12 @@ teams:
     triggers:
       cron: "* */8 * * *"
     templateSource:
-      uri: "https://github.com/Smiley73/eunomia"
-      ref: "helm"
+      uri: "https://github.com/KohlsTechnology/eunomia"
+      ref: "master"
       contextDir: "examples/cluster/teams/platform/seed-team1/templates"
     parameterSource:
-      uri: "https://github.com/Smiley73/eunomia"
-      ref: "helm"
+      uri: "https://github.com/KohlsTechnology/eunomia"
+      ref: "master"
       contextDir: "examples/cluster/teams/platform/seed-team1/parameters"
     namespaces:
       - namespace: team1-ns1
@@ -59,12 +59,12 @@ teams:
     triggers:
       cron: "* */8 * * *"
     templateSource:
-      uri: "https://github.com/Smiley73/eunomia"
-      ref: "helm"
+      uri: "https://github.com/KohlsTechnology/eunomia"
+      ref: "master"
       contextDir: "examples/cluster/teams/platform/seed-team2/templates"
     parameterSource:
-      uri: "https://github.com/Smiley73/eunomia"
-      ref: "helm"
+      uri: "https://github.com/KohlsTechnology/eunomia"
+      ref: "master"
       contextDir: "examples/cluster/teams/platform/seed-team2/parameters"
     namespaces:
       - namespace: team2-ns1
