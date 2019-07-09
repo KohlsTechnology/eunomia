@@ -1,18 +1,19 @@
-{{- if .Values.ingress.enabled -}}
+{{- with .Values.eunomia.operator }}
+{{- if .ingress.enabled -}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: eunomia-operator
-  namespace: "{{ .Values.namespace }}"
+  namespace: "{{ .namespace }}"
   labels:
-  {{- with .Values.ingress.annotations }}
+  {{- with .ingress.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
 spec:
-{{- if .Values.ingress.tls }}
+{{- if .ingress.tls }}
   tls:
-  {{- range .Values.ingress.tls }}
+  {{- range .ingress.tls }}
     - hosts:
       {{- range .hosts }}
         - {{ . | quote }}
@@ -21,7 +22,7 @@ spec:
   {{- end }}
 {{- end }}
   rules:
-  {{- range .Values.ingress.hosts }}
+  {{- range .ingress.hosts }}
     - host: {{ .host | quote }}
       http:
         paths:
@@ -32,4 +33,5 @@ spec:
               servicePort: http
         {{- end }}
   {{- end }}
+{{- end }}
 {{- end }}

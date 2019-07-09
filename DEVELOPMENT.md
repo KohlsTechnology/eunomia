@@ -88,8 +88,14 @@ docker login $REGISTRY
 Here are some preliminary instructions. This still needs a lot of TLC. Feel free to send in PRs.
 
 ```shell
+# Start minikube
 minikube start
-helm template deploy/helm/ | kubectl apply -f -
+
+# Deploy the operator pre-requisites, which require cluster-admin access
+helm template deploy/helm/prereqs/ | kubectl apply -f -
+
+# Deploy the operator
+helm template deploy/helm/operator/ | kubectl apply -f -
 ```
 
 ### Using Openshift
@@ -97,7 +103,11 @@ helm template deploy/helm/ | kubectl apply -f -
 Here are some preliminary instructions. This still needs a lot of TLC. Feel free to send in PRs.
 
 ```shell
-helm template deploy/helm/ --set openshift.route.enabled=true | oc apply -f -
+# Deploy the operator pre-requisites, which require cluster-admin access
+helm template deploy/helm/prereqs/ | oc apply -f -
+
+# Deploy the operator
+helm template deploy/helm/operator/ --set openshift.route.enabled=true | oc apply -f -
 ```
 
 ## Run Tests

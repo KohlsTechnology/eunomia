@@ -1,8 +1,9 @@
+{{- with .Values.eunomia.operator }}
 apiVersion: v1
 kind: Service
 metadata:
   name: eunomia-operator
-  namespace: "{{ .Values.namespace }}"
+  namespace: "{{ .namespace }}"
 spec:
   selector:
     name: eunomia-operator
@@ -15,3 +16,4 @@ spec:
     port: 8383
     protocol: TCP
     targetPort: 8383
+{{- end }}

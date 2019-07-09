@@ -1,0 +1,4 @@
+eunomia:
+  operator:
+    namespace: "eunomia-operator"
+    serviceAccount: "eunomia-operator"

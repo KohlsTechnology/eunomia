@@ -1,3 +1,8 @@
+# overwrite the Git Repo URL and branch here for easier testing
+overwrite:
+  uri:
+  ref:
+
 clusterSeed:
   name: "cluster-seed"
   namespace: "eunomia-cluster-seed"
@@ -14,22 +19,40 @@ clusterSeed:
   serviceAccountRef: "eunomia-runner-cluster-admin"
   templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
 
-eunomiaOperator:
-  namespace: "eunomia-operator"
-  serviceAccount: "eunomia-operator"
-  GitOpsConfig:
-    templateSource:
-      uri: https://github.com/KohlsTechnology/eunomia
-      ref: "master"
-      contextDir: deploy/helm
-    parameterSource:
-      uri: https://github.com/KohlsTechnology/eunomia
-      ref: "master"
-      contextDir: examples/cluster/teams/platform/eunomia-operator/parameters
-    triggers:
-      cron: '* */8 * * *'
-    serviceAccountRef: "eunomia-runner"
-    templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:v0.0.1
+eunomia:
+  preReqs:
+    name: "eunomia-prereqs"
+    namespace: "eunomia-cluster-seed"
+    GitOpsConfig:
+      templateSource:
+        uri: https://github.com/KohlsTechnology/eunomia
+        ref: "master"
+        contextDir: deploy/helm/prereqs
+      parameterSource:
+        uri: https://github.com/KohlsTechnology/eunomia
+        ref: "master"
+        contextDir: examples/cluster/teams/platform/cluster-seed/parameters
+      triggers:
+        cron: '* */8 * * *'
+      serviceAccountRef: "eunomia-runner-cluster-admin"
+      templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:v0.0.1
+
+  operator:
+    name: "eunomia-operator"
+    namespace: "eunomia-operator"
+    GitOpsConfig:
+      templateSource:
+        uri: https://github.com/KohlsTechnology/eunomia
+        ref: "master"
+        contextDir: deploy/helm/operator
+      parameterSource:
+        uri: https://github.com/KohlsTechnology/eunomia
+        ref: "master"
+        contextDir: examples/cluster/teams/platform/eunomia-operator/parameters
+      triggers:
+        cron: '* */8 * * *'
+      serviceAccountRef: "eunomia-runner"
+      templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:v0.0.1
 
 teams:
   team1:
@@ -51,6 +74,7 @@ teams:
       - namespace: team1-ns1
       - namespace: team1-ns2
       - namespace: team1-ns3
+      
   team2:
     name: "team2"
     seedNamespace: "eunomia-seed-team2"

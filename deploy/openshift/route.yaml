@@ -1,13 +1,15 @@
-{{- if .Values.openshift.route.enabled -}}
+{{- with .Values.eunomia.operator }}
+{{- if .openshift.route.enabled -}}
 apiVersion: v1
 kind: Route
 metadata:
   name: eunomia-operator
-  namespace: "{{ .Values.namespace }}"
+  namespace: "{{ .namespace }}"
 spec:
   port:
     targetPort: webhook  
   to:
     kind: Service
     name: eunomia-operator
+{{- end }}
 {{- end }}

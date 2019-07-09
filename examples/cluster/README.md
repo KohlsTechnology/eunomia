@@ -25,8 +25,11 @@ This is it! You now have a fully functiontioning and fully configured K8S cluste
 # Executing the demo
 
 ```shell
-# Deploy the operator and ensure cluster-admin task are executed (CRDs, roles, etc.)
-helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml deploy/helm/ --set executeClusterAdminTasks=true | kubectl apply -f -
+# Deploy the operator pre-requisites, which require cluster-admin access
+helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml deploy/helm/prereqs/ | kubectl apply -f -
+
+# Deploy the operator
+helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml deploy/helm/operator/ | kubectl apply -f -
 
 # Deploy the cluster seed
 helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ | kubectl apply -f -
@@ -38,4 +41,19 @@ At this point the cluster should be "magically" configuring itself and within a 
 ```shell
 # Watch the magic happening
 kubectl get pods --all-namespaces -w 
+```
+
+## Using your own repo
+
+If you would like to test with your own repo, we added a simple overwrite for the main repo URL. This currently only works for the main seed jobs, not the downstream ones for the teams. This is due to the fact that their configuration is entirely loaded from GitHub. You simply need to modify your own repo to point to the correct URLs.
+
+Simply replace the last command with this:
+
+```shell
+export URI="https://github.com/Smiley73/eunomia"
+export REF="splithelm"
+
+# Deploy the cluster seed with custom repo
+helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ --set overwrite.uri="${URI}" --set overwrite.ref="${REF}" | kubectl apply -f -
+
 ```

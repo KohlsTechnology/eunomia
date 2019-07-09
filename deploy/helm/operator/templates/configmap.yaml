@@ -1,0 +1,9 @@
+{{- with .Values.eunomia.operator }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eunomia-templates
+  namespace: {{ .namespace }}
+data:
+  {{- ( $.Files.Glob "eunomia-templates/*.yaml").AsConfig | nindent 2 }}
+{{- end }}
