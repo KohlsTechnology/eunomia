@@ -37,6 +37,7 @@ spec:
   {{- else }}
     ref: {{ .parameterSource.ref }}
   {{- end }}
+    contextDir: {{ .parameterSource.contextDir }}
     #secretName: {{ .parameterSource.secretName }}
 ---
 {{- end }}
