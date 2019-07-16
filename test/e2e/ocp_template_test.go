@@ -57,14 +57,14 @@ func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/KohlsTechnology/eunomia/examples",
+				URI:        "https://github.com/KohlsTechnology/eunomia",
 				Ref:        "master",
-				ContextDir: "simple/templates",
+				ContextDir: "examples/simple/templates",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/KohlsTechnology/eunomia/examples",
+				URI:        "https://github.com/KohlsTechnology/eunomia",
 				Ref:        "master",
-				ContextDir: "simple/parameters",
+				ContextDir: "examples/simple/parameters",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
 				{

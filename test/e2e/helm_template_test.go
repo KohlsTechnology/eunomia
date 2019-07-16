@@ -3,6 +3,7 @@ package e2e
 import (
 	goctx "context"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -34,6 +35,16 @@ func helmTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		return fmt.Errorf("could not get namespace: %v", err)
 	}
 
+	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
+	if !found {
+		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
+	}
+
+	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
+	if !found {
+		eunomiaRef = "master"
+	}
+
 	gitops := &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "GitOpsConfig",
@@ -45,14 +56,14 @@ func helmTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/kohlstechnology/eunomia/examples",
-				Ref:        "master",
-				ContextDir: "simple/helm",
+				URI:        eunomiaURI,
+				Ref:        eunomiaRef,
+				ContextDir: "examples/simple/helm",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/kohlstechnology/eunomia/examples",
-				Ref:        "master",
-				ContextDir: "simple/helm",
+				URI:        eunomiaURI,
+				Ref:        eunomiaRef,
+				ContextDir: "examples/simple/helm",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
 				{

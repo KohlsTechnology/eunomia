@@ -8,9 +8,9 @@ spec:
   templateSource:
     uri: https://github.com/KohlsTechnology/eunomia
     ref: master
-    contextDir: simple/templates
+    contextDir: examples/simple/templates
   parameterSource:
-    contextDir: simple/parameters
+    contextDir: examples/simple/parameters
   triggers:
   - type: Change
   - type: Webhook
@@ -18,6 +18,6 @@ spec:
   - type: Periodic
     cron: "0 * * * *"
   serviceAccountRef: gitops
-  templateProcessorImage: quay.io/kohlstechnology/gitops-ocp-templates:v0.0.1
+  templateProcessorImage: quay.io/kohlstechnology/eunomia-ocp-templates:v0.0.1
   resourceHandlingMode: CreateOrMerge
-  resourceDeletionMode: Delete                     
+  resourceDeletionMode: Delete

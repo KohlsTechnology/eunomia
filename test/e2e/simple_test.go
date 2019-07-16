@@ -18,12 +18,11 @@ package e2e
 
 import (
 	goctx "context"
-	"gitops-operator/pkg/apis/eunomia/v1alpha1"
-	gitopsv1alpha1 "gitops-operator/pkg/apis/eunomia/v1alpha1"
 	"testing"
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+
 	test "github.com/KohlsTechnology/eunomia/test"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/stretchr/testify/assert"

@@ -32,6 +32,7 @@ import (
 	"k8s.io/client-go/kubernetes"
 )
 
+// GetPod retrieves a given pod based on namespace, the pod name prefix, and the image used
 // Original Source https://github.com/jaegertracing/jaeger-operator/blob/master/test/e2e/utils.go
 func GetPod(namespace, namePrefix, containsImage string, kubeclient kubernetes.Interface) v1.Pod {
 	pods, err := kubeclient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
@@ -51,6 +52,7 @@ func GetPod(namespace, namePrefix, containsImage string, kubeclient kubernetes.I
 	return v1.Pod{}
 }
 
+// WaitForPod retrieves a specific pod with a known name and namespace and waits for it to be running and available
 func WaitForPod(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, namespace, name string, retryInterval time.Duration, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		// Check if the CRD has been created
@@ -76,6 +78,7 @@ func WaitForPod(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, na
 	return nil
 }
 
+// WaitForPodWithImage retrieves a pod using GetPod and waits for it to be running and available
 func WaitForPodWithImage(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, namespace, name string, image string, retryInterval time.Duration, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		// Check if the CRD has been created

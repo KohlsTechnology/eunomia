@@ -121,5 +121,7 @@ For testing and CI purposes, we manage several set of tests. These tests can be 
 ### Running End-to-End Tests
 
 ```shell
+# Optional: Set the environment variable $EUNOMIA_URI to point to a specific git url for testing
+# Optional: Set the environment variable $EUNOMIA_REF to point to a specific git reference for testing
 ./scripts/e2e-test.sh
 ```
