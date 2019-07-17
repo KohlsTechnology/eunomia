@@ -41,7 +41,7 @@ function getNamespace {
     echo export NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace) >> $HOME/envs.sh
 }
 
-echo Setting cluster-ralated environment variable
+echo Setting cluster-related environment variable
 setContext
 getClusterCAs
 getDefaultRouteDomain
