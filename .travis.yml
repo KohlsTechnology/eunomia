@@ -11,7 +11,7 @@ before_install:
   - go get golang.org/x/lint/golint
 
 script:
-  - gofmt -d .
+  - test -z "$(gofmt -l . | grep -v ^vendor)"
   - go vet ./pkg/... ./cmd/...
   - golint -set_exit_status $(go list ./... | grep -v /vendor/)
   - bash scripts/unit-tests.sh
