@@ -6,7 +6,7 @@ Here are some basic examples for you to try out and get a feel for what Eunomia 
 
 ### Install the Operator
 
-Before you can execute any of the hello-wolrd examples, you need to install the operator first.
+Before you can execute any of the hello-world examples, you need to install the operator first.
 
 ```shell
 # Deploy the operator pre-requisites, which require cluster-admin access

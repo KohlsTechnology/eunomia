@@ -45,9 +45,12 @@ kubectl get pods --all-namespaces -w
 
 ## Using your own repo
 
-If you would like to test with your own repo, we added a simple overwrite for the main repo URL. This currently only works for the main seed jobs, not the downstream ones for the teams. This is due to the fact that their configuration is entirely loaded from GitHub. You simply need to modify your own repo to point to the correct URLs.
+If you would like to test with your own repo, we added a simple overwrite for the main repo URL.
+This currently only works for the main seed jobs, not the downstream ones for the teams.
+This is due to the fact that their configuration is entirely loaded from GitHub.
+You simply need to modify your own repo to point to the correct URLs.
 
-Simply replace the last command with this:
+Simply set `URI` to your eunomia repo, and `REF` to the Git reference. For example:
 
 ```shell
 export URI="https://github.com/Smiley73/eunomia"
