@@ -46,8 +46,8 @@ The most efficient way to develop the operator locally is run the code on your l
 ```
 minikube start
 kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
-export JOB_TEMPLATE=./templates/job.yaml
-export CRONJOB_TEMPLATE=./templates/cronjob.yaml
+export JOB_TEMPLATE=./deploy/helm/operator/eunomia-templates/job.yaml
+export CRONJOB_TEMPLATE=./deploy/helm/operator/eunomia-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export GO111MODULE=on
@@ -107,7 +107,7 @@ Here are some preliminary instructions. This still needs a lot of TLC. Feel free
 helm template deploy/helm/prereqs/ | oc apply -f -
 
 # Deploy the operator
-helm template deploy/helm/operator/ --set openshift.route.enabled=true | oc apply -f -
+helm template deploy/helm/operator/ --set eunomia.openshift.route.enabled=true | oc apply -f -
 ```
 
 ## Run Tests
