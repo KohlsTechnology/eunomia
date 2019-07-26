@@ -46,15 +46,18 @@ kubectl get pods --all-namespaces -w
 ## Using your own repo
 
 If you would like to test with your own repo, we added a simple overwrite for the main repo URL.
-This currently only works for the main seed jobs, not the downstream ones for the teams.
-This is due to the fact that their configuration is entirely loaded from GitHub.
-You simply need to modify your own repo to point to the correct URLs.
 
 Simply set `URI` to your eunomia repo, and `REF` to the Git reference. For example:
 
 ```shell
 export URI="https://github.com/Smiley73/eunomia"
 export REF="splithelm"
+
+# Deploy the operator pre-requisites with custom repo, which require cluster-admin access
+helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml deploy/helm/prereqs/ --set overwrite.uri="${URI}" --set overwrite.ref="${REF}" | kubectl apply -f -
+
+# Deploy the operator with custom repo
+helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml deploy/helm/operator/ --set overwrite.uri="${URI}" --set overwrite.ref="${REF}" | kubectl apply -f -
 
 # Deploy the cluster seed with custom repo
 helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ --set overwrite.uri="${URI}" --set overwrite.ref="${REF}" | kubectl apply -f -
