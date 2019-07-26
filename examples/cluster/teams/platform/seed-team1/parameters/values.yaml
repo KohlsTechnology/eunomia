@@ -1,3 +1,7 @@
+overwrite:
+  uri:
+  ref:
+
 teamName: "team1"
 namespaces: 
   - name: team1-ns1
