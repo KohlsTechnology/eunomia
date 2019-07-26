@@ -21,6 +21,7 @@ export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/operator/eunomia-templates/c
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export TEST_NAMESPACE=test-eunomia-operator
+export GO111MODULE=on
 
 # Ensure minikube is running
 #minikube start
