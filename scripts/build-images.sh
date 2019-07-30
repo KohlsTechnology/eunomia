@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -e
 
 # Copyright 2019 Kohl's Department Stores, Inc.
 #
