@@ -1,28 +1,9 @@
-apiVersion: rbac.authorization.k8s.io/v1
-kind: ClusterRole
-metadata:
-  name: eunomia-operator
-rules:
-# needed by operator logic  
-- apiGroups:
-  - batch
-  resources:
-  - jobs
-  - cronjobs
-  verbs:
-  - '*'  
-# operator's resources  
-- apiGroups:
-  - eunomia.kohls.io
-  resources:
-  - '*'
-  verbs:
-  - '*'
----
+{{- with .Values.eunomia.operator }}
 kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: eunomia-operator
+  namespace: "{{ .namespace }}"
 rules:
 # leader election   
 - apiGroups:
@@ -64,4 +45,4 @@ rules:
   - eunomia-operator
   verbs:
   - "update"
-
+{{- end }}

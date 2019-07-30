@@ -1,9 +1,15 @@
-{{- with .Values.clusterSeed }}
+{{- range .Values.teams }}
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ .seedNamespace }}
+spec:
+---
 apiVersion: eunomia.kohls.io/v1alpha1
 kind: GitOpsConfig
 metadata:
-  name: {{ .name }}
-  namespace: {{ .namespace }}
+  name: seed-{{ .name }}
+  namespace: {{ .seedNamespace }}
 spec:
   serviceAccountRef: {{ .serviceAccountRef }}
   templateProcessorImage: {{ .templateProcessorImage }}
@@ -14,30 +20,50 @@ spec:
   - type: Periodic
     cron: {{ .triggers.cron | quote }}
   templateSource:
-  {{- if $.Values.overwrite.uri }}
+{{- if $.Values.overwrite.uri }}
     uri: {{ $.Values.overwrite.uri }}
-  {{- else }}
+{{- else }}
     uri: {{ .templateSource.uri }}
-  {{- end }}
-  {{- if $.Values.overwrite.ref }}
+{{- end }}
+{{- if $.Values.overwrite.ref }}
     ref: {{ $.Values.overwrite.ref }}
-  {{- else }}
+{{- else }}
     ref: {{ .templateSource.ref }}
-  {{- end }}
+{{- end }}
     contextDir: {{ .templateSource.contextDir }}
     #secretName: {{ .parameterSource.secretName }}
   parameterSource:
-  {{- if $.Values.overwrite.uri }}
+{{- if $.Values.overwrite.uri }}
     uri: {{ $.Values.overwrite.uri }}
-  {{- else }}
+{{- else }}
     uri: {{ .parameterSource.uri }}
-  {{- end }}
-  {{- if $.Values.overwrite.ref }}
+{{- end }}
+{{- if $.Values.overwrite.ref }}
     ref: {{ $.Values.overwrite.ref }}
-  {{- else }}
+{{- else }}
     ref: {{ .parameterSource.ref }}
-  {{- end }}
+{{- end }}
     contextDir: {{ .parameterSource.contextDir }}
     #secretName: {{ .parameterSource.secretName }}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ .serviceAccountRef }}
+  namespace: {{ .seedNamespace }}
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .serviceAccountRef }}
+  namespace: {{ .seedNamespace }}
+subjects: 
+- kind: ServiceAccount
+  name: {{ .serviceAccountRef }}
+  namespace: {{ .seedNamespace }}
+roleRef:
+  kind: ClusterRole
+  name: admin
+  apiGroup: rbac.authorization.k8s.io  
 ---
 {{- end }}

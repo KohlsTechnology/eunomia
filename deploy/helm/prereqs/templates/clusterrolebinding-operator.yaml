@@ -1,0 +1,15 @@
+{{- with .Values.eunomia.operator }}
+# cluster role binding for the operator
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: {{ .serviceAccount }}
+subjects:
+- kind: ServiceAccount
+  name: {{ .serviceAccount }}
+  namespace: {{ .namespace }}
+roleRef:
+  kind: ClusterRole
+  name: eunomia-operator
+  apiGroup: rbac.authorization.k8s.io
+{{- end }}

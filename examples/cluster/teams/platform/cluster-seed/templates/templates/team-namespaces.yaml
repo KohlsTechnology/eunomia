@@ -2,19 +2,17 @@
 {{- $serviceAccountRef := .serviceAccountRef -}}
 {{- $seedNamespace := .seedNamespace -}}
 {{- range .namespaces }}
-# Service accounts for seed namesapces
+# Service accounts for seed namespaces
 apiVersion: v1
 kind: Namespace
 metadata:
   name: "{{ .namespace }}"
 spec:
-  finalizers:
-  - kubernetes
 ---
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: "{{ $serviceAccountRef }}"
+  name: "seed-{{ $serviceAccountRef }}"
   namespace: "{{ .namespace }}"
 subjects: 
 - kind: ServiceAccount

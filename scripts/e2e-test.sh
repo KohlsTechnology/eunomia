@@ -14,12 +14,14 @@
 
 set -e
 
-export EUNOMIA_PATH=$GOPATH/src/github.com/KohlsTechnology/eunomia
-export JOB_TEMPLATE=$EUNOMIA_PATH/templates/job.yaml
-export CRONJOB_TEMPLATE=$EUNOMIA_PATH/templates/cronjob.yaml
+export EUNOMIA_PATH=$(cd "${0%/*}/.." ; pwd)
+
+export JOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/operator/eunomia-templates/job.yaml
+export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/operator/eunomia-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export TEST_NAMESPACE=test-eunomia-operator
+export GO111MODULE=on
 
 # Ensure minikube is running
 #minikube start
@@ -29,12 +31,15 @@ if [[ $(kubectl get namespace $TEST_NAMESPACE) ]]; then
     kubectl delete namespace $TEST_NAMESPACE
 fi
 
-kubectl create namespace $TEST_NAMESPACE
-kubectl apply -f $EUNOMIA_PATH/deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml -n $TEST_NAMESPACE
-kubectl create configmap eunomia-templates --from-file=$EUNOMIA_PATH/templates/cronjob.yaml --from-file=$EUNOMIA_PATH/templates/job.yaml -n $TEST_NAMESPACE
-kubectl apply -f $EUNOMIA_PATH/deploy/kubernetes/service_account.yaml -n $TEST_NAMESPACE
-kubectl apply -f $EUNOMIA_PATH/deploy/kubernetes/service.yaml -n $TEST_NAMESPACE
-kubectl apply -f $EUNOMIA_PATH/deploy/kubernetes/role.yaml -n $TEST_NAMESPACE
-kubectl apply -f $EUNOMIA_PATH/deploy/kubernetes/role_binding.yaml -n $TEST_NAMESPACE
+helm template deploy/helm/prereqs/ \
+  --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
+
+helm template deploy/helm/operator/ \
+  --set eunomia.operator.deployment.enabled= \
+  --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
+
 operator-sdk test local ./test/e2e --namespace "$TEST_NAMESPACE" --up-local --no-setup
-kubectl delete namespace $TEST_NAMESPACE
+
+helm template deploy/helm/operator/ \
+  --set eunomia.operator.deployment.enabled= \
+  --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl delete -f -

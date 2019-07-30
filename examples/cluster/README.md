@@ -25,23 +25,14 @@ This is it! You now have a fully functiontioning and fully configured K8S cluste
 # Executing the demo
 
 ```shell
-# Create the CRD
-kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
-
-# Create the namespace
-kubectl create namespace eunomia-operator
-
-# Generate the configmap with the details for the runners
-kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-operator
-
-# Create the namespace for the cluster-seed
-kubectl create namespace eunomia-cluster-seed
-
-# Initial configuration of the cluster seed
-helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ | kubectl apply -f -
+# Deploy the operator pre-requisites, which require cluster-admin access
+helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml deploy/helm/prereqs/ | kubectl apply -f -
 
 # Deploy the operator
-helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml examples/cluster/teams/platform/eunomia-operator/templates/ | kubectl apply -f -
+helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml deploy/helm/operator/ | kubectl apply -f -
+
+# Deploy the cluster seed
+helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ | kubectl apply -f -
 
 ```
 
@@ -50,4 +41,25 @@ At this point the cluster should be "magically" configuring itself and within a 
 ```shell
 # Watch the magic happening
 kubectl get pods --all-namespaces -w 
+```
+
+## Using your own repo
+
+If you would like to test with your own repo, we added a simple overwrite for the main repo URL.
+
+Simply set `URI` to your eunomia repo, and `REF` to the Git reference. For example:
+
+```shell
+export URI="https://github.com/Smiley73/eunomia"
+export REF="splithelm"
+
+# Deploy the operator pre-requisites with custom repo, which require cluster-admin access
+helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml deploy/helm/prereqs/ --set overwrite.uri="${URI}" --set overwrite.ref="${REF}" | kubectl apply -f -
+
+# Deploy the operator with custom repo
+helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml deploy/helm/operator/ --set overwrite.uri="${URI}" --set overwrite.ref="${REF}" | kubectl apply -f -
+
+# Deploy the cluster seed with custom repo
+helm template -f examples/cluster/teams/platform/cluster-seed/parameters/values.yaml examples/cluster/teams/platform/cluster-seed/templates/ --set overwrite.uri="${URI}" --set overwrite.ref="${REF}" | kubectl apply -f -
+
 ```

@@ -1,0 +1,15 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: gitopsconfig-admin
+  labels:
+    # Add these permissions to the "admin" default roles
+    rbac.authorization.k8s.io/aggregate-to-admin: "true"
+rules:
+# Allow all actions on gitopsconfigs
+- apiGroups:
+  - 'eunomia.kohls.io'
+  resources:
+  - 'gitopsconfigs'
+  verbs:
+  - '*'
