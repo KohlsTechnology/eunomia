@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -e
 
 # Copyright 2019 Kohl's Department Stores, Inc.
 #
@@ -15,7 +15,6 @@
 # limitations under the License.
 
 REPOSITORY=${1}
-
 if [ -z "${TRAVIS_TAG}" ] ; then
     IMAGE_TAG="latest"
 else
@@ -23,21 +22,21 @@ else
 fi
 
 # building and pushing the operator images
-docker build . -t ${REPOSITORY}/eunomia-operator:${IMAGE_TAG} -f build/Dockerfile || exit 1
-docker push ${REPOSITORY}/eunomia-operator:${IMAGE_TAG} || exit 1
+docker build . -t ${REPOSITORY}/eunomia-operator:${IMAGE_TAG} -f build/Dockerfile
+docker push ${REPOSITORY}/eunomia-operator:${IMAGE_TAG}
 
 # building and pushing base template processor images
-docker build template-processors/base -t ${REPOSITORY}/eunomia-base:${IMAGE_TAG} || exit 1
-docker push ${REPOSITORY}/eunomia-base:${IMAGE_TAG} || exit 1
+docker build template-processors/base -t ${REPOSITORY}/eunomia-base:${IMAGE_TAG}
+docker push ${REPOSITORY}/eunomia-base:${IMAGE_TAG}
 
 # building and pushing helm template processor images
-docker build template-processors/helm -t ${REPOSITORY}/eunomia-helm:${IMAGE_TAG} || exit 1
-docker push ${REPOSITORY}/eunomia-helm:${IMAGE_TAG} || exit 1
+docker build template-processors/helm -t ${REPOSITORY}/eunomia-helm:${IMAGE_TAG}
+docker push ${REPOSITORY}/eunomia-helm:${IMAGE_TAG}
 
 # building and pushing OCP template processor images
-docker build template-processors/ocp-template -t ${REPOSITORY}/eunomia-ocp-templates:${IMAGE_TAG} || exit 1
-docker push ${REPOSITORY}/eunomia-ocp-templates:${IMAGE_TAG} || exit 1
+docker build template-processors/ocp-template -t ${REPOSITORY}/eunomia-ocp-templates:${IMAGE_TAG}
+docker push ${REPOSITORY}/eunomia-ocp-templates:${IMAGE_TAG}
 
 # building and pushing jinja template processor images
-docker build template-processors/jinja -t ${REPOSITORY}/eunomia-jinja:${IMAGE_TAG} || exit 1
-docker push ${REPOSITORY}/eunomia-jinja:${IMAGE_TAG} || exit 1
+docker build template-processors/jinja -t ${REPOSITORY}/eunomia-jinja:${IMAGE_TAG}
+docker push ${REPOSITORY}/eunomia-jinja:${IMAGE_TAG}
