@@ -4,8 +4,7 @@ go_import_path: github.com/KohlsTechnology/eunomia
 go:
 - "1.12"
 env:
-  - GO111MODULE=on
-  - CHANGE_MINIKUBE_NONE_USER=true
+  - GO111MODULE=on CHANGE_MINIKUBE_NONE_USER=true
 
 before_install:
   - travis_retry go mod vendor
