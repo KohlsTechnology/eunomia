@@ -15,6 +15,7 @@ before_script:
 - sudo chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 - curl -Lo minikube https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
 - sudo chmod +x minikube && sudo mv minikube /usr/local/bin/
+- curl -LO https://git.io/get_helm.sh && chmod 700 get_helm.sh && ./get_helm.sh
 - sudo minikube start --vm-driver=none --kubernetes-version=v1.14.2
 - minikube update-context
 - JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'; until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
