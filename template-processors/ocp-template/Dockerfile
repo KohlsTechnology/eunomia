@@ -1,4 +1,4 @@
-FROM quay.io/kohlstechnology/eunomia-base:v0.0.1
+FROM quay.io/kohlstechnology/eunomia-base:latest
 
 ENV kubectl=oc
 

@@ -17,7 +17,7 @@ clusterSeed:
   triggers:
     cron: "* */8 * * *"
   serviceAccountRef: "eunomia-runner-cluster-admin"
-  templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
+  templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:latest"
 
 eunomia:
   preReqs:
@@ -35,7 +35,7 @@ eunomia:
       triggers:
         cron: '* */8 * * *'
       serviceAccountRef: "eunomia-runner-cluster-admin"
-      templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:v0.0.1
+      templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:latest
 
   operator:
     name: "eunomia-operator"
@@ -52,14 +52,14 @@ eunomia:
       triggers:
         cron: '* */8 * * *'
       serviceAccountRef: "eunomia-runner"
-      templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:v0.0.1
+      templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:latest
 
 teams:
   team1:
     name: "team1"
     seedNamespace: "eunomia-seed-team1"
     serviceAccountRef: "eunomia-runner"
-    templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
+    templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:latest"
     triggers:
       cron: "* */8 * * *"
     templateSource:
@@ -79,7 +79,7 @@ teams:
     name: "team2"
     seedNamespace: "eunomia-seed-team2"
     serviceAccountRef: "eunomia-runner"
-    templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
+    templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:latest"
     triggers:
       cron: "* */8 * * *"
     templateSource:

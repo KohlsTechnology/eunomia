@@ -9,7 +9,7 @@ eunomia:
     image:
       repository: "quay.io"
       name: "kohlstechnology/eunomia-operator"
-      tag: "v0.0.1"
+      tag: "latest"
       pullPolicy: IfNotPresent
 
     imagePullSecrets: []
