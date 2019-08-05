@@ -74,7 +74,7 @@ spec:
   - type: Periodic
     cron: "0 * * * *"
   ServiceAccountRef:      "mysvcaccount",
-  templateProcessorImage: mydockeregistry.io:5000/gitops/eunomia-base:v0.0.1
+  templateProcessorImage: mydockeregistry.io:5000/gitops/eunomia-base:latest
   ResourceDeletionMode:   "Cascade",
   ResourceHandlingMode:   "CreateOrMerge",
 ```

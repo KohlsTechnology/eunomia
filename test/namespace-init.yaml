@@ -86,7 +86,7 @@ spec:
       containers:
         - name: eunomia-operator
           # Replace this with the built image name
-          image: quay.io/kohlstechnology/eunomia-operator:v0.0.1
+          image: quay.io/kohlstechnology/eunomia-operator:latest
           command:
           - eunomia-operator
           imagePullPolicy: Always
@@ -162,7 +162,7 @@ spec:
       containers:
         - name: eunomia-operator
           # Replace this with the built image name
-          image: quay.io/kohlstechnology/eunomia-operator:v0.0.1
+          image: quay.io/kohlstechnology/eunomia-operator:latest
           command:
           - eunomia-operator
           imagePullPolicy: Always

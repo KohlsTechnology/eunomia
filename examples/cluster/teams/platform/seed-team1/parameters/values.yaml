@@ -15,7 +15,7 @@ namespaces:
     templatePath: examples/hello-world-helm/templates
 GitOpsConfig:
   serviceAccountRef: "eunomia-runner"
-  templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
+  templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:latest"
   triggers:
     cron: "* */8 * * *"
   templateSource:

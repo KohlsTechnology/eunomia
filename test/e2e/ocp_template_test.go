@@ -72,7 +72,7 @@ func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.
 				},
 			},
 			ResourceDeletionMode:   "Delete",
-			TemplateProcessorImage: " quay.io/kohlstechnology/eunomia-ocp-templates:v0.0.1",
+			TemplateProcessorImage: " quay.io/kohlstechnology/eunomia-ocp-templates:latest",
 			ResourceHandlingMode:   "CreateOrMerge",
 			ServiceAccountRef:      "eunomia-operator",
 		},
