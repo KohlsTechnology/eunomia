@@ -109,14 +109,14 @@ func schema_pkg_apis_eunomia_v1alpha1_GitOpsConfigSpec(ref common.ReferenceCallb
 					},
 					"resourceHandlingMode": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ResourceHandlingMode represents how resource creation/update should be handled. Supported values are CreateOrMerge,CreateOrUpdate,Patch. Default is CreateOrMerge.",
+							Description: "ResourceHandlingMode represents how resource creation/update should be handled. Supported values are CreateOrMerge,CreateOrUpdate,Patch,None. Default is CreateOrMerge.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
 					},
 					"resourceDeletionMode": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ResourceDeletionMode represents how resource deletion should be handled. Supported values are Retain or Delete. Default is Delete",
+							Description: "ResourceDeletionMode represents how resource deletion should be handled. Supported values are Retain,Delete,None. Default is Delete",
 							Type:        []string{"string"},
 							Format:      "",
 						},

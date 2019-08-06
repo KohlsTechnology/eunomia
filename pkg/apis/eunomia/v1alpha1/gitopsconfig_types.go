@@ -48,11 +48,11 @@ type GitOpsConfigSpec struct {
 	ServiceAccountRef string `json:"serviceAccountRef,omitempty"`
 	// TemplateEngine, the gitops operator config map contains the list of available template engines, the value used here must exist in that list. Identity (i.e. no resource processing) is the default
 	TemplateProcessorImage string `json:"templateProcessorImage,omitempty"`
-	// ResourceHandlingMode represents how resource creation/update should be handled. Supported values are CreateOrMerge,CreateOrUpdate,Patch. Default is CreateOrMerge.
-	// +kubebuilder:validation:Enum=CreateOrMerge,CreateOrUpdate,Patch
+	// ResourceHandlingMode represents how resource creation/update should be handled. Supported values are CreateOrMerge,CreateOrUpdate,Patch,None. Default is CreateOrMerge.
+	// +kubebuilder:validation:Enum=CreateOrMerge,CreateOrUpdate,Patch,None
 	ResourceHandlingMode string `json:"resourceHandlingMode,omitempty"`
-	// ResourceDeletionMode represents how resource deletion should be handled. Supported values are Retain or Delete. Default is Delete
-	// +kubebuilder:validation:Enum=Retain,Delete
+	// ResourceDeletionMode represents how resource deletion should be handled. Supported values are Retain,Delete,None. Default is Delete
+	// +kubebuilder:validation:Enum=Retain,Delete,None
 	ResourceDeletionMode string `json:"resourceDeletionMode,omitempty"`
 }
 

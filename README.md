@@ -214,6 +214,7 @@ This field specifies how resources should be handled, once the templates are pro
 1. `CreateOrMerge`, which is roughly equivalent to `kubectl apply`.
 2. `CreateOrUpdate`, which will overwrite any existing configuration.
 3. `Patch`. Patch requires objects to already exists and will patch them. It's useful when customizing objects that are provided through other means.
+4. `None`. In some cases there may be template processors or automation frameworks where the processing of templates and handling of generated resources are a single step. In that case, Eunomia can be configured to skip the built-in resource handling step.
 
 ## Resource Deletion Mode
 
@@ -221,6 +222,7 @@ This field specifies how to handle resources when the GitOpsConfig object is del
 
 1. `Retain`, resources previsouly created are left intact.
 2. `Delete`, resources are delete with the `cascade` option.
+3. `None`, resource deletion is not handled at all.
 
 ## Installing Eunomia
 
