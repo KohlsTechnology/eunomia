@@ -37,6 +37,11 @@ docker push ${REPOSITORY}/eunomia-helm:${IMAGE_TAG}
 docker build template-processors/ocp-template -t ${REPOSITORY}/eunomia-ocp-templates:${IMAGE_TAG}
 docker push ${REPOSITORY}/eunomia-ocp-templates:${IMAGE_TAG}
 
+# building and pushing Applier template processor image
+# NOTE: this is based on the OCP template image, so this build must always come after that.
+docker build template-processors/applier -t ${REPOSITORY}/eunomia-applier:${IMAGE_TAG}
+docker push ${REPOSITORY}/eunomia-applier:${IMAGE_TAG}
+
 # building and pushing jinja template processor images
 docker build template-processors/jinja -t ${REPOSITORY}/eunomia-jinja:${IMAGE_TAG}
 docker push ${REPOSITORY}/eunomia-jinja:${IMAGE_TAG}
