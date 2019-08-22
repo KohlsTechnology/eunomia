@@ -46,8 +46,8 @@ The most efficient way to develop the operator locally is run the code on your l
 ```
 minikube start
 kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
-export JOB_TEMPLATE=./templates/job.yaml
-export CRONJOB_TEMPLATE=./templates/cronjob.yaml
+export JOB_TEMPLATE=./deploy/helm/operator/eunomia-templates/job.yaml
+export CRONJOB_TEMPLATE=./deploy/helm/operator/eunomia-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export GO111MODULE=on
@@ -88,12 +88,14 @@ docker login $REGISTRY
 Here are some preliminary instructions. This still needs a lot of TLC. Feel free to send in PRs.
 
 ```shell
+# Start minikube
 minikube start
-kubectl create namespace eunomia
-kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml -n eunomia
-kubectl delete configmap eunomia-templates -n eunomia
-kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia
-kubectl apply -f ./deploy/kubernetes -n eunomia
+
+# Deploy the operator pre-requisites, which require cluster-admin access
+helm template deploy/helm/prereqs/ | kubectl apply -f -
+
+# Deploy the operator
+helm template deploy/helm/operator/ | kubectl apply -f -
 ```
 
 ### Using Openshift
@@ -101,11 +103,11 @@ kubectl apply -f ./deploy/kubernetes -n eunomia
 Here are some preliminary instructions. This still needs a lot of TLC. Feel free to send in PRs.
 
 ```shell
-oc create namespace eunomia
-oc apply -f ./deploy/crds/gitops_v1alpha1_gitopsconfig_crd.yaml -n eunomia
-oc delete configmap eunomia-templates -n eunomia
-oc create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia
-oc apply -f ./deploy/kubernetes -f ./deploy/openshift -n eunomia
+# Deploy the operator pre-requisites, which require cluster-admin access
+helm template deploy/helm/prereqs/ | oc apply -f -
+
+# Deploy the operator
+helm template deploy/helm/operator/ --set eunomia.openshift.route.enabled=true | oc apply -f -
 ```
 
 ## Run Tests

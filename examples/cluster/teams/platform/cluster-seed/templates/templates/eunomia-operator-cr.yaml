@@ -1,26 +1,43 @@
-{{- with .Values.eunomiaOperator }}
+{{- range .Values.eunomia }}
 apiVersion: eunomia.kohls.io/v1alpha1
 kind: GitOpsConfig
 metadata:
-  name: eunomia-operator
-  namespace: "{{ .namespace }}"
+  name: {{ .name }}
+  namespace: {{ .namespace }}
 spec:
 {{- with .GitOpsConfig }}
   templateSource:
+{{- if $.Values.overwrite.uri }}
+    uri: {{ $.Values.overwrite.uri }}
+{{- else }}
     uri: {{ .templateSource.uri }}
+{{- end }}
+{{- if $.Values.overwrite.ref }}
+    ref: {{ $.Values.overwrite.ref }}
+{{- else }}
     ref: {{ .templateSource.ref }}
+{{- end }}
     contextDir: {{ .templateSource.contextDir }}
   parameterSource:
+{{- if $.Values.overwrite.uri }}
+    uri: {{ $.Values.overwrite.uri }}
+{{- else }}
     uri: {{ .parameterSource.uri }}
+{{- end }}
+{{- if $.Values.overwrite.ref }}
+    ref: {{ $.Values.overwrite.ref }}
+{{- else }}
     ref: {{ .parameterSource.ref }}
+{{- end }}
     contextDir: {{ .parameterSource.contextDir }}
   triggers:
   - type: Change
   - type: Periodic
-    cron: "{{ .triggers.cron }}"
-  serviceAccountRef: "{{ .serviceAccountRef }}"
-  templateProcessorImage: "{{ .templateProcessorImage }}"
+    cron: {{ .triggers.cron | quote }}
+  serviceAccountRef: {{ .serviceAccountRef }}
+  templateProcessorImage: {{ .templateProcessorImage }}
   resourceHandlingMode: CreateOrMerge
   resourceDeletionMode: Delete
 {{- end }}
+---
 {{- end }}

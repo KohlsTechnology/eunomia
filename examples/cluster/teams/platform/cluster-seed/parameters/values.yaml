@@ -1,3 +1,8 @@
+# overwrite the Git Repo URL and branch here for easier testing
+overwrite:
+  uri:
+  ref:
+
 clusterSeed:
   name: "cluster-seed"
   namespace: "eunomia-cluster-seed"
@@ -12,31 +17,49 @@ clusterSeed:
   triggers:
     cron: "* */8 * * *"
   serviceAccountRef: "eunomia-runner-cluster-admin"
-  templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
+  templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:latest"
 
-eunomiaOperator:
-  namespace: "eunomia-operator"
-  serviceAccount: "eunomia-operator"
-  GitOpsConfig:
-    templateSource:
-      uri: https://github.com/KohlsTechnology/eunomia
-      ref: master
-      contextDir: examples/cluster/teams/platform/eunomia-operator/templates
-    parameterSource:
-      uri: https://github.com/KohlsTechnology/eunomia
-      ref: master
-      contextDir: examples/cluster/teams/platform/eunomia-operator/parameters
-    triggers:
-      cron: '* */8 * * *'
-    serviceAccountRef: "eunomia-runner"
-    templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:v0.0.1
+eunomia:
+  preReqs:
+    name: "eunomia-prereqs"
+    namespace: "eunomia-cluster-seed"
+    GitOpsConfig:
+      templateSource:
+        uri: https://github.com/KohlsTechnology/eunomia
+        ref: "master"
+        contextDir: deploy/helm/prereqs
+      parameterSource:
+        uri: https://github.com/KohlsTechnology/eunomia
+        ref: "master"
+        contextDir: examples/cluster/teams/platform/cluster-seed/parameters
+      triggers:
+        cron: '* */8 * * *'
+      serviceAccountRef: "eunomia-runner-cluster-admin"
+      templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:latest
+
+  operator:
+    name: "eunomia-operator"
+    namespace: "eunomia-operator"
+    GitOpsConfig:
+      templateSource:
+        uri: https://github.com/KohlsTechnology/eunomia
+        ref: "master"
+        contextDir: deploy/helm/operator
+      parameterSource:
+        uri: https://github.com/KohlsTechnology/eunomia
+        ref: "master"
+        contextDir: examples/cluster/teams/platform/eunomia-operator/parameters
+      triggers:
+        cron: '* */8 * * *'
+      serviceAccountRef: "eunomia-runner"
+      templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:latest
 
 teams:
   team1:
     name: "team1"
     seedNamespace: "eunomia-seed-team1"
     serviceAccountRef: "eunomia-runner"
-    templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
+    templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:latest"
     triggers:
       cron: "* */8 * * *"
     templateSource:
@@ -51,11 +74,12 @@ teams:
       - namespace: team1-ns1
       - namespace: team1-ns2
       - namespace: team1-ns3
+      
   team2:
     name: "team2"
     seedNamespace: "eunomia-seed-team2"
     serviceAccountRef: "eunomia-runner"
-    templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:v0.0.1"
+    templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:latest"
     triggers:
       cron: "* */8 * * *"
     templateSource:

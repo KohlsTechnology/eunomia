@@ -52,19 +52,21 @@ spec:
               type: object
             resourceDeletionMode:
               description: ResourceDeletionMode represents how resource deletion should
-                be handled. Supported values are Retain or Delete. Default is Delete
+                be handled. Supported values are Retain,Delete,None. Default is Delete
               enum:
               - Retain
               - Delete
+              - None
               type: string
             resourceHandlingMode:
               description: ResourceHandlingMode represents how resource creation/update
-                should be handled. Supported values are CreateOrMerge,CreateOrUpdate,Patch.
+                should be handled. Supported values are CreateOrMerge,CreateOrUpdate,Patch,None.
                 Default is CreateOrMerge.
               enum:
               - CreateOrMerge
               - CreateOrUpdate
               - Patch
+              - None
               type: string
             serviceAccountRef:
               description: ServiceAccountRef references to the service account under

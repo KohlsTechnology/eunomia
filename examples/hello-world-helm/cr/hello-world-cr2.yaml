@@ -15,6 +15,6 @@ spec:
   #- type: Periodic
     #cron: '*/1 * * * *'
   serviceAccountRef: eunomia-runner
-  templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:v0.0.1
+  templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:latest
   resourceHandlingMode: CreateOrMerge
   resourceDeletionMode: Delete

@@ -1,0 +1,37 @@
+{{- with .Values.eunomia.operator }}
+{{- if .ingress.enabled -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: eunomia-operator
+  namespace: "{{ .namespace }}"
+  labels:
+  {{- with .ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+{{- if .ingress.tls }}
+  tls:
+  {{- range .ingress.tls }}
+    - hosts:
+      {{- range .hosts }}
+        - {{ . | quote }}
+      {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+{{- end }}
+  rules:
+  {{- range .ingress.hosts }}
+    - host: {{ .host | quote }}
+      http:
+        paths:
+        {{- range .paths }}
+          - path: {{ . }}
+            backend:
+              serviceName: eunomia-operator
+              servicePort: http
+        {{- end }}
+  {{- end }}
+{{- end }}
+{{- end }}

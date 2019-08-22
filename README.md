@@ -74,7 +74,7 @@ spec:
   - type: Periodic
     cron: "0 * * * *"
   ServiceAccountRef:      "mysvcaccount",
-  templateProcessorImage: mydockeregistry.io:5000/gitops/eunomia-base:v0.0.1
+  templateProcessorImage: mydockeregistry.io:5000/gitops/eunomia-base:latest
   ResourceDeletionMode:   "Cascade",
   ResourceHandlingMode:   "CreateOrMerge",
 ```
@@ -214,6 +214,7 @@ This field specifies how resources should be handled, once the templates are pro
 1. `CreateOrMerge`, which is roughly equivalent to `kubectl apply`.
 2. `CreateOrUpdate`, which will overwrite any existing configuration.
 3. `Patch`. Patch requires objects to already exists and will patch them. It's useful when customizing objects that are provided through other means.
+4. `None`. In some cases there may be template processors or automation frameworks where the processing of templates and handling of generated resources are a single step. In that case, Eunomia can be configured to skip the built-in resource handling step.
 
 ## Resource Deletion Mode
 
@@ -221,33 +222,32 @@ This field specifies how to handle resources when the GitOpsConfig object is del
 
 1. `Retain`, resources previsouly created are left intact.
 2. `Delete`, resources are delete with the `cascade` option.
+3. `None`, resource deletion is not handled at all.
 
 ## Installing Eunomia
 
 ### Installing on Kubernetes
 
-Here are some preliminary instructions. This still needs a lot of TLC. Feel free to send in PRs.
+Simply use the helm chart to install it on your flavor of Kubernetes.
 
 ```shell
-minikube start
-kubectl create namespace eunomia-operator
-kubectl apply -f ./deploy/kubernetes/crds/gitops_v1alpha1_gitopsconfig_crd.yaml
-kubectl delete configmap eunomia-templates -n eunomia-operator
-kubectl create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-operator
-kubectl apply -f ./deploy/kubernetes -n eunomia-operator
+# Deploy the operator pre-requisites, which require cluster-admin access
+helm template deploy/helm/prereqs/ | kubectl apply -f -
+
+# Deploy the operator
+helm template deploy/helm/operator/ | kubectl apply -f -
 ```
 
 ### Installing on OpenShift
 
-Run the following to deploy eunomia:
+Use the below command to install Eunomia on OpenShift. This will also give you the route for the ingress webhook.
 
 ```shell
-oc project eunomia-operator
-oc apply -f ./deploy/kubernetes/crds/gitops_v1alpha1_gitopsconfig_crd.yaml
-oc delete configmap eunomia-templates -n eunomia-operator
-oc create configmap eunomia-templates --from-file=./templates/cronjob.yaml --from-file=./templates/job.yaml -n eunomia-operator
-oc apply -f ./deploy/kubernetes -n eunomia-operator
-oc apply -f ./deploy/openshift -n eunomia-operator
+# Deploy the operator pre-requisites, which require cluster-admin access
+helm template deploy/helm/prereqs/ | oc apply -f -
+
+# Deploy the operator
+helm template deploy/helm/operator/ --set openshift.route.enabled=true | oc apply -f -
 ```
 
 ## Examples / Demos

@@ -18,71 +18,70 @@ package e2e
 
 import (
 	goctx "context"
-	"fmt"
 	"testing"
 
+	"github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+
 	test "github.com/KohlsTechnology/eunomia/test"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 )
 
-/*
-DISABLED
-TODO create a make file and have a specific minihift-e2e-test, the below  test does not work with minikube.
-*/
-func disabledOCPTemplate(t *testing.T) {
+func TestNone(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 	test.AddToFrameworkSchemeForTests(t, ctx)
-	if err := ocpTemplateTestDeploy(t, framework.Global, ctx); err != nil {
-		t.Fatal(err)
-	}
+	simpleTestDeploy(t, framework.Global, ctx)
 }
 
-func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
+func noneTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) {
 	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		return fmt.Errorf("could not get namespace: %v", err)
-	}
+	assert.NoError(t, err)
 
-	gitops := &gitopsv1alpha1.GitOpsConfig{
+	// Check if the CRD has been created
+	crd := &gitopsv1alpha1.GitOpsConfig{}
+	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "gitops-simple", Namespace: namespace}, crd)
+	assert.Error(t, err)
+
+	gitops := &v1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "GitOpsConfig",
 			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "gitops-ocp",
+			Name:      "gitops-none",
 			Namespace: namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/KohlsTechnology/eunomia",
+				URI:        "https://",
 				Ref:        "master",
-				ContextDir: "examples/simple/templates",
+				ContextDir: "/",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/KohlsTechnology/eunomia",
+				URI:        "https://",
 				Ref:        "master",
-				ContextDir: "examples/simple/parameters",
+				ContextDir: "/",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
 				{
 					Type: "Change",
 				},
 			},
-			ResourceDeletionMode:   "Delete",
-			TemplateProcessorImage: " quay.io/kohlstechnology/eunomia-ocp-templates:latest",
-			ResourceHandlingMode:   "CreateOrMerge",
-			ServiceAccountRef:      "eunomia-operator",
+			ResourceDeletionMode: "None",
+			ResourceHandlingMode: "None",
+			ServiceAccountRef:    "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	err = f.Client.Create(goctx.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
-	if err != nil {
-		return err
-	}
+	assert.NoError(t, err)
 
-	return WaitForPod(t, f, ctx, namespace, "helloworld", retryInterval, timeout)
+	// Check if the CRD has been created
+	crd = &gitopsv1alpha1.GitOpsConfig{}
+	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "gitops-none", Namespace: namespace}, crd)
+	assert.NoError(t, err)
 }

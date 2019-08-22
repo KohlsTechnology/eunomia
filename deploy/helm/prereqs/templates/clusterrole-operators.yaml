@@ -1,0 +1,20 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: eunomia-operator
+rules:
+# needed by operator logic to manage the runners
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - '*'  
+# operator's resources  
+- apiGroups:
+  - eunomia.kohls.io
+  resources:
+  - '*'
+  verbs:
+  - '*'

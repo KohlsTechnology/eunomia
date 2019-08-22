@@ -1,12 +1,12 @@
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: "{{ .Values.eunomiaOperator.GitOpsConfig.serviceAccountRef }}"
-  namespace: "{{ .Values.eunomiaOperator.namespace }}"
+  name: "{{ .Values.eunomia.operator.GitOpsConfig.serviceAccountRef }}"
+  namespace: "{{ .Values.eunomia.operator.namespace }}"
 subjects: 
 - kind: ServiceAccount
-  name: "{{ .Values.eunomiaOperator.GitOpsConfig.serviceAccountRef }}"
-  namespace: "{{ .Values.eunomiaOperator.namespace }}"
+  name: "{{ .Values.eunomia.operator.GitOpsConfig.serviceAccountRef }}"
+  namespace: "{{ .Values.eunomia.operator.namespace }}"
 roleRef:
   kind: ClusterRole
   name: admin
