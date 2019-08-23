@@ -36,6 +36,7 @@ script:
   - golint -set_exit_status $(go list ./... | grep -v /vendor/)
   - bash scripts/unit-tests.sh
   - bash scripts/e2e-test.sh
+  - make travis-test-images
 
 deploy:
   - provider: script
