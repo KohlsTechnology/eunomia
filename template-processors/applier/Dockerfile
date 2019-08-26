@@ -1,10 +1,13 @@
 FROM quay.io/kohlstechnology/eunomia-ocp-templates:latest
 
+ENV OPENSHIFT_MODULE_VERSION=0.9.0
+ENV KUBE_MODULE_VERSION=9.0.0
+
 USER root
 RUN PACKAGES=".build-deps gcc musl-dev python-dev libffi-dev openssl-dev libpthread-stubs" \
   && apk add --no-cache --virtual $PACKAGES \
-  && pip install ansible openshift==0.9.0 kubernetes==9.0.0 jmespath \
-  && apk del $PACKAGES 
+  && pip install ansible openshift==$OPENSHIFT_MODULE_VERSION kubernetes==$KUBE_MODULE_VERSION jmespath \
+  && apk del $PACKAGES
 
 COPY bin/processTemplates.sh /usr/local/bin/processTemplates.sh
 
