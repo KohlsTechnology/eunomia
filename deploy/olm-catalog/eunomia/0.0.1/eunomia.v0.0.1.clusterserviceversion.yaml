@@ -1,0 +1,125 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[{"apiVersion":"eunomia.kohls.io/v1alpha1","kind":"GitOpsConfig","metadata":{"name":"example-gitopsconfig"},"spec":{"size":3}}]'
+    capabilities: Basic Install
+  name: eunomia.v0.0.1
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions: {}
+  description: Placeholder description
+  displayName: Eunomia
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - batch
+          resources:
+          - jobs
+          - cronjobs
+          verbs:
+          - '*'
+        - apiGroups:
+          - eunomia.kohls.io
+          resources:
+          - '*'
+          verbs:
+          - '*'
+        serviceAccountName: eunomia-operator
+      deployments:
+      - name: eunomia-operator
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              name: eunomia-operator
+          strategy: {}
+          template:
+            metadata:
+              labels:
+                name: eunomia-operator
+            spec:
+              containers:
+              - command:
+                - eunomia-operator
+                env:
+                - name: JOB_TEMPLATE
+                  value: /templates/job.yaml
+                - name: CRONJOB_TEMPLATE
+                  value: /templates/cronjob.yaml
+                - name: WATCH_NAMESPACE
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.annotations['olm.targetNamespaces']
+                - name: POD_NAME
+                  valueFrom:
+                    fieldRef:
+                      fieldPath: metadata.name
+                - name: OPERATOR_NAME
+                  value: eunomia-operator
+                image: quay.io/kohlstechnology/eunomia-operator:v0.0.1
+                imagePullPolicy: IfNotPresent
+                name: eunomia-operator
+                resources: {}
+                volumeMounts:
+                - mountPath: /templates
+                  name: template-volume
+              serviceAccountName: eunomia
+              volumes:
+              - configMap:
+                  name: eunomia-templates
+                name: template-volume
+      permissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          - pods
+          verbs:
+          - '*'
+        - apiGroups:
+          - ""
+          resources:
+          - services
+          verbs:
+          - '*'
+        - apiGroups:
+          - apps
+          resources:
+          - replicasets
+          - deployments
+          verbs:
+          - '*'
+        - apiGroups:
+          - monitoring.coreos.com
+          resources:
+          - servicemonitors
+          verbs:
+          - get
+          - create
+        - apiGroups:
+          - apps
+          resourceNames:
+          - eunomia-operator
+          resources:
+          - deployments/finalizers
+          verbs:
+          - update
+        serviceAccountName: eunomia-operator
+    strategy: deployment
+  installModes:
+  - supported: true
+    type: OwnNamespace
+  - supported: true
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  maturity: alpha
+  provider: {}
+  version: 0.0.1
