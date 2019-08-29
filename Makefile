@@ -9,6 +9,12 @@ BUILD_COMMIT := $(shell ./scripts/build/get-build-commit.sh)
 BUILD_TIMESTAMP := $(shell ./scripts/build/get-build-timestamp.sh)
 BUILD_HOSTNAME := $(shell ./scripts/build/get-build-hostname.sh)
 
+export GITHUB_PAGES_DIR ?= /tmp/helm/publish
+export GITHUB_PAGES_BRANCH ?= gh-pages
+export GITHUB_PAGES_REPO ?= KohlsTechnology/eunomia
+export HELM_CHARTS_SOURCE ?= deploy/helm
+export HELM_CHART_DEST ?= $(GITHUB_PAGES_DIR)
+
 LDFLAGS := "-X github.com/KohlsTechnology/eunomia/version.Version=$(VERSION) \
 	-X github.com/KohlsTechnology/eunomia/version.Vcs=$(BUILD_COMMIT) \
 	-X github.com/KohlsTechnology/eunomia/version.Timestamp=$(BUILD_TIMESTAMP) \
@@ -52,3 +58,10 @@ generate:
 travis-deploy-images:
 	docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD} ${REGISTRY}
 	./scripts/build-images.sh ${REPOSITORY}
+
+publish-chart-repo:
+	./scripts/build/checkout-rebase-pages.sh 
+	./scripts/build/build-chart-repo.sh 
+	./scripts/build/push-to-pages.sh 
+
+travis-release-deploy: travis-deploy-images	publish-chart-repo
