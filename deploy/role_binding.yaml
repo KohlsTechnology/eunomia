@@ -6,7 +6,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: eunomia
-  namespace: eunomia
+  namespace: eunomia-operator
 roleRef:
   kind: ClusterRole
   name: eunomia-operator
@@ -16,11 +16,11 @@ kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: eunomia
-  namespace: eunomia
+  namespace: eunomia-operator
 subjects: 
 - kind: ServiceAccount
   name: eunomia
-  namespace: eunomia
+  namespace: eunomia-operator
 roleRef:
   kind: Role
   name: eunomia-operator

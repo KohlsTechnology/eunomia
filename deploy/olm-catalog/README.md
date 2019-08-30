@@ -64,7 +64,7 @@ Now you should see the operator in the operator catalog, follow the normal insta
 git -C /tmp clone https://github.com/operator-framework/community-operators
 git -C /tmp/community-operators remote add tmp https://github.com/${community_fork}/community-operators
 git -C /tmp/community-operators checkout -b eunomia-${new_version}
-operator-courier flatten deploy/olm-catalog/eunomia /tmp/community-operators/eunomia
+operator-courier flatten deploy/olm-catalog/eunomia /tmp/community-operators/upstream-community-operators/eunomia
 git -C /tmp/community-operators add .
 git -C /tmp/community-operators commit -m "eunomia release ${new_version}"
 git -C /tmp/community-operators push tmp

@@ -1,0 +1,97 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: eunomia-templates
+  namespace: eunomia-operator
+data:
+  cronjob.yaml: "apiVersion: batch/v1beta1\nkind: CronJob\nmetadata:\n  name: gitopsconfig-{{
+    .Config.ObjectMeta.Name }}\n  namespace: {{ .Config.ObjectMeta.Namespace }}\nspec:\n
+    \ schedule: \"{{ getCron .Config }}\"\n  jobTemplate:\n    spec:\n      template:\n
+    \       spec:\n          containers:\n          - name: template-processor\n            imagePullPolicy:
+    Always\n            image: {{ .Config.Spec.TemplateProcessorImage }}\n            env:\n
+    \           - name: NAMESPACE\n              valueFrom:\n                fieldRef:\n
+    \                 fieldPath: metadata.namespace            \n            - name:
+    TEMPLATE_GIT_URI\n              value: {{ .Config.Spec.TemplateSource.URI }}\n            -
+    name: TEMPLATE_GIT_REF\n              value: {{ .Config.Spec.TemplateSource.Ref
+    }}\n{{ if .Config.Spec.TemplateSource.HTTPProxy }}\n            - name: TEMPLATE_GIT_HTTP_PROXY\n
+    \             value: {{ .Config.Spec.TemplateSource.HTTPProxy }}\n{{ end }}\n{{
+    if .Config.Spec.TemplateSource.HTTPSProxy }}\n            - name: TEMPLATE_GIT_HTTPS_PROXY\n
+    \             value: {{ .Config.Spec.TemplateSource.HTTPSProxy }}\n{{ end }}\n{{
+    if .Config.Spec.TemplateSource.NOProxy }}\n            - name: TEMPLATE_GIT_NO_PROXY\n
+    \             value: {{ .Config.Spec.TemplateSource.NOProxy }}\n{{ end }}              \n
+    \           - name: TEMPLATE_GIT_DIR\n              value: \"/git/templates\"\n
+    \           - name: PARAMETER_GIT_URI\n              value: {{ .Config.Spec.ParameterSource.URI
+    }}\n            - name: PARAMETER_GIT_REF\n              value: {{ .Config.Spec.ParameterSource.Ref
+    }}\n{{ if .Config.Spec.ParameterSource.HTTPProxy }}              \n            -
+    name: PARAMETER_GIT_HTTP_PROXY\n              value: {{ .Config.Spec.ParameterSource.HTTPProxy
+    }}\n{{ end }}\n{{ if .Config.Spec.ParameterSource.HTTPSProxy }}              \n
+    \           - name: PARAMETER_GIT_HTTPS_PROXY\n              value: {{ .Config.Spec.ParameterSource.HTTPSProxy
+    }}\n{{ end }}\n{{ if .Config.Spec.ParameterSource.NOProxy }}              \n            -
+    name: PARAMETER_GIT_NO_PROXY\n              value: {{ .Config.Spec.ParameterSource.NOProxy
+    }}\n{{ end }}              \n            - name: PARAMETER_GIT_DIR\n              value:
+    \"/git/parameters\"            \n            - name: CLONED_TEMPLATE_GIT_DIR\n              value:
+    \"/git/templates/{{ .Config.Spec.TemplateSource.ContextDir }}\"\n            - name:
+    CLONED_PARAMETER_GIT_DIR\n              value: \"/git/parameters/{{ .Config.Spec.ParameterSource.ContextDir
+    }}\"\n            - name: MANIFEST_DIR\n              value: \"/git/manifests\"
+    \             \n            - name: CREATE_MODE\n              value: {{ .Config.Spec.ResourceHandlingMode
+    }}\n            - name: DELETE_MODE\n              value: {{ .Config.Spec.ResourceDeletionMode
+    }}\n            - name: ACTION\n              value: create\n{{ if .Config.Spec.TemplateSource.SecretRef
+    }}\n            - name: TEMPLATE_GITCONFIG\n              value: /template-gitconfig\n{{
+    end }}\n{{ if .Config.Spec.ParameterSource.SecretRef }}\n            - name: PARAMETER_GITCONFIG\n
+    \             value: /parameter-gitconfig\n{{ end }}              \n            volumeMounts:\n
+    \           - name: workspace\n              mountPath: /git\n{{ if .Config.Spec.TemplateSource.SecretRef
+    }}\n            - name: template-gitconfig\n              mountPath: /template-gitconfig\n{{
+    end }}\n{{ if .Config.Spec.ParameterSource.SecretRef }}\n            - name: parameter-gitconfig\n
+    \             mountPath: /parameter-gitconfig\n{{ end }}               \n          volumes:\n
+    \         - name: workspace\n            emptyDir: {}\n{{ if .Config.Spec.TemplateSource.SecretRef
+    }}\n          - name: template-gitconfig\n            secret:\n              secretName:
+    {{ .Config.Spec.TemplateSource.SecretRef }}\n{{ end }}\n{{ if .Config.Spec.ParameterSource.SecretRef
+    }}\n          - name: parameter-gitconfig\n            secret:\n              secretName:
+    {{ .Config.Spec.ParameterSource.SecretRef }}\n{{ end }}             \n          restartPolicy:
+    Never\n          serviceAccountName: {{ .Config.Spec.ServiceAccountRef }}\n      backoffLimit:
+    4"
+  job.yaml: "apiVersion: batch/v1\nkind: Job\nmetadata:\n  name: gitopsconfig-{{ .Config.ObjectMeta.Name
+    }}-{{ getID }}\n  namespace: {{ .Config.ObjectMeta.Namespace }}\n  labels:\n    action:
+    {{ .Action }} \nspec:\n  template:\n    spec:                                                    \n
+    \     containers:\n      - name: template-processor\n        imagePullPolicy: Always\n
+    \       image: {{ .Config.Spec.TemplateProcessorImage }}\n        env:\n        -
+    name: HOME\n          value: /tmp  \n        - name: NAMESPACE\n          valueFrom:\n
+    \           fieldRef:\n              fieldPath: metadata.namespace          \n        -
+    name: TEMPLATE_GIT_URI\n          value: {{ .Config.Spec.TemplateSource.URI }}\n
+    \       - name: TEMPLATE_GIT_REF\n          value: {{ .Config.Spec.TemplateSource.Ref
+    }}\n{{ if .Config.Spec.TemplateSource.HTTPProxy }}\n        - name: TEMPLATE_GIT_HTTP_PROXY\n
+    \         value: {{ .Config.Spec.TemplateSource.HTTPProxy }}\n{{ end }}\n{{ if .Config.Spec.TemplateSource.HTTPSProxy
+    }}\n        - name: TEMPLATE_GIT_HTTPS_PROXY\n          value: {{ .Config.Spec.TemplateSource.HTTPSProxy
+    }}\n{{ end }}\n{{ if .Config.Spec.TemplateSource.NOProxy }}\n        - name: TEMPLATE_GIT_NO_PROXY\n
+    \         value: {{ .Config.Spec.TemplateSource.NOProxy }}\n{{ end }}\n        -
+    name: TEMPLATE_GIT_DIR\n          value: \"/git/templates\"          \n        -
+    name: PARAMETER_GIT_URI\n          value: {{ .Config.Spec.ParameterSource.URI }}\n
+    \       - name: PARAMETER_GIT_REF\n          value: {{ .Config.Spec.ParameterSource.Ref
+    }}\n{{ if .Config.Spec.ParameterSource.HTTPProxy }}              \n        - name:
+    PARAMETER_GIT_HTTP_PROXY\n          value: {{ .Config.Spec.ParameterSource.HTTPProxy
+    }}\n{{ end }}\n{{ if .Config.Spec.ParameterSource.HTTPSProxy }}              \n
+    \       - name: PARAMETER_GIT_HTTPS_PROXY\n          value: {{ .Config.Spec.ParameterSource.HTTPSProxy
+    }}\n{{ end }}\n{{ if .Config.Spec.ParameterSource.NOProxy }}              \n        -
+    name: PARAMETER_GIT_NO_PROXY\n          value: {{ .Config.Spec.ParameterSource.NOProxy
+    }}\n{{ end }}\n        - name: PARAMETER_GIT_DIR\n          value: \"/git/parameters\"
+    \        \n        - name: CLONED_TEMPLATE_GIT_DIR\n          value: \"/git/templates/{{
+    .Config.Spec.TemplateSource.ContextDir }}\"\n        - name: CLONED_PARAMETER_GIT_DIR\n
+    \         value: \"/git/parameters/{{ .Config.Spec.ParameterSource.ContextDir }}\"\n
+    \       - name: MANIFEST_DIR\n          value: \"/git/manifests\"\n        - name:
+    CREATE_MODE\n          value: {{ .Config.Spec.ResourceHandlingMode }}\n        -
+    name: DELETE_MODE\n          value: {{ .Config.Spec.ResourceDeletionMode }}\n        -
+    name: ACTION\n          value: {{ .Action }}\n{{ if .Config.Spec.TemplateSource.SecretRef
+    }}\n        - name: TEMPLATE_GITCONFIG\n          value: /template-gitconfig\n{{
+    end }}\n{{ if .Config.Spec.ParameterSource.SecretRef }}\n        - name: PARAMETER_GITCONFIG\n
+    \         value: /parameter-gitconfig\n{{ end }}                      \n        volumeMounts:\n
+    \       - name: workspace\n          mountPath: /git\n{{ if .Config.Spec.TemplateSource.SecretRef
+    }}\n        - name: template-gitconfig\n          mountPath: /template-gitconfig\n{{
+    end }}\n{{ if .Config.Spec.ParameterSource.SecretRef }}\n        - name: parameter-gitconfig\n
+    \         mountPath: /parameter-gitconfig\n{{ end }}          \n      volumes:\n
+    \     - name: workspace\n        emptyDir: {}\n{{ if .Config.Spec.TemplateSource.SecretRef
+    }}\n      - name: template-gitconfig\n        secret:\n          secretName: {{
+    .Config.Spec.TemplateSource.SecretRef }}\n{{ end }}\n{{ if .Config.Spec.ParameterSource.SecretRef
+    }}\n      - name: parameter-gitconfig\n        secret:\n          secretName: {{
+    .Config.Spec.ParameterSource.SecretRef }}\n{{ end }}                                         \n
+    \     restartPolicy: Never\n      serviceAccountName: {{ .Config.Spec.ServiceAccountRef
+    }}\n  backoffLimit: 4"

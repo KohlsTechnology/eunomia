@@ -2,7 +2,7 @@ kind: Role
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
   name: eunomia-operator
-  namespace: eunomia
+  namespace: eunomia-operator
 rules:
 # leader election   
 - apiGroups:
