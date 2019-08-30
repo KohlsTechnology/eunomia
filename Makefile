@@ -48,7 +48,10 @@ vet:
 generate:
 	go generate ./pkg/... ./cmd/...
 
-# Deploy images to Quay.io
-travis-deploy-images:
-	docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD} ${REGISTRY}
+travis-test-images: manager
 	./scripts/build-images.sh ${REPOSITORY}
+
+# Deploy images to Quay.io
+travis-deploy-images: manager
+	docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD} ${REGISTRY}
+	./scripts/build-images.sh ${REPOSITORY} true

@@ -13,6 +13,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+set -e
 
 set -e
 
@@ -22,23 +23,35 @@ if [ -z "${TRAVIS_TAG}" ] ; then
 else
     IMAGE_TAG=${TRAVIS_TAG}
 fi
+# Whether or not to push images. If set to anything, value will be true.
+PUSH_IMAGES=${2:+true}
+
+# Builds (and optionally pushes) a single image.
+# Usage: build_image <context dir> <image url> <push image (0=true, 1=false)>
+# Example: build_image template-processors/myimage quay.io/KohlsTechnology/myimage:latest 0
+build_image() {
+  context_dir=$1
+  image_url=$2
+  push=${3:-false}
+  docker build ${context_dir} -t ${image_url}
+  if $push; then docker push $image_url; fi
+}
 
 # building and pushing the operator images
-docker build . -t ${REPOSITORY}/eunomia-operator:${IMAGE_TAG} -f build/Dockerfile
-docker push ${REPOSITORY}/eunomia-operator:${IMAGE_TAG}
+build_image build ${REPOSITORY}/eunomia-operator:${IMAGE_TAG} ${PUSH_IMAGES}
 
 # building and pushing base template processor images
-docker build template-processors/base -t ${REPOSITORY}/eunomia-base:${IMAGE_TAG}
-docker push ${REPOSITORY}/eunomia-base:${IMAGE_TAG}
+build_image template-processors/base ${REPOSITORY}/eunomia-base:${IMAGE_TAG} ${PUSH_IMAGES}
 
 # building and pushing helm template processor images
-docker build template-processors/helm -t ${REPOSITORY}/eunomia-helm:${IMAGE_TAG}
-docker push ${REPOSITORY}/eunomia-helm:${IMAGE_TAG}
+build_image template-processors/helm ${REPOSITORY}/eunomia-helm:${IMAGE_TAG} ${PUSH_IMAGES}
 
 # building and pushing OCP template processor images
-docker build template-processors/ocp-template -t ${REPOSITORY}/eunomia-ocp-templates:${IMAGE_TAG}
-docker push ${REPOSITORY}/eunomia-ocp-templates:${IMAGE_TAG}
+build_image template-processors/ocp-template ${REPOSITORY}/eunomia-ocp-templates:${IMAGE_TAG} ${PUSH_IMAGES}
+
+# building and pushing Applier template processor image
+# NOTE: this is based on the OCP template image, so this build must always come after that.
+build_image template-processors/applier ${REPOSITORY}/eunomia-applier:${IMAGE_TAG} ${PUSH_IMAGES}
 
 # building and pushing jinja template processor images
-docker build template-processors/jinja -t ${REPOSITORY}/eunomia-jinja:${IMAGE_TAG}
-docker push ${REPOSITORY}/eunomia-jinja:${IMAGE_TAG}
+build_image template-processors/jinja ${REPOSITORY}/eunomia-jinja:${IMAGE_TAG} ${PUSH_IMAGES}
