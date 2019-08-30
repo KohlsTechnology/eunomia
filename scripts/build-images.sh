@@ -15,6 +15,8 @@
 # limitations under the License.
 set -e
 
+set -e
+
 REPOSITORY=${1}
 if [ -z "${TRAVIS_TAG}" ] ; then
     IMAGE_TAG="latest"
