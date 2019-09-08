@@ -19,13 +19,10 @@ set -o errexit
 
 echo Processing Parameters
 
-export VALUES_FILE=$CLONED_PARAMETER_GIT_DIR/values.yaml
-
 # do a merge if there's more than one yaml file
 if [ "$(ls -1 $CLONED_PARAMETER_GIT_DIR/*.yaml | wc -l)" -gt 1 ]; then
   echo "Merging all available yaml files"
   goyq merge $CLONED_PARAMETER_GIT_DIR/*.yaml > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
-  export VALUES_FILE=$CLONED_PARAMETER_GIT_DIR/eunomia_values_tmp.yaml
 else
   if [ -e "$CLONED_PARAMETER_GIT_DIR/values.yaml" ]; then
     mv $CLONED_PARAMETER_GIT_DIR/values.yaml $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
