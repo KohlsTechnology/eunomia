@@ -17,12 +17,17 @@
 set -o nounset
 set -o errexit
 
-## we assume in $CLONED_TEMPLATE_GIT_DIR there is a helm chart
-## the helm chart may need updating
+echo Processing Parameters
 
-echo "Initializing helm"
-helm init --client-only
-helm repo update $CLONED_TEMPLATE_GIT_DIR
+export VALUES_FILE=$CLONED_PARAMETER_GIT_DIR/values.yaml
 
-echo "Generating manifest files"
-helm template -f $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml --output-dir $MANIFEST_DIR --namespace $NAMESPACE $CLONED_TEMPLATE_GIT_DIR
+# do a merge if there's more than one yaml file
+if [ "$(ls -1 $CLONED_PARAMETER_GIT_DIR/*.yaml | wc -l)" -gt 1 ]; then
+  echo "Merging all available yaml files"
+  goyq merge $CLONED_PARAMETER_GIT_DIR/*.yaml > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
+  export VALUES_FILE=$CLONED_PARAMETER_GIT_DIR/eunomia_values_tmp.yaml
+else
+  if [ -e "$CLONED_PARAMETER_GIT_DIR/values.yaml" ]; then
+    mv $CLONED_PARAMETER_GIT_DIR/values.yaml $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
+  fi
+fi
