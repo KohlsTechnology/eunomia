@@ -188,7 +188,11 @@ The base image provides the following workflow:
     | `SERVICE_CA_BUNDLE`  | Service-level CA bundle  |
     | `DEFAULT_ROUTE_DOMAIN`  | Base route domain for the default router  |
     | `NAMESPACE`  | Current namespace  |
-3. `processParameters.sh` : This script processes all the parameter files and generates a `eunomia_values_processed.yaml` in the location specified by `CLONED_PARAMETER_GIT_DIR`. Currently it supports merging all existing yaml files in the `CLONED_PARAMETER_GIT_DIR` location, into a single file for processing by the templating engine. This script can be enhanced to e.g. support secrets injection.
+3. `processParameters.sh` : This script processes all the parameter files and generates a `eunomia_values_processed.yaml` in the location specified by `CLONED_PARAMETER_GIT_DIR`. This script currently supports the following features:
+    - Merging of all existing yaml files in the `CLONED_PARAMETER_GIT_DIR` location, into a single file for processing by the templating engine. 
+    - Substituion of variables with environment variables.
+
+    This script can be further enhanced to e.g. support secrets injection.
 
 4. `processTemplate.sh` : This file needs to be overwritten in order to support a different templating engine. The contract is the following:
 

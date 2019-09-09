@@ -32,3 +32,7 @@ fi
 if [ "${YAML_COUNT}" -eq 1 ]; then
     mv $CLONED_PARAMETER_GIT_DIR/*.yaml $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
 fi
+
+# Replace variables from enviroment
+# This allows determining things like cluster names, regions, etc.
+envsubst < $CLONED_PARAMETER_GIT_DIR/values.yaml > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
