@@ -25,14 +25,19 @@ export YAML_COUNT="$(ls -1 $CLONED_PARAMETER_GIT_DIR/*.yaml | wc -l)"
 # do a merge if there's more than one yaml file
 if [ "${YAML_COUNT}" -gt 1 ]; then
   echo "Merging all available yaml files"
-  goyq merge $CLONED_PARAMETER_GIT_DIR/*.yaml > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
+  goyq merge $CLONED_PARAMETER_GIT_DIR/*.yaml > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml
 fi
 
 # if there's just one, make sure it has the proper name
 if [ "${YAML_COUNT}" -eq 1 ]; then
-    mv $CLONED_PARAMETER_GIT_DIR/*.yaml $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
+    mv $CLONED_PARAMETER_GIT_DIR/*.yaml $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml
 fi
 
 # Replace variables from enviroment
 # This allows determining things like cluster names, regions, etc.
-envsubst < $CLONED_PARAMETER_GIT_DIR/values.yaml > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
+if [ -e "$CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml" ]; then
+  envsubst < $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
+else
+  echo "ERROR - missing parameter files"
+  exit 1
+fi
