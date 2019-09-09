@@ -19,12 +19,16 @@ set -o errexit
 
 echo Processing Parameters
 
+# Determine how many yaml files we have
+export YAML_COUNT="$(ls -1 $CLONED_PARAMETER_GIT_DIR/*.yaml | wc -l)"
+
 # do a merge if there's more than one yaml file
-if [ "$(ls -1 $CLONED_PARAMETER_GIT_DIR/*.yaml | wc -l)" -gt 1 ]; then
+if [ "${YAML_COUNT}" -gt 1 ]; then
   echo "Merging all available yaml files"
   goyq merge $CLONED_PARAMETER_GIT_DIR/*.yaml > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
-else
-  if [ -e "$CLONED_PARAMETER_GIT_DIR/values.yaml" ]; then
-    mv $CLONED_PARAMETER_GIT_DIR/values.yaml $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
-  fi
+fi
+
+# if there's just one, make sure it has the proper name
+if [ "${YAML_COUNT}" -eq 1 ]; then
+    mv $CLONED_PARAMETER_GIT_DIR/*.yaml $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
 fi
