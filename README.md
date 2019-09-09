@@ -188,13 +188,15 @@ The base image provides the following workflow:
     | `SERVICE_CA_BUNDLE`  | Service-level CA bundle  |
     | `DEFAULT_ROUTE_DOMAIN`  | Base route domain for the default router  |
     | `NAMESPACE`  | Current namespace  |
-3. `processTemplate.sh` : This shell that needs to be overwritten in order to support a different templating engine. The contract is the following:
+3. `processParameters.sh` : This script processes all the parameter files and generates a `eunomia_values_processed.yaml` in the location specified by `CLONED_PARAMETER_GIT_DIR`. Currently it supports merging all existing yaml files in the `CLONED_PARAMETER_GIT_DIR` location, into a single file for processing by the templating engine. This script can be enhanced to e.g. support secrets injection.
+
+4. `processTemplate.sh` : This file needs to be overwritten in order to support a different templating engine. The contract is the following:
 
     - Templates are available at the location specified by the variable: `CLONED_TEMPLATE_GIT_DIR`
     - Parameters are available at the location pecified by the variable: `CLONED_PARAMETER_GIT_DIR`
     - After the template processing completes, the processed manifests should be stored at the location of this variable: `MANIFEST_DIR`
 
-4. `resourceManager.sh` :  Processes the resources in `MANIFEST_DIR`. One or more files can be present, and all will be processed.
+5. `resourceManager.sh` :  Processes the resources in `MANIFEST_DIR`. One or more files can be present, and all will be processed.
 
 Currently the following templating engines are supported (follow the link to see examples of how new template processors can be added):
 
