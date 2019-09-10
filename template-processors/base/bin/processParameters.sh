@@ -20,17 +20,20 @@ set -o errexit
 echo Processing Parameters
 
 # Determine how many yaml files we have
-export YAML_COUNT="$(ls -1 $CLONED_PARAMETER_GIT_DIR/*.yaml | wc -l)"
+export YAML_COUNT="$(ls -1 $CLONED_PARAMETER_GIT_DIR/*.{yaml,yml} 2> /dev/null | wc -l)"
+
+# Get the list of yaml files to process
+export YAML_FILES="$(ls $CLONED_PARAMETER_GIT_DIR/*.{yaml,yml} 2> /dev/null)"
 
 # do a merge if there's more than one yaml file
 if [ "${YAML_COUNT}" -gt 1 ]; then
   echo "Merging all available yaml files"
-  goyq merge $CLONED_PARAMETER_GIT_DIR/*.yaml > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml
+  goyq merge ${YAML_FILES} > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml
 fi
 
 # if there's just one, make sure it has the proper name
 if [ "${YAML_COUNT}" -eq 1 ]; then
-    mv $CLONED_PARAMETER_GIT_DIR/*.yaml $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml
+    mv ${YAML_FILES} $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml
 fi
 
 # Replace variables from enviroment
