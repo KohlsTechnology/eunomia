@@ -20,10 +20,10 @@ set -o errexit
 echo Processing Parameters
 
 # Determine how many yaml files we have
-export YAML_COUNT="$(ls -1 $CLONED_PARAMETER_GIT_DIR/*.{yaml,yml} 2> /dev/null | wc -l)"
+export YAML_COUNT="$(ls -1 $CLONED_PARAMETER_GIT_DIR/*.{yaml,yml,json} 2> /dev/null | wc -l)"
 
 # Get the list of yaml files to process
-export YAML_FILES="$(ls $CLONED_PARAMETER_GIT_DIR/*.{yaml,yml} 2> /dev/null)"
+export YAML_FILES="$(ls $CLONED_PARAMETER_GIT_DIR/*.{yaml,yml,json} 2> /dev/null)"
 
 # do a merge if there's more than one yaml file
 if [ "${YAML_COUNT}" -gt 1 ]; then
