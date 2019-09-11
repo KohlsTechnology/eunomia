@@ -103,7 +103,7 @@ spec:
               items:
                 properties:
                   cron:
-                    description: creon expression only valid with the Periodic type
+                    description: cron expression only valid with the Periodic type
                     type: string
                   secret:
                     description: webhook secret only valid with webhook type
