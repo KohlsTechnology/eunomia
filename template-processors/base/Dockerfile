@@ -11,10 +11,10 @@ COPY bin /usr/local/bin
 
 RUN \
     apk add --no-cache bash curl ca-certificates git gettext jq findutils py-pip && \
-    curl -kL https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
+    curl -L https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
     chmod +x /usr/bin/kubectl && \
     pip install yq==${YQ_VERSION} && \
-    curl -kL https://github.com/mikefarah/yq/releases/download/${GOLANG_YQ_VERSION}/yq_linux_amd64 -o /usr/bin/goyq && \
+    curl -L https://github.com/mikefarah/yq/releases/download/${GOLANG_YQ_VERSION}/yq_linux_amd64 -o /usr/bin/goyq && \
     chmod +x /usr/bin/goyq && \
     /usr/local/bin/user_setup
 
