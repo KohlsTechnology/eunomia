@@ -17,7 +17,7 @@ GitOpsConfig:
   serviceAccountRef: "eunomia-runner"
   templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:latest"
   triggers:
-    cron: "* */8 * * *"
+    cron: "0 */8 * * *"
   templateSource:
     uri: "https://github.com/KohlsTechnology/eunomia"
     ref: "master"
