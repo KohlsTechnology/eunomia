@@ -3,7 +3,7 @@
 REGISTRY ?= quay.io
 REPOSITORY ?= $(REGISTRY)/kohlstechnology
 
-VERSION := v0.0.1
+VERSION := $(shell ./scripts/build/get-version.sh)
 
 BUILD_COMMIT := $(shell ./scripts/build/get-build-commit.sh)
 BUILD_TIMESTAMP := $(shell ./scripts/build/get-build-timestamp.sh)
