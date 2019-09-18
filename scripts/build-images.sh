@@ -33,6 +33,13 @@ build_image() {
   local image_url=${REPOSITORY}/$2
   local push=${PUSH_IMAGES:-false}
 
+  if [ -f "${context_dir}/Dockerfile.in" ]; then
+      cat "${context_dir}/Dockerfile.in" |
+          sed "s|@REPOSITORY@|${REPOSITORY}|g" |
+          sed "s|@IMAGE_TAG@|${IMAGE_TAG}|g" \
+          > "${context_dir}/Dockerfile"
+  fi
+
   # Make sure "dev" docker tag always points to the most recently changed commit
   docker build "${context_dir}" -t "${image_url}:dev"
   if $push; then
