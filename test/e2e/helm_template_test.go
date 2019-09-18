@@ -71,7 +71,7 @@ func helmTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 				},
 			},
 			ResourceDeletionMode:   "Delete",
-			TemplateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:latest",
+			TemplateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:dev",
 			ResourceHandlingMode:   "CreateOrMerge",
 			ServiceAccountRef:      "eunomia-operator",
 		},
