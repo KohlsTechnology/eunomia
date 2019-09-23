@@ -31,6 +31,11 @@ if [[ $(kubectl get namespace $TEST_NAMESPACE) ]]; then
     kubectl delete namespace $TEST_NAMESPACE
 fi
 
+# Pre-populate the Docker registry in minikube with images built from the current commit
+# See also: https://stackoverflow.com/q/42564058
+eval $(minikube docker-env)
+make e2e-test-images
+
 helm template deploy/helm/prereqs/ \
   --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
 

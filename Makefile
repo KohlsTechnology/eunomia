@@ -48,8 +48,8 @@ vet:
 generate:
 	go generate ./pkg/... ./cmd/...
 
-travis-test-images: manager
-	./scripts/build-images.sh ${REPOSITORY}
+e2e-test-images: manager
+	TRAVIS_TAG=v999.0.0 ./scripts/build-images.sh ${REPOSITORY}
 
 # Deploy images to Quay.io
 travis-deploy-images: manager
