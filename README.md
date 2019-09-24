@@ -13,7 +13,7 @@ According to Wikipedia:
 ## What is GitOps
 
 GitOps is all about turning day 2 operations into code! Not just that, it means you start thinking about day 2 on day 1. This is a dream come true for any Operations team!
-GitOps leverages the strength of automation and combines it with the power of git based workflows. It is a natural evolution beyond infrastrcture-as-code and builds on top of DevOps best practices.
+GitOps leverages the strength of automation and combines it with the power of git based workflows. It is a natural evolution beyond infrastructure-as-code and builds on top of DevOps best practices.
 
 ### Next Generation Change Management
 
@@ -35,9 +35,9 @@ What's your backout plan for your change? How about simply moving back to the pr
 
 The Eunomia provides the ability to implement these git-based flows for any resources in Kubernetes. Eunomia does not care if you have a plain Kubernetes, a cloud based Kubernetes (like GKE), or a complete PaaS platform based on Kubernetes (like OpenShift). Eunomia also does not care how you want to structure your data, how many repos you want to use, or which templating engine is your favourite.
 
-Eunomia can handle straight-up (static) yaml files with the complete definition or create dynamic ones based on your templating engine of choice. Eunomia already supports *Helm Charts*, *OpenShift Templates*, and *Jinja2 Templates*, but can easily be extended to support ohers.
+Eunomia can handle straight-up (static) yaml files with the complete definition or create dynamic ones based on your templating engine of choice. Eunomia already supports *Helm Charts*, *OpenShift Templates*, and *Jinja2 Templates*, but can easily be extended to support others.
 
-These templates will be merged and processesed with a set of environment-specific parameters to get a list of resource manifests. Then these manifest can be created/updated/deleted in Kubernetes.
+These templates will be merged and processed with a set of environment-specific parameters to get a list of resource manifests. Then these manifest can be created/updated/deleted in Kubernetes.
 
 ## Vision
 
@@ -105,7 +105,7 @@ The fields of this section are:
     SecretRef: <gitconfig and credentials secret>
 ```
 
-These are the mandatory contraints and default behaviors of the fields:
+These are the mandatory constraints and default behaviors of the fields:
 
 | field name  | mandatory  | default  |
 |:---|:---:|:---|
@@ -117,16 +117,16 @@ These are the mandatory contraints and default behaviors of the fields:
 | NOProxy  | no  |   |
 | SecretRef  | no  |   |
 
-If a secret is provided, then it is assumed that the conenction to Git requires authentication. See the [Git Authentication] (#git authentication) section below for more details.
+If a secret is provided, then it is assumed that the connection to Git requires authentication. See the [Git Authentication](#git\ authentication) section below for more details.
 
 If the `uri` is not specified in the `parameterSource` section, then it will default to the `uri` specified under `templateSource`.
 
 ### Git Authentication
 
-Specifing a `SecretRef` will automatically turn on git authentication. The secrets for the template and parameter repos will be mounted respectively in the `/template-gitconfig` and `/parameter-gitconfig` of the job pod.
-The referenced secrets must be available and how they are provisioned is beyond the scope of this operator. See the [Vision](#vision) paragraph on how to build a hierachical structure, where the resourecs needed to run a given GitOpsConfig are configured by a predecessor GitpOpsConfig instance.
+Specifying a `SecretRef` will automatically turn on git authentication. The secrets for the template and parameter repos will be mounted respectively in the `/template-gitconfig` and `/parameter-gitconfig` of the job pod.
+The referenced secrets must be available and how they are provisioned is beyond the scope of this operator. See the [Vision](#vision) paragraph on how to build a hierarchical structure, where the resources needed to run a given GitOpsConfig are configured by a predecessor GitpOpsConfig instance.
 
-This secret will be linked from `~/` of the used running the pod. The secret *must* contain a `.gitconfig` file and may contain other files. The passed `.gitconfig` will be used during the git operations. It is advised to referece any additional files via the absolute path.
+This secret will be linked from `~/` of the used running the pod. The secret *must* contain a `.gitconfig` file and may contain other files. The passed `.gitconfig` will be used during the git operations. It is advised to reference any additional files via the absolute path.
 
 #### Username and password authentication
 
@@ -153,7 +153,7 @@ Don't forget to provide the `ca.crt` file to the secret.
 
 #### Certificate based authentication
 
-For certifciate based authentication, create the following `.gitconfig`:
+For certificate based authentication, create the following `.gitconfig`:
 
 ```ini
 [core]
@@ -190,14 +190,14 @@ The base image provides the following workflow:
     | `NAMESPACE`  | Current namespace  |
 3. `processParameters.sh` : This script processes all the parameter files and generates a `eunomia_values_processed.yaml` in the location specified by `CLONED_PARAMETER_GIT_DIR`. This script currently supports the following features:
     - Merging of all existing yaml files in the `CLONED_PARAMETER_GIT_DIR` location, into a single file for processing by the templating engine. 
-    - Substituion of variables with environment variables.
+    - Substitution of variables with environment variables.
 
     This script can be further enhanced to e.g. support secrets injection.
 
 4. `processTemplate.sh` : This file needs to be overwritten in order to support a different templating engine. The contract is the following:
 
     - Templates are available at the location specified by the variable: `CLONED_TEMPLATE_GIT_DIR`
-    - Parameters are available at the location pecified by the variable: `CLONED_PARAMETER_GIT_DIR`
+    - Parameters are available at the location specified by the variable: `CLONED_PARAMETER_GIT_DIR`
     - After the template processing completes, the processed manifests should be stored at the location of this variable: `MANIFEST_DIR`
 
 5. `resourceManager.sh` :  Processes the resources in `MANIFEST_DIR`. One or more files can be present, and all will be processed.
@@ -227,7 +227,7 @@ This field specifies how resources should be handled, once the templates are pro
 
 This field specifies how to handle resources when the GitOpsConfig object is deleted. Two options are available:
 
-1. `Retain`, resources previsouly created are left intact.
+1. `Retain`, resources previously created are left intact.
 2. `Delete`, resources are delete with the `cascade` option.
 3. `None`, resource deletion is not handled at all.
 
@@ -259,7 +259,7 @@ helm template deploy/helm/operator/ --set openshift.route.enabled=true | oc appl
 
 ## Examples / Demos
 
-We've created several examples for you to test out Eunomonia. See [EXAMPLES](examples/README.md) for details.
+We've created several examples for you to test out Eunomia. See [EXAMPLES](examples/README.md) for details.
 
 ## Development
 
