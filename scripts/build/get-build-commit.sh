@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+set -euo pipefail
 
 GIT_SHA=$(git rev-parse --short HEAD)
 

@@ -15,7 +15,7 @@ objects:
     serviceAccountName: eunomia-operator
     containers:
     - image: hello-world:latest
-      imagePullPolicy: Always
+      imagePullPolicy: IfNotPresent
       name: helloworld
       ports:
       - containerPort: 8080

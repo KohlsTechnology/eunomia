@@ -86,10 +86,10 @@ spec:
       containers:
         - name: eunomia-operator
           # Replace this with the built image name
-          image: quay.io/kohlstechnology/eunomia-operator:latest
+          image: quay.io/kohlstechnology/eunomia-operator:dev
           command:
           - eunomia-operator
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - name: JOB_TEMPLATE
               value: /templates/job.yaml
@@ -162,10 +162,10 @@ spec:
       containers:
         - name: eunomia-operator
           # Replace this with the built image name
-          image: quay.io/kohlstechnology/eunomia-operator:latest
+          image: quay.io/kohlstechnology/eunomia-operator:dev
           command:
           - eunomia-operator
-          imagePullPolicy: Always
+          imagePullPolicy: IfNotPresent
           env:
             - name: JOB_TEMPLATE
               value: /templates/job.yaml

@@ -3,7 +3,7 @@
 REGISTRY ?= quay.io
 REPOSITORY ?= $(REGISTRY)/kohlstechnology
 
-VERSION := v0.0.1
+VERSION := $(shell ./scripts/build/get-version.sh)
 
 BUILD_COMMIT := $(shell ./scripts/build/get-build-commit.sh)
 BUILD_TIMESTAMP := $(shell ./scripts/build/get-build-timestamp.sh)
@@ -48,8 +48,8 @@ vet:
 generate:
 	go generate ./pkg/... ./cmd/...
 
-travis-test-images: manager
-	./scripts/build-images.sh ${REPOSITORY}
+e2e-test-images: manager
+	TRAVIS_TAG=v999.0.0 ./scripts/build-images.sh ${REPOSITORY}
 
 # Deploy images to Quay.io
 travis-deploy-images: manager
