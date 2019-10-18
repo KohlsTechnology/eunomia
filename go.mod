@@ -1,5 +1,7 @@
 module github.com/KohlsTechnology/eunomia
 
+go 1.12
+
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.4.9 // indirect
 	github.com/Azure/go-autorest v11.5.2+incompatible // indirect
