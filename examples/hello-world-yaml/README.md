@@ -32,7 +32,7 @@ kubectl create namespace eunomia-hello-world-yaml-demo
 kubectl apply -f examples/hello-world-yaml/eunomia-runner-sa.yaml -n eunomia-hello-world-yaml-demo
 
 # Deploy the CR for the hello-world application
-kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-hello-world-demo
+kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-hello-world-yaml-demo
 
 # Make sure the hello-world pod start successfully
 # You should be seeing 1 running hello-word pod
