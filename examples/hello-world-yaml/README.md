@@ -25,11 +25,11 @@ kubectl delete namespace eunomia-hello-world-demo
 
 ## Let's do this with Eunomia
 ```shell
-# Create the namespace
-kubectl create namespace eunomia-hello-world-demo
+# Create new namespace
+kubectl create namespace eunomia-hello-world-yaml-demo
 
-# Create the service account for the runners
-kubectl apply -f examples/service_account_runner.yaml -n eunomia-hello-world-yaml-demo
+# Create new service account for the runners
+kubectl apply -f examples/hello-world-yaml/eunomia-runner-sa.yaml -n eunomia-hello-world-yaml-demo
 
 # Deploy the CR for the hello-world application
 kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-hello-world-demo
