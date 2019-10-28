@@ -32,7 +32,6 @@ before_script:
 
 script:
   - test -z "$(gofmt -l . | grep -v ^vendor)"
-  - go vet ./pkg/... ./cmd/...
   - golint -set_exit_status $(go list ./... | grep -v /vendor/)
   - bash scripts/unit-tests.sh
   - bash scripts/e2e-test.sh
