@@ -4,7 +4,7 @@ This example uses a simple hello world application based on a static yaml file.
 
 ## Test everything works without Eunomia
 
-Let us first make sure that the demo itself works on your kubernetes installation.
+Let us first make sure that the demo itself works on your minikube.
 
 ```shell
 # Create the namespace
@@ -18,13 +18,8 @@ kubectl get pods -n eunomia-hello-world-demo
 
 # Access the service
 minikube service hello-world -n eunomia-hello-world-demo
-```
 
-## Cleanup
-
-Once you confirmed that the hello-world application successfully runs, you can clean up the namespace to ensure we start fresh.
-
-```shell
+# Cleanup
 kubectl delete namespace eunomia-hello-world-demo
 ```
 
@@ -34,7 +29,7 @@ kubectl delete namespace eunomia-hello-world-demo
 kubectl create namespace eunomia-hello-world-demo
 
 # Create the service account for the runners
-kubectl apply -f examples/service_account_runner.yaml -n eunomia-hello-world-demo
+kubectl apply -f examples/service_account_runner.yaml -n eunomia-hello-world-yaml-demo
 
 # Deploy the CR for the hello-world application
 kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-hello-world-demo
