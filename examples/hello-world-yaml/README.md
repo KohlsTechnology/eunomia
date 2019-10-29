@@ -1,29 +1,15 @@
-# Simple Hello-World YAML
+# Simple hello-world with plain yaml files
 
-This example uses a simple hello world application based on a static yaml file.
+This example uses a simple hello world application based on a static yaml file. Scenario for this example is following: 
+- Eunomia is already initialized in your cluster (ex.: for minikube please look [here](../../DEVELOPMENT.md#using-minikube))
+- create new namespace
+- create service account in this namespace
+- apply first version of GitOpsConfig CR and observe 1 pod of hello-app created
+- apply second version of GitOpsConfig CR and observe 2 more pods of hello-app spawned
+- apply third version of GitOpsConfig CR and observe all 3 pods of hello-app being updated to version 2.0
+- remove whole namespace with all created elements
 
-## Test everything works without Eunomia
-
-Let us first make sure that the demo itself works on your minikube.
-
-```shell
-# Create the namespace
-kubectl create namespace eunomia-hello-world-demo
-
-# Deploy the application
-kubectl apply -f examples/hello-world-yaml/template1/hello-world.yaml -n eunomia-hello-world-demo
-
-# Make sure the hello-world pod(s) start successfully
-kubectl get pods -n eunomia-hello-world-demo
-
-# Access the service
-minikube service hello-world -n eunomia-hello-world-demo
-
-# Cleanup
-kubectl delete namespace eunomia-hello-world-demo
-```
-
-## Let's do this with Eunomia
+## Example
 ```shell
 # Create new namespace
 kubectl create namespace eunomia-hello-world-yaml-demo
