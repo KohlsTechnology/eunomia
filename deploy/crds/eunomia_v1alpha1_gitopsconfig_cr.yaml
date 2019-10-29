@@ -1,7 +1,0 @@
-apiVersion: eunomia.kohls.io/v1alpha1
-kind: GitOpsConfig
-metadata:
-  name: example-gitopsconfig
-spec:
-  # Add fields here
-  size: 3

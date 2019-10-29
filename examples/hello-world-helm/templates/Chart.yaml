@@ -1,6 +1,0 @@
-apiVersion: v1
-name: hello-world
-version: 1.0.0
-description: Example helm chart for eunomia demos
-home: https://github.com/KohlsTechnology/eunomia
-engine: gotpl

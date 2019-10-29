@@ -1,7 +1,0 @@
-{{- with .Values.eunomia.operator }}
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: {{ .namespace }}
-spec:
-{{- end }}

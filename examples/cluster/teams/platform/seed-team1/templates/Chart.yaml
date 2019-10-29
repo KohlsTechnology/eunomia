@@ -1,6 +1,0 @@
-apiVersion: v1
-name: cluster-seed
-version: 1.0.0
-description: Cluster seed custom resource to initialize GitOps
-home: https://github.com/KohlsTechnology/eunomia
-engine: gotpl
