@@ -32,11 +32,6 @@ function getClusterCAs {
     echo export SERVICE_CA_BUNDLE=$(kube get secret $SECRET -n default -o "jsonpath={.data['service-ca\.crt']}") >> $HOME/envs.sh
 }
 
-function getDefaultRouteDomain {
-    REGISTRY_ROUTE=$(kube get route docker-registry --no-headers -n default | awk '{print $2}')
-    echo export DEFAULT_ROUTE_DOMAIN=${REGISTRY_ROUTE#*.} >> $HOME/envs.sh
-}
-
 function getNamespace {
     echo export NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace) >> $HOME/envs.sh
 }
@@ -44,5 +39,4 @@ function getNamespace {
 echo Setting cluster-related environment variable
 setContext
 getClusterCAs
-getDefaultRouteDomain
 getNamespace
