@@ -51,26 +51,26 @@ kubectl -n eunomia-hello-world-yaml-demo describe GitOpsConfig hello-world-yaml
 # So we are going to change `replicas: 1` to `replicas: 3`
 # We will simply point at an updated version of the CR for the demo
 # In the real world this would a pull request to the existing yaml file
-kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr2.yaml -n eunomia-hello-world-demo
+kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr2.yaml -n eunomia-hello-world-yaml-demo
 
 # You should now be seeing 3 running hello-word pods
-kubectl get pods -n eunomia-hello-world-demo
+kubectl get pods -n eunomia-hello-world-yaml-demo
 
 # Lets simulate another change in Git
 # You updated your application and need to deploy a newer version of it
 # So we are going to change the image tag from `1.0` to `2.0`
 # We will simply point at an updated version of the CR for the demo
 # In the real world this would a pull request to the existing yaml file
-kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr3.yaml -n eunomia-hello-world-demo
+kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr3.yaml -n eunomia-hello-world-yaml-demo
 
 # You should now be see the old pods being replaced by 3 new ones
-kubectl get pods -n eunomia-hello-world-demo
+kubectl get pods -n eunomia-hello-world-yaml-demo
 
-# Access the service
-minikube service hello-world -n eunomia-hello-world-demo
+#If you are using minikube you can run to see updated version:
+minikube service hello-world -n eunomia-hello-world-yaml-demo
 ```
 
 ## Cleanup
 ```shell
-kubectl delete namespace eunomia-hello-world-demo
+kubectl delete namespace eunomia-hello-world-yaml-demo
 ```
