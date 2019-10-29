@@ -10,22 +10,22 @@ Before you can execute any of the hello-world examples, you need to install the 
 
 ```shell
 # Deploy the operator pre-requisites, which require cluster-admin access
-helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml deploy/helm/prereqs/ | kubectl apply -f -
+helm template deploy/helm/prereqs/ | kubectl apply -f -
 
 # Deploy the operator
-helm template -f examples/cluster/teams/platform/eunomia-operator/parameters/values.yaml deploy/helm/operator/ | kubectl apply -f -
+helm template deploy/helm/operator/ | kubectl apply -f -
 
 # Make sure the operator pod is running
 kubectl get pods -n eunomia-operator
 
 # Once it is running, check the logs to make sure there are no errors
-kubectl -n eunomia-operator logs `kubectl get pods -n eunomia-operator -o name | sed 's/pod\///g'`
+kubectl -n eunomia-operator logs deployment/eunomia-operator
 ```
 ## Try it out
 
-[Static yaml file](hello-world-yaml/README.md) 
+[Static yaml file](hello-world-yaml) 
 
-[Helm chart with parameters](hello-world-helm/README.md) 
+[Helm chart with parameters](hello-world-helm) 
 
 ## Real world-ish
 
