@@ -17,6 +17,6 @@ FROM gcr.io/distroless/static:nonroot
 ENV OPERATOR=/usr/local/bin/eunomia-operator
 
 # install operator binary
-COPY build/_output/bin/eunomia ${OPERATOR}
+COPY _output/bin/eunomia ${OPERATOR}
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]

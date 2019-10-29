@@ -20,7 +20,9 @@ set -o errexit
 ## we assume in $CLONED_TEMPLATE_GIT_DIR there is a helm chart
 ## the helm chart may need updating
 
-envsubst < $CLONED_PARAMETER_GIT_DIR/values.yaml > $CLONED_PARAMETER_GIT_DIR/values_subst.yaml
+echo "Initializing helm"
 helm init --client-only
 helm repo update $CLONED_TEMPLATE_GIT_DIR
-helm template -f $CLONED_PARAMETER_GIT_DIR/values_subst.yaml --output-dir $MANIFEST_DIR --namespace $NAMESPACE $CLONED_TEMPLATE_GIT_DIR
+
+echo "Generating manifest files"
+helm template -f $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml --output-dir $MANIFEST_DIR --namespace $NAMESPACE $CLONED_TEMPLATE_GIT_DIR
