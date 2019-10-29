@@ -4,11 +4,11 @@ metadata:
   name: hello-world-yaml
 spec:
   templateSource:
-    uri: https://github.com/KohlsTechnology/eunomia
-    ref: master
+    uri: https://github.com/mkyc/eunomia
+    ref: checking-examples-1
     contextDir: examples/hello-world-yaml/template3
   parameterSource:
-    ref: master
+    ref: checking-examples-1
     contextDir: examples/hello-world-yaml/parameters
   triggers:
   - type: Change
