@@ -79,3 +79,8 @@ vendor
 notes.txt
 image_move.sh
 .DS_Store
+template-processors/applier/Dockerfile
+template-processors/helm/Dockerfile
+template-processors/jinja/Dockerfile
+template-processors/ocp-template/Dockerfile
+.idea
