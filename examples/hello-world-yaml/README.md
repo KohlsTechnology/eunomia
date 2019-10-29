@@ -37,11 +37,14 @@ kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-he
 # Make sure the hello-world pod start successfully
 # You should be seeing 1 running hello-word pod
 # You should also see one completed pod with a name starting with gitopsconfig-hello-world-yaml
-kubectl get pods -n eunomia-hello-world-demo
+kubectl get pods -n eunomia-hello-world-yaml-demo
+
+#If you are using minikube you can run:
+minikube service hello-world -n eunomia-hello-world-yaml-demo
 
 # take a look at the CR
-kubectl -n eunomia-hello-world-demo get GitOpsConfig
-kubectl -n eunomia-hello-world-demo describe GitOpsConfig hello-world-yaml
+kubectl -n eunomia-hello-world-yaml-demo get GitOpsConfig
+kubectl -n eunomia-hello-world-yaml-demo describe GitOpsConfig hello-world-yaml
 
 # Lets simulate a change in Git
 # Your load increased and you now need 3 running pods
