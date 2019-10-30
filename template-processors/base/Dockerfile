@@ -10,7 +10,7 @@ ENV USER_UID=1001 \
 
 COPY bin /usr/local/bin
 
-RUN yum -y install --disableplugin=subscription-manager git gettext python36-devel gcc python3-pip python3-setuptools && \
+RUN yum install -y --disableplugin=subscription-manager git gettext python36-devel gcc python3-pip python3-setuptools && \
     curl https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 -L -o /usr/bin/jq && \
     chmod +x /usr/bin/jq && \
     curl -L https://storage.googleapis.com/kubernetes-release/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl -o /usr/bin/kubectl && \
