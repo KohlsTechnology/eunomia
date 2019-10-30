@@ -186,7 +186,6 @@ The base image provides the following workflow:
     |:---|:---|
     | `CA_BUNDLE`  | Platform-level CA bundle  |
     | `SERVICE_CA_BUNDLE`  | Service-level CA bundle  |
-    | `DEFAULT_ROUTE_DOMAIN`  | Base route domain for the default router  |
     | `NAMESPACE`  | Current namespace  |
 3. `processParameters.sh` : This script processes all the parameter files and generates a `eunomia_values_processed.yaml` in the location specified by `CLONED_PARAMETER_GIT_DIR`. This script currently supports the following features:
     - Merging of all existing yaml files in the `CLONED_PARAMETER_GIT_DIR` location, into a single file for processing by the templating engine. 
