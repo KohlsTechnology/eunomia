@@ -36,6 +36,18 @@ run: generate fmt vet
 install:
 	cat deploy/crds/*crd.yaml | kubectl apply -f-
 
+# Run go fmt against code
+fmt:
+	go fmt ./pkg/... ./cmd/...
+
+# Run go vet against code
+vet:
+	go vet ./pkg/... ./cmd/...
+
+# Generate code
+generate:
+	go generate ./pkg/... ./cmd/...
+
 e2e-test-images: manager
 	TRAVIS_TAG=v999.0.0 ./scripts/build-images.sh ${REPOSITORY}
 
