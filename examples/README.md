@@ -9,11 +9,8 @@ Here are some basic examples for you to try out and get a feel for what Eunomia 
 Before you can execute any of the hello-world examples, you need to install the operator first.
 
 ```shell
-# Deploy the operator pre-requisites, which require cluster-admin access
-helm template deploy/helm/prereqs/ | kubectl apply -f -
-
 # Deploy the operator
-helm template deploy/helm/operator/ | kubectl apply -f -
+helm template deploy/helm/eunomia-operator/ | kubectl apply -f -
 
 # Make sure the operator pod is running
 kubectl get pods -n eunomia-operator

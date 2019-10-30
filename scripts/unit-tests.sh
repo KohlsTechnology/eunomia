@@ -15,8 +15,8 @@
 set -e
 
 export EUNOMIA_PATH=$(cd "${0%/*}/.." ; pwd)
-export JOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/operator/eunomia-templates/job.yaml
-export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/operator/eunomia-templates/cronjob.yaml
+export JOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/eunomia-operator/eunomia-templates/job.yaml
+export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/eunomia-operator/eunomia-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export GO111MODULE=on
