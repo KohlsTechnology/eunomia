@@ -7,7 +7,7 @@ This example uses a simple hello world application based on a helm chart with pa
 kubectl create namespace eunomia-hello-world-demo
 
 # Create the service account for the runners
-kubectl apply -f examples/service_account_runner.yaml -n eunomia-hello-world-demo
+kubectl apply -f examples/hello-world-helm/service_account_runner.yaml -n eunomia-hello-world-demo
 
 # Deploy the CR for the hello-world application
 kubectl apply -f examples/hello-world-helm/cr/hello-world-cr1.yaml -n eunomia-hello-world-demo

@@ -38,9 +38,11 @@ fi
 
 # Replace variables from enviroment
 # This allows determining things like cluster names, regions, etc.
-if [ -e "$CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml" ]; then
-  envsubst < $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
-else
-  echo "ERROR - missing parameter files"
-  exit 1
+if [ "${YAML_COUNT}" -ge 1 ]; then
+  if [ -e "$CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml" ]; then
+    envsubst < $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
+  else
+    echo "ERROR - missing parameter files"
+    exit 1
+  fi
 fi
