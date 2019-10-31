@@ -206,16 +206,16 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 		Action: "create",
 	}
 
-	var update bool
-
 	cronjob, err := util.CreateCronJob(mergedata)
 	if err != nil {
 		log.Error(err, "unable to create cronjob manifest from merge data", "mergedata", mergedata)
 		return err
 	}
 
-	pCronjob := batchv1beta1.CronJob{}
-	err = r.client.Get(context.TODO(), types.NamespacedName{Name: cronjob.GetName(), Namespace: cronjob.GetNamespace()}, &pCronjob)
+	err = r.client.Get(context.TODO(),
+		types.NamespacedName{Name: cronjob.GetName(), Namespace: cronjob.GetNamespace()},
+		&batchv1beta1.CronJob{})
+	update := true
 	if err != nil {
 		if errors.IsNotFound(err) {
 			update = false
@@ -223,8 +223,6 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 			// Error reading the object - requeue the request.
 			return err
 		}
-	} else {
-		update = true
 	}
 
 	err = controllerutil.SetControllerReference(instance, &cronjob, r.scheme)
