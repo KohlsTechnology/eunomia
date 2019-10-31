@@ -1,7 +1,8 @@
-FROM quay.io/kohlstechnology/eunomia-base:latest
+FROM @REPOSITORY@/eunomia-base:@IMAGE_TAG@
 
 USER root
-RUN pip install j2cli[yaml]
+
+RUN pip3 install j2cli[yaml]
 
 COPY bin/processTemplates.sh /usr/local/bin/processTemplates.sh
 

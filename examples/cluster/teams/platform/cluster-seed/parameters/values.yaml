@@ -15,7 +15,7 @@ clusterSeed:
     ref: "master"
     contextDir: "examples/cluster/teams/platform/cluster-seed/parameters"
   triggers:
-    cron: "* */8 * * *"
+    cron: "0 */8 * * *"
   serviceAccountRef: "eunomia-runner-cluster-admin"
   templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:latest"
 
@@ -33,7 +33,7 @@ eunomia:
         ref: "master"
         contextDir: examples/cluster/teams/platform/cluster-seed/parameters
       triggers:
-        cron: '* */8 * * *'
+        cron: '0 */8 * * *'
       serviceAccountRef: "eunomia-runner-cluster-admin"
       templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:latest
 
@@ -50,7 +50,7 @@ eunomia:
         ref: "master"
         contextDir: examples/cluster/teams/platform/eunomia-operator/parameters
       triggers:
-        cron: '* */8 * * *'
+        cron: '0 */8 * * *'
       serviceAccountRef: "eunomia-runner"
       templateProcessorImage: quay.io/kohlstechnology/eunomia-helm:latest
 
@@ -61,7 +61,7 @@ teams:
     serviceAccountRef: "eunomia-runner"
     templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:latest"
     triggers:
-      cron: "* */8 * * *"
+      cron: "0 */8 * * *"
     templateSource:
       uri: "https://github.com/KohlsTechnology/eunomia"
       ref: "master"
@@ -81,7 +81,7 @@ teams:
     serviceAccountRef: "eunomia-runner"
     templateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:latest"
     triggers:
-      cron: "* */8 * * *"
+      cron: "0 */8 * * *"
     templateSource:
       uri: "https://github.com/KohlsTechnology/eunomia"
       ref: "master"

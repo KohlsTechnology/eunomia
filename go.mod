@@ -1,5 +1,7 @@
 module github.com/KohlsTechnology/eunomia
 
+go 1.12
+
 require (
 	contrib.go.opencensus.io/exporter/ocagent v0.4.9 // indirect
 	github.com/Azure/go-autorest v11.5.2+incompatible // indirect
@@ -60,3 +62,6 @@ replace (
 	sigs.k8s.io/controller-runtime => sigs.k8s.io/controller-runtime v0.1.10
 	sigs.k8s.io/controller-tools => sigs.k8s.io/controller-tools v0.1.11-0.20190411181648-9d55346c2bde
 )
+
+// Work around issue wtih git.apache.org/thrift.git
+replace git.apache.org/thrift.git => github.com/apache/thrift v0.12.0

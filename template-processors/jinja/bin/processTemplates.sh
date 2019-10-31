@@ -10,7 +10,7 @@ set -o errexit
 for file in $CLONED_TEMPLATE_GIT_DIR/*.j2 ; do
   shortfile=$(basename -- "$file")
   # TODO consider improving by adding this filter: lib/ansible/plugins/filters/core.py
-  j2 $file $CLONED_PARAMETER_GIT_DIR/var.yaml  \
+  j2 $file $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml  \
     --import-env env \
     > $MANIFEST_DIR/"${shortfile%.*}";
-done  
+done
