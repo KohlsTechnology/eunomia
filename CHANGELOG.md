@@ -1,3 +1,5 @@
+## v0.0.3 (Unreleased)
+
 ## v0.0.2 (October 30, 2019)
 * Fix release automation
 * Add OpenShift Applier template processor
