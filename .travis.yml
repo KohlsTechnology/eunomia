@@ -56,7 +56,7 @@ deploy:
       branch: master
   - provider: script
     skip_cleanup: true
-    script: make travis-release-deploy
+    script: make travis-release
     on:
       repo: KohlsTechnology/eunomia
       tags: true

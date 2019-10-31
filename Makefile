@@ -67,4 +67,4 @@ publish-chart-repo:
 	./scripts/build/build-chart-repo.sh
 	./scripts/build/push-to-pages.sh
 
-travis-release-deploy: travis-deploy-images	publish-chart-repo
+travis-release: travis-deploy-images	publish-chart-repo
