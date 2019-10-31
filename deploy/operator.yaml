@@ -16,7 +16,7 @@ spec:
       serviceAccountName: eunomia
       containers:
         - name: eunomia-operator
-          image: "quay.io/kohlstechnology/eunomia-operator:v0.0.1"
+          image: "quay.io/kohlstechnology/eunomia-operator:v0.0.2"
           imagePullPolicy: IfNotPresent
           command:
           - eunomia-operator
