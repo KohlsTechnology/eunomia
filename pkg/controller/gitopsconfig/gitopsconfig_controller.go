@@ -19,19 +19,14 @@ package gitopsconfig
 import (
 	"context"
 	goerrors "errors"
-
-	"k8s.io/apimachinery/pkg/labels"
-
 	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	util "github.com/KohlsTechnology/eunomia/pkg/util"
 	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -43,6 +38,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
+
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	util "github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 var log = logf.Log.WithName("controller_gitopsconfig")
@@ -52,11 +50,6 @@ const kubeGitopsFinalizer string = "eunomia-finalizer"
 
 // PushEvents channel on which we get the github webhook push events
 var PushEvents = make(chan event.GenericEvent)
-
-/**
-* USER ACTION REQUIRED: This is a scaffold file intended for the user to modify with their own Controller
-* business logic.  Delete these comments after modifying this file.*
- */
 
 // Add creates a new GitOpsConfig Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -111,8 +104,7 @@ type ReconcileGitOpsConfig struct {
 
 // Reconcile reads that state of the cluster for a GitOpsConfig object and makes changes based on the state read
 // and what is in the GitOpsConfig.Spec
-// TODO(user): Modify this Reconcile function to implement your Controller logic.  This example creates
-// a Pod as an example
+//
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
