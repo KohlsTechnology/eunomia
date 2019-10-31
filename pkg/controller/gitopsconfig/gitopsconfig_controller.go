@@ -139,7 +139,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 
 	if _, ok := instance.GetAnnotations()[initLabel]; !ok {
 		reqLogger.Info("Instance needs to be initialized", "instance", instance.GetName())
-		return r.initializeGitOpsConfig(instance)
+		return r.initialize(instance)
 	}
 
 	reqLogger.Info("Instance is initialized", "instance", instance.GetName())
@@ -246,8 +246,8 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) (recon
 	return reconcile.Result{}, nil
 }
 
-// GetAllGitOpsConfig retrieves all the gitops config in the cluster
-func (r *Reconciler) GetAllGitOpsConfig() (gitopsv1alpha1.GitOpsConfigList, error) {
+// GetAll retrieves all the gitops config in the cluster
+func (r *Reconciler) GetAll() (gitopsv1alpha1.GitOpsConfigList, error) {
 	instanceList := &gitopsv1alpha1.GitOpsConfigList{}
 	err := r.client.List(context.TODO(), &client.ListOptions{}, instanceList)
 	if err != nil {
@@ -257,7 +257,7 @@ func (r *Reconciler) GetAllGitOpsConfig() (gitopsv1alpha1.GitOpsConfigList, erro
 	return *instanceList, nil
 }
 
-func (r *Reconciler) initializeGitOpsConfig(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
+func (r *Reconciler) initialize(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
 	// verify mandatory field exist and set defaults
 	if instance.Spec.TemplateSource.URI == "" {
 		//TODO set wrong status
