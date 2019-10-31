@@ -146,7 +146,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 
 	if ContainsTrigger(instance, "Periodic") {
 		reqLogger.Info("Instance has a periodic trigger, creating/updating cronjob", "instance", instance.GetName())
-		_, err = r.createCronJob(instance)
+		err = r.createCronJob(instance)
 		if err != nil {
 			reqLogger.Error(err, "error creating the cronjob, continuing...")
 		}
@@ -154,7 +154,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 
 	if ContainsTrigger(instance, "Change") || ContainsTrigger(instance, "Webhook") {
 		reqLogger.Info("Instance has a change or Webhook trigger, creating job", "instance", instance.GetName())
-		_, err = r.CreateJob("create", instance)
+		err = r.createJob("create", instance)
 		if err != nil {
 			reqLogger.Error(err, "error creating the job, continuing...")
 		}
@@ -173,8 +173,8 @@ func ContainsTrigger(instance *gitopsv1alpha1.GitOpsConfig, triggeType string) b
 	return false
 }
 
-// CreateJob creates a new gitops job for the passed instance
-func (r *Reconciler) CreateJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
+// createJob creates a new gitops job for the passed instance
+func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) error {
 	//TODO add logic to ignore if another job was created sooner than x (5 minutes?) time and it is still running.
 	mergedata := util.JobMergeData{
 		Config: *instance,
@@ -183,24 +183,24 @@ func (r *Reconciler) CreateJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 	job, err := util.CreateJob(mergedata)
 	if err != nil {
 		log.Error(err, "unable to create job manifest from merge data", "mergedata", mergedata)
-		return reconcile.Result{}, err
+		return err
 	}
 	err = controllerutil.SetControllerReference(instance, &job, r.scheme)
 	if err != nil {
 		log.Error(err, "unable to the owner for job", "job", job)
-		return reconcile.Result{}, err
+		return err
 	}
 
 	log.Info("Creating a new Job", "job.Namespace", job.Namespace, "job.Name", job.Name)
 	err = r.client.Create(context.TODO(), &job)
 	if err != nil {
 		log.Error(err, "unable to create the job", "job", job)
-		return reconcile.Result{}, err
+		return err
 	}
-	return reconcile.Result{}, nil
+	return nil
 }
 
-func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
+func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error {
 	mergedata := util.JobMergeData{
 		Config: *instance,
 		Action: "create",
@@ -211,7 +211,7 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) (recon
 	cronjob, err := util.CreateCronJob(mergedata)
 	if err != nil {
 		log.Error(err, "unable to create cronjob manifest from merge data", "mergedata", mergedata)
-		return reconcile.Result{}, err
+		return err
 	}
 
 	pCronjob := batchv1beta1.CronJob{}
@@ -221,7 +221,7 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) (recon
 			update = false
 		} else {
 			// Error reading the object - requeue the request.
-			return reconcile.Result{}, err
+			return err
 		}
 	} else {
 		update = true
@@ -230,7 +230,7 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) (recon
 	err = controllerutil.SetControllerReference(instance, &cronjob, r.scheme)
 	if err != nil {
 		log.Error(err, "unable to the owner for cronjob", "cronjob", cronjob)
-		return reconcile.Result{}, err
+		return err
 	}
 	log.Info("Creating/updating CronJob", "cronjob.Namespace", cronjob.Namespace, "cronjob.Name", cronjob.Name)
 	if update {
@@ -241,9 +241,9 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) (recon
 
 	if err != nil {
 		log.Error(err, "unable to create/update the cronjob", "cronjob", cronjob)
-		return reconcile.Result{}, err
+		return err
 	}
-	return reconcile.Result{}, nil
+	return nil
 }
 
 // GetAll retrieves all the gitops config in the cluster
@@ -378,7 +378,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 			return reconcile.Result{}, nil
 		}
 		log.Info("Launching delete job for instance", "instance", instance.GetName())
-		_, err = r.CreateJob("delete", instance)
+		err = r.createJob("delete", instance)
 		if err != nil {
 			log.Error(err, "unable to create deletion job")
 			return reconcile.Result{}, err
