@@ -57,14 +57,14 @@ func Add(mgr manager.Manager) error {
 	return add(mgr, newReconciler(mgr))
 }
 
-// NewGitOpsReconciler creates a new git ops reconciler
-func NewGitOpsReconciler(mgr manager.Manager) ReconcileGitOpsConfig {
-	return ReconcileGitOpsConfig{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+// NewReconciler creates a new git ops reconciler
+func NewReconciler(mgr manager.Manager) Reconciler {
+	return Reconciler{client: mgr.GetClient(), scheme: mgr.GetScheme()}
 }
 
 // newReconciler returns a new reconcile.Reconciler
 func newReconciler(mgr manager.Manager) reconcile.Reconciler {
-	return &ReconcileGitOpsConfig{client: mgr.GetClient(), scheme: mgr.GetScheme()}
+	return &Reconciler{client: mgr.GetClient(), scheme: mgr.GetScheme()}
 }
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
@@ -92,10 +92,10 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 
 }
 
-var _ reconcile.Reconciler = &ReconcileGitOpsConfig{}
+var _ reconcile.Reconciler = &Reconciler{}
 
-// ReconcileGitOpsConfig reconciles a GitOpsConfig object
-type ReconcileGitOpsConfig struct {
+// Reconciler reconciles a GitOpsConfig object
+type Reconciler struct {
 	// This client, initialized using mgr.Client() above, is a split client
 	// that reads objects from the cache and writes to the apiserver
 	client client.Client
@@ -108,7 +108,7 @@ type ReconcileGitOpsConfig struct {
 // Note:
 // The Controller will requeue the Request to be processed again if the returned error is non-nil or
 // Result.Requeue is true, otherwise upon completion it will remove the work from the queue.
-func (r *ReconcileGitOpsConfig) Reconcile(request reconcile.Request) (reconcile.Result, error) {
+func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, error) {
 	// TODO general algorithm:
 	// if delete and delete cascade allocate the delete pod
 	// if periodic and cronjob does not exist, create cronjob
@@ -174,7 +174,7 @@ func ContainsTrigger(instance *gitopsv1alpha1.GitOpsConfig, triggeType string) b
 }
 
 // CreateJob creates a new gitops job for the passed instance
-func (r *ReconcileGitOpsConfig) CreateJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
+func (r *Reconciler) CreateJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
 	//TODO add logic to ignore if another job was created sooner than x (5 minutes?) time and it is still running.
 	mergedata := util.JobMergeData{
 		Config: *instance,
@@ -200,7 +200,7 @@ func (r *ReconcileGitOpsConfig) CreateJob(jobtype string, instance *gitopsv1alph
 	return reconcile.Result{}, nil
 }
 
-func (r *ReconcileGitOpsConfig) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
+func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
 	mergedata := util.JobMergeData{
 		Config: *instance,
 		Action: "create",
@@ -247,7 +247,7 @@ func (r *ReconcileGitOpsConfig) createCronJob(instance *gitopsv1alpha1.GitOpsCon
 }
 
 // GetAllGitOpsConfig retrieves all the gitops config in the cluster
-func (r *ReconcileGitOpsConfig) GetAllGitOpsConfig() (gitopsv1alpha1.GitOpsConfigList, error) {
+func (r *Reconciler) GetAllGitOpsConfig() (gitopsv1alpha1.GitOpsConfigList, error) {
 	instanceList := &gitopsv1alpha1.GitOpsConfigList{}
 	err := r.client.List(context.TODO(), &client.ListOptions{}, instanceList)
 	if err != nil {
@@ -257,7 +257,7 @@ func (r *ReconcileGitOpsConfig) GetAllGitOpsConfig() (gitopsv1alpha1.GitOpsConfi
 	return *instanceList, nil
 }
 
-func (r *ReconcileGitOpsConfig) initializeGitOpsConfig(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
+func (r *Reconciler) initializeGitOpsConfig(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
 	// verify mandatory field exist and set defaults
 	if instance.Spec.TemplateSource.URI == "" {
 		//TODO set wrong status
@@ -328,7 +328,7 @@ func removeString(slice []string, s string) (result []string) {
 	return
 }
 
-func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
+func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
 	log.Info("Instance is being deleted", "instance", instance.GetName())
 	if !containsString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer) {
 		return reconcile.Result{}, nil

@@ -31,7 +31,7 @@ import (
 var log = logf.Log.WithName("handler")
 
 // WebhookHandler manages the calls from github
-func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopsconfig.ReconcileGitOpsConfig) {
+func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopsconfig.Reconciler) {
 	log.Info("received webhook call")
 	if r.Method != "POST" {
 		w.WriteHeader(405)
