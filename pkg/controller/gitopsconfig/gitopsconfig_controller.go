@@ -338,66 +338,46 @@ func removeString(slice []string, s string) (result []string) {
 
 func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
 	log.Info("Instance is being deleted", "instance", instance.GetName())
-	if containsString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer) {
-		// we need to lookup the delete job and if it doesn't exist we launch it, then we see if it is completed successfully if yes we remove the finalizers, if no we return.
-		jobList := &batchv1.JobList{}
-		selector, err := labels.Parse("action=delete")
+	if !containsString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer) {
+		return reconcile.Result{}, nil
+	}
+	// we need to lookup the delete job and if it doesn't exist we launch it, then we see if it is completed successfully if yes we remove the finalizers, if no we return.
+	jobList := &batchv1.JobList{}
+	selector, err := labels.Parse("action=delete")
+	if err != nil {
+		log.Error(err, "unable to parse label selector 'action=delete' ")
+		return reconcile.Result{}, err
+	}
+	// looking up all delete jobs
+	err = r.client.List(context.TODO(), &client.ListOptions{
+		Namespace:     instance.GetNamespace(),
+		LabelSelector: selector,
+	}, jobList)
+	if err != nil {
+		log.Error(err, "unable to list jobs ")
+		return reconcile.Result{}, err
+	}
+	applicableJobList := []batchv1.Job{}
+	//filtering by those that are might have been created by this gitopsconfig
+	// TODO better filter by owner reference
+	for _, job := range jobList.Items {
+		if isOwner(instance, &job) && job.GetLabels()["action"] == "delete" {
+			applicableJobList = append(applicableJobList, job)
+		}
+	}
+	if len(applicableJobList) == 0 {
+		// to avoid a deadlock situation let's check that the namespace in which we are is not being deleted
+		ns := &corev1.Namespace{}
+		err := r.client.Get(context.TODO(), types.NamespacedName{
+			Name: instance.GetNamespace(),
+		}, ns)
 		if err != nil {
-			log.Error(err, "unable to parse label selector 'action=delete' ")
+			log.Error(err, "unable to lookup instance's namespace")
 			return reconcile.Result{}, err
 		}
-		// looking up all delete jobs
-		err = r.client.List(context.TODO(), &client.ListOptions{
-			Namespace:     instance.GetNamespace(),
-			LabelSelector: selector,
-		}, jobList)
-		if err != nil {
-			log.Error(err, "unable to list jobs ")
-			return reconcile.Result{}, err
-		}
-		applicableJobList := []batchv1.Job{}
-		//filtering by those that are might have been created by this gitopsconfig
-		// TODO better filter by owner reference
-		for _, job := range jobList.Items {
-			if isOwner(instance, &job) && job.GetLabels()["action"] == "delete" {
-				applicableJobList = append(applicableJobList, job)
-			}
-		}
-		if len(applicableJobList) == 0 {
-			// to avoid a deadlock situation let's check that the namespace in which we are is not being deleted
-			ns := &corev1.Namespace{}
-			err := r.client.Get(context.TODO(), types.NamespacedName{
-				Name: instance.GetNamespace(),
-			}, ns)
-			if err != nil {
-				log.Error(err, "unable to lookup instance's namespace")
-				return reconcile.Result{}, err
-			}
-			if !ns.ObjectMeta.DeletionTimestamp.IsZero() {
-				//namespace is being deleted
-				// the best we can do in this situation is to let the instance be deleted and hope that this instance was creating objects only in this namespace
-				instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer)
-				if err := r.client.Update(context.TODO(), instance); err != nil {
-					log.Error(err, "unable to create update instace to remove finalizers")
-					return reconcile.Result{}, err
-				}
-				return reconcile.Result{}, nil
-			}
-			log.Info("Launching delete job for instance", "instance", instance.GetName())
-			_, err = r.CreateJob("delete", instance)
-			if err != nil {
-				log.Error(err, "unable to create deletion job")
-				return reconcile.Result{}, err
-			}
-			//we return because we need to wait for the job to stop
-			return reconcile.Result{
-				Requeue:      true,
-				RequeueAfter: time.Minute,
-			}, nil
-		}
-		//There should be only one pending job
-		job := applicableJobList[0]
-		if job.Status.Succeeded > 0 {
+		if !ns.ObjectMeta.DeletionTimestamp.IsZero() {
+			//namespace is being deleted
+			// the best we can do in this situation is to let the instance be deleted and hope that this instance was creating objects only in this namespace
 			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer)
 			if err := r.client.Update(context.TODO(), instance); err != nil {
 				log.Error(err, "unable to create update instace to remove finalizers")
@@ -405,14 +385,34 @@ func (r *ReconcileGitOpsConfig) manageDeletion(instance *gitopsv1alpha1.GitOpsCo
 			}
 			return reconcile.Result{}, nil
 		}
-		//if it's not succeeded we wait for 1 minute
-		//TODO add logic to stop at a certain point ... or not ...
+		log.Info("Launching delete job for instance", "instance", instance.GetName())
+		_, err = r.CreateJob("delete", instance)
+		if err != nil {
+			log.Error(err, "unable to create deletion job")
+			return reconcile.Result{}, err
+		}
+		//we return because we need to wait for the job to stop
 		return reconcile.Result{
 			Requeue:      true,
 			RequeueAfter: time.Minute,
 		}, nil
 	}
-	return reconcile.Result{}, nil
+	//There should be only one pending job
+	job := applicableJobList[0]
+	if job.Status.Succeeded > 0 {
+		instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer)
+		if err := r.client.Update(context.TODO(), instance); err != nil {
+			log.Error(err, "unable to create update instace to remove finalizers")
+			return reconcile.Result{}, err
+		}
+		return reconcile.Result{}, nil
+	}
+	//if it's not succeeded we wait for 1 minute
+	//TODO add logic to stop at a certain point ... or not ...
+	return reconcile.Result{
+		Requeue:      true,
+		RequeueAfter: time.Minute,
+	}, nil
 }
 
 func isOwner(owner, owned metav1.Object) bool {
