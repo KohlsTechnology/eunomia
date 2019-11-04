@@ -6,7 +6,8 @@ ENV USER_UID=1001 \
     KUBECTL_VERSION="v1.15.0" \
     YQ_VERSION="2.7.2" \
     GOLANG_YQ_VERSION="2.4.0" \
-    JQ_VERSION="1.6"
+    JQ_VERSION="1.6" \
+    HOME=/tmp
 
 COPY bin /usr/local/bin
 

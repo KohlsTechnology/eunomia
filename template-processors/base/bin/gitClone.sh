@@ -31,13 +31,19 @@ function pullFromTemplatesRepo {
   then
     no_proxy=$TEMPLATE_GIT_NO_PROXY
   fi
-  if [ -z "$TEMPLATE_GITCONFIG" ] && [ -d "$TEMPLATE_GITCONFIG" ]
+  if [ -n "$TEMPLATE_GITCONFIG" ] && [ -d "$TEMPLATE_GITCONFIG" ]
   then
     for file in $TEMPLATE_GITCONFIG/*; do
-      cp -f $file ~/$(basename $file)
+      if [ -e "$file" ]
+      then
+        cp -f $file ~/$(basename $file)
+      fi
     done
     for file in $TEMPLATE_GITCONFIG/.git*; do
-      cp -f $file ~/$(basename $file)
+      if [ -e "$file" ]
+      then
+        cp -f $file ~/$(basename $file)
+      fi
     done      
   else
    export GIT_SSL_NO_VERIFY=true
