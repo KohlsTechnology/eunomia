@@ -52,8 +52,10 @@ export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export GO111MODULE=on
 go mod vendor
-operator-sdk up local
+operator-sdk up local --namespace="${WATCH_NAMESPACE}"
 ```
+
+Setting WATCH_NAMESPACE to empty string, as above, results in Eunomia watching all namespaces. If you want a particular namespace to be watched, set it explicitly in the env variable.
 
 ## Building the Operator Image
 

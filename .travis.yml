@@ -13,6 +13,10 @@ env:
 before_install:
   - travis_retry go mod vendor
   - go get golang.org/x/lint/golint
+  - openssl aes-256-cbc -K $encrypted_18f270609d30_key -iv $encrypted_18f270609d30_iv -in github_deploy_key.enc -out github_deploy_key -d
+  - chmod 600 github_deploy_key
+  - eval $(ssh-agent -s)
+  - ssh-add github_deploy_key
 
 before_script:
 - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
