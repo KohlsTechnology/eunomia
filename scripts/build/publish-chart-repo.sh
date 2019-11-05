@@ -16,6 +16,22 @@
 
 set -euxo pipefail
 
+# checkout
+
+mkdir -p "$GITHUB_PAGES_DIR"
+git -C "$GITHUB_PAGES_DIR" clone -b "$GITHUB_PAGES_BRANCH" "git@github.com:$GITHUB_PAGES_REPO.git" .
+
+# build
+
+version=${TRAVIS_TAG} envsubst < "$HELM_CHARTS_SOURCE"/Chart.yaml.tpl  > "$HELM_CHARTS_SOURCE"/Chart.yaml
+helm lint "$HELM_CHARTS_SOURCE"
+chart_dest=$HELM_CHART_DEST/"$(basename "$HELM_CHARTS_SOURCE")"
+mkdir -p "$chart_dest"
+helm package -d "$chart_dest" "$HELM_CHARTS_SOURCE"
+helm repo index --url "https://$(dirname "$GITHUB_PAGES_REPO").github.io/$(basename "$GITHUB_PAGES_REPO")" "$HELM_CHART_DEST"
+
+# publish
+
 git -C "$GITHUB_PAGES_DIR" config user.email "travis@users.noreply.github.com"
 git -C "$GITHUB_PAGES_DIR" config user.name travis
 git -C "$GITHUB_PAGES_DIR" config core.sshCommand 'ssh -i github_deploy_key'
