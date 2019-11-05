@@ -337,7 +337,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	r.Reconcile(req)
 
 	// Add a finalizer to the CRD
-	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "eunomia-finalizer")
+	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
 	err := cl.Update(context.Background(), gitops)
 	if err != nil {
 		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")
@@ -422,7 +422,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	}
 
 	// Add a finalizer to the CRD
-	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "eunomia-finalizer")
+	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
 	err = cl.Update(context.Background(), gitops)
 	if err != nil {
 		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")
@@ -507,7 +507,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	}
 
 	// Add a finalizer to the CRD
-	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "eunomia-finalizer")
+	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
 	err = cl.Update(context.Background(), gitops)
 	if err != nil {
 		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")

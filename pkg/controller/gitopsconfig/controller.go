@@ -46,8 +46,10 @@ import (
 
 var log = logf.Log.WithName("controller_gitopsconfig")
 
-const initLabel string = "gitopsconfig.eunomia.kohls.io/initialized"
-const kubeGitopsFinalizer string = "eunomia-finalizer"
+const (
+	tagInitialized string = "gitopsconfig.eunomia.kohls.io/initialized"
+	tagFinalizer   string = "gitopsconfig.eunomia.kohls.io/finalizer"
+)
 
 // PushEvents channel on which we get the github webhook push events
 var PushEvents = make(chan event.GenericEvent)
@@ -156,7 +158,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 		return r.manageDeletion(instance)
 	}
 
-	if _, ok := instance.GetAnnotations()[initLabel]; !ok {
+	if _, ok := instance.GetAnnotations()[tagInitialized]; !ok {
 		reqLogger.Info("Instance needs to be initialized", "instance", instance.GetName())
 		return reconcile.Result{}, r.initialize(instance)
 	}
@@ -303,10 +305,10 @@ func (r *Reconciler) initialize(instance *gitopsv1alpha1.GitOpsConfig) error {
 
 	// add finalizer and mark the object as initialized
 	meta := &instance.ObjectMeta
-	if !containsString(meta.Finalizers, kubeGitopsFinalizer) && spec.ResourceDeletionMode != "Retain" {
-		meta.Finalizers = append(meta.Finalizers, kubeGitopsFinalizer)
+	if !containsString(meta.Finalizers, tagFinalizer) && spec.ResourceDeletionMode != "Retain" {
+		meta.Finalizers = append(meta.Finalizers, tagFinalizer)
 	}
-	meta.Annotations[initLabel] = "true"
+	meta.Annotations[tagInitialized] = "true"
 
 	err := r.client.Update(context.TODO(), instance)
 	if err != nil {
@@ -344,7 +346,7 @@ func removeString(slice []string, s string) (result []string) {
 
 func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
 	log.Info("Instance is being deleted", "instance", instance.GetName())
-	if !containsString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer) {
+	if !containsString(instance.ObjectMeta.Finalizers, tagFinalizer) {
 		return reconcile.Result{}, nil
 	}
 	// we need to lookup the delete job and if it doesn't exist we launch it, then we see if it is completed successfully if yes we remove the finalizers, if no we return.
@@ -384,7 +386,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		if !ns.ObjectMeta.DeletionTimestamp.IsZero() {
 			//namespace is being deleted
 			// the best we can do in this situation is to let the instance be deleted and hope that this instance was creating objects only in this namespace
-			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer)
+			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, tagFinalizer)
 			if err := r.client.Update(context.TODO(), instance); err != nil {
 				log.Error(err, "unable to create update instace to remove finalizers")
 				return reconcile.Result{}, err
@@ -406,7 +408,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 	//There should be only one pending job
 	job := applicableJobList[0]
 	if job.Status.Succeeded > 0 {
-		instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer)
+		instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, tagFinalizer)
 		if err := r.client.Update(context.TODO(), instance); err != nil {
 			log.Error(err, "unable to create update instace to remove finalizers")
 			return reconcile.Result{}, err
