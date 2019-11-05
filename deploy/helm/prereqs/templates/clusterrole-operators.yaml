@@ -11,6 +11,15 @@ rules:
   - cronjobs
   verbs:
   - '*'  
+# needed by operator logic when handling finalizers
+- apiGroups:
+  - ''
+  resources:
+  - namespaces
+  verbs:
+  - get
+  - list
+  - watch  # needed by k8s.io/client-go/tools/cache
 # operator's resources  
 - apiGroups:
   - eunomia.kohls.io

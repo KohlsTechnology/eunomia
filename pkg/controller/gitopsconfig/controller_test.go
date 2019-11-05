@@ -149,7 +149,7 @@ func TestCRDInitialization(t *testing.T) {
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: s}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -188,7 +188,7 @@ func TestPeriodicTrigger(t *testing.T) {
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: s}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -233,7 +233,7 @@ func TestChangeTrigger(t *testing.T) {
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: s}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -278,7 +278,7 @@ func TestWebhookTrigger(t *testing.T) {
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: s}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -323,7 +323,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: s}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -394,7 +394,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: s}
 
 	// Create a namespace
 	err := cl.Create(context.TODO(), ns)
@@ -476,7 +476,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client
 	cl := fake.NewFakeClient(objs...)
-	r := &ReconcileGitOpsConfig{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: s}
 
 	// Create a namespace
 	// Set deletion timestamp on the namespace
