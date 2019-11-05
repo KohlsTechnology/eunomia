@@ -44,6 +44,10 @@ fmt:
 vet:
 	go vet ./pkg/... ./cmd/...
 
+# Run go fmt Test
+gofmt:
+	test -z "$(gofmt -l . | grep -v ^vendor)"
+
 # Generate code
 generate:
 	go generate ./pkg/... ./cmd/...
