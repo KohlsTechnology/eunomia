@@ -35,7 +35,7 @@ before_script:
 
 
 script:
-  - make gofmt
+  - make check-gofmt
   - golint -set_exit_status $(go list ./... | grep -v /vendor/)
   - bash scripts/unit-tests.sh
   - bash scripts/e2e-test.sh
