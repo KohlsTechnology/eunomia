@@ -8,6 +8,7 @@ VERSION := $(shell ./scripts/build/get-version.sh)
 BUILD_COMMIT := $(shell ./scripts/build/get-build-commit.sh)
 BUILD_TIMESTAMP := $(shell ./scripts/build/get-build-timestamp.sh)
 BUILD_HOSTNAME := $(shell ./scripts/build/get-build-hostname.sh)
+GOFMT_OUTPUT := $(shell gofmt -l . | grep -v ^vendor)
 
 LDFLAGS := "-X github.com/KohlsTechnology/eunomia/version.Version=$(VERSION) \
 	-X github.com/KohlsTechnology/eunomia/version.Vcs=$(BUILD_COMMIT) \
@@ -46,7 +47,7 @@ vet:
 
 # Run go fmt Test
 check-gofmt:
-	test -z "$(gofmt -l . | grep -v ^vendor)"
+	test -z ${GOFMT_OUTPUT} 
 
 # Generate code
 generate:
