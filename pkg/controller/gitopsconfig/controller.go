@@ -158,7 +158,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 
 	if _, ok := instance.GetAnnotations()[initLabel]; !ok {
 		reqLogger.Info("Instance needs to be initialized", "instance", instance.GetName())
-		return r.initialize(instance)
+		return reconcile.Result{}, r.initialize(instance)
 	}
 
 	reqLogger.Info("Instance is initialized", "instance", instance.GetName())
@@ -285,56 +285,42 @@ func (r *Reconciler) GetAll() (gitopsv1alpha1.GitOpsConfigList, error) {
 	return *instanceList, nil
 }
 
-func (r *Reconciler) initialize(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
+func (r *Reconciler) initialize(instance *gitopsv1alpha1.GitOpsConfig) error {
 	// verify mandatory field exist and set defaults
-	if instance.Spec.TemplateSource.URI == "" {
+	spec := &instance.Spec
+	if spec.TemplateSource.URI == "" {
 		//TODO set wrong status
-		return reconcile.Result{}, goerrors.New("template source URI cannot be empty")
+		return goerrors.New("template source URI cannot be empty")
 	}
+	replaceEmpty(&spec.TemplateSource.Ref, "master")
+	replaceEmpty(&spec.TemplateSource.ContextDir, ".")
+	replaceEmpty(&spec.ParameterSource.URI, spec.TemplateSource.URI)
+	replaceEmpty(&spec.ParameterSource.Ref, "master")
+	replaceEmpty(&spec.ParameterSource.ContextDir, ".")
+	replaceEmpty(&spec.ServiceAccountRef, "default")
+	replaceEmpty(&spec.ResourceHandlingMode, "CreateOrMerge")
+	replaceEmpty(&spec.ResourceDeletionMode, "Delete")
 
-	if instance.Spec.TemplateSource.Ref == "" {
-		instance.Spec.TemplateSource.Ref = "master"
+	// add finalizer and mark the object as initialized
+	meta := &instance.ObjectMeta
+	if !containsString(meta.Finalizers, kubeGitopsFinalizer) && spec.ResourceDeletionMode != "Retain" {
+		meta.Finalizers = append(meta.Finalizers, kubeGitopsFinalizer)
 	}
-
-	if instance.Spec.TemplateSource.ContextDir == "" {
-		instance.Spec.TemplateSource.ContextDir = "."
-	}
-
-	if instance.Spec.ParameterSource.URI == "" {
-		instance.Spec.ParameterSource.URI = instance.Spec.TemplateSource.URI
-	}
-	if instance.Spec.ParameterSource.Ref == "" {
-		instance.Spec.ParameterSource.Ref = "master"
-	}
-
-	if instance.Spec.ParameterSource.ContextDir == "" {
-		instance.Spec.ParameterSource.ContextDir = "."
-	}
-
-	if instance.Spec.ServiceAccountRef == "" {
-		instance.Spec.ServiceAccountRef = "default"
-	}
-
-	if instance.Spec.ResourceHandlingMode == "" {
-		instance.Spec.ResourceHandlingMode = "CreateOrMerge"
-	}
-
-	if instance.Spec.ResourceDeletionMode == "" {
-		instance.Spec.ResourceDeletionMode = "Delete"
-	}
-
-	instance.ObjectMeta.Annotations[initLabel] = "true"
-
-	if !containsString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer) && instance.Spec.ResourceDeletionMode != "Retain" {
-		instance.ObjectMeta.Finalizers = append(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer)
-	}
+	meta.Annotations[initLabel] = "true"
 
 	err := r.client.Update(context.TODO(), instance)
 	if err != nil {
-		log.Error(err, "unable to update initialized GitOpsCionfig", "instance", instance)
-		return reconcile.Result{}, err
+		log.Error(err, "unable to update initialized GitOpsConfig", "instance", instance)
+		return err
 	}
-	return reconcile.Result{}, nil
+	return nil
+}
+
+// replaceEmpty sets s to defaultValue if s is empty
+func replaceEmpty(s *string, defaultValue string) {
+	if *s == "" {
+		*s = defaultValue
+	}
 }
 
 func containsString(slice []string, s string) bool {
