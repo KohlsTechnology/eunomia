@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2019 Kohl's Department Stores, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
+set -euxo pipefail
 
 export EUNOMIA_PATH=$(cd "${0%/*}/.." ; pwd)
 
-export JOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/operator/eunomia-templates/job.yaml
-export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/operator/eunomia-templates/cronjob.yaml
+export JOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/eunomia-operator/job-templates/job.yaml
+export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/eunomia-operator/job-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export TEST_NAMESPACE=test-eunomia-operator
@@ -36,15 +38,12 @@ fi
 eval $(minikube docker-env)
 make e2e-test-images
 
-helm template deploy/helm/prereqs/ \
-  --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
-
-helm template deploy/helm/operator/ \
+helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.deployment.enabled= \
   --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
 
 operator-sdk test local ./test/e2e --namespace "$TEST_NAMESPACE" --up-local --no-setup
 
-helm template deploy/helm/operator/ \
+helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.deployment.enabled= \
   --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl delete -f -

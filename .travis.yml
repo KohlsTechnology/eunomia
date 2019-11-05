@@ -13,10 +13,16 @@ env:
 before_install:
   - travis_retry go mod vendor
   - go get golang.org/x/lint/golint
-  #- openssl aes-256-cbc -K $encrypted_18f270609d30_key -iv $encrypted_18f270609d30_iv -in github_deploy_key.enc -out github_deploy_key -d
-  #- chmod 600 github_deploy_key
-  #- eval $(ssh-agent -s)
-  #- ssh-add github_deploy_key
+# Next four lines of code create deploy key for travis to be able to push to the gh-pages branch.
+# See https://gist.github.com/qoomon/c57b0dc866221d91704ffef25d41adcf and
+# https://medium.com/@simon.legner/deploy-to-github-pages-using-travis-ci-and-deploy-keys-db84fed7a929 on how to do it.
+# Lines use encrypted_18f270609d30_key and encrypted_18f270609d30_iv variables set in Travis settings to decrypt
+# github_deploy_key.enc file into github_deploy_key and then add this key to ssh-agent session. All of this happens only
+# if current build is on repository tag.
+  - if [[ "$TRAVIS_TAG" ]]; then openssl aes-256-cbc -K $encrypted_18f270609d30_key -iv $encrypted_18f270609d30_iv -in github_deploy_key.enc -out github_deploy_key -d; fi
+  - if [[ "$TRAVIS_TAG" ]]; then chmod 600 github_deploy_key; fi
+  - if [[ "$TRAVIS_TAG" ]]; then eval $(ssh-agent -s); fi
+  - if [[ "$TRAVIS_TAG" ]]; then ssh-add github_deploy_key; fi
 
 before_script:
 - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
@@ -50,7 +56,7 @@ deploy:
       branch: master
   - provider: script
     skip_cleanup: true
-    script: make travis-deploy-images
+    script: make travis-release
     on:
       repo: KohlsTechnology/eunomia
       tags: true
