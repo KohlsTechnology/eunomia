@@ -149,7 +149,7 @@ func main() {
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/webhook/", func(w http.ResponseWriter, r *http.Request) {
-		handler.WebhookHandler(w, r, gitopsconfig.NewGitOpsReconciler(mgr))
+		handler.WebhookHandler(w, r, gitopsconfig.NewReconciler(mgr))
 	})
 
 	log.Info("Starting the Web Server")
