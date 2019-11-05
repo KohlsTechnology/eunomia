@@ -29,7 +29,7 @@ function kube {
 
 function deleteResources {
     #first we need to delete the GitOpsConfig resources whose finalizer might not work otherwise
-    for file in find $MANIFEST_DIR -iregex '.*\.yaml'; do
+    for file in $(find $MANIFEST_DIR -iregex '.*\.yaml'); do
       cat $file | yq 'select(.kind == "GitOpsConfig")' | kube delete -f - --wait=true
     done
     set +u
