@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
+set -euxo pipefail
 
 REPOSITORY=${1}
 if [ -z "${TRAVIS_TAG}" ] ; then

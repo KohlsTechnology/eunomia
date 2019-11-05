@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2019 Kohl's Department Stores, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
+set -euxo pipefail
 
 export EUNOMIA_PATH=$(cd "${0%/*}/.." ; pwd)
 export JOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/eunomia-operator/eunomia-templates/job.yaml
