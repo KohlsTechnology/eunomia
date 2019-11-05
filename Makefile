@@ -46,7 +46,7 @@ vet:
 
 # Run go fmt Test
 check-gofmt:
-	test -z $(shell gofmt -l . | grep -v ^vendor)
+	test -z "$(shell gofmt -l . | grep -v ^vendor)"
 
 # Generate code
 generate:
