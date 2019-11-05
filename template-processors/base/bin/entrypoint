@@ -1,4 +1,5 @@
-#!/bin/sh -e
+#!/bin/env bash
+set -euxo pipefail
 
 # This is documented here:
 # https://docs.openshift.com/container-platform/3.11/creating_images/guidelines.html#openshift-specific-guidelines

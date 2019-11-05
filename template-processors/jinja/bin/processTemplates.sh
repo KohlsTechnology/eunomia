@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-set -o nounset
-set -o errexit
+set -euxo pipefail
 
 ## we assume in $CLONED_TEMPLATE_GIT_DIR there are a set of templates with a .j2 extension
 ## we assume that in $CLONED_PARAMETER_GIT_DIR there is a parameter file called parameters.yaml
