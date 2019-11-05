@@ -46,8 +46,8 @@ The most efficient way to develop the operator locally is run the code on your l
 ```
 minikube start
 kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
-export JOB_TEMPLATE=./deploy/helm/eunomia-operator/eunomia-templates/job.yaml
-export CRONJOB_TEMPLATE=./deploy/helm/eunomia-operator/eunomia-templates/cronjob.yaml
+export JOB_TEMPLATE=./deploy/helm/eunomia-operator/job-templates/job.yaml
+export CRONJOB_TEMPLATE=./deploy/helm/eunomia-operator/job-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export GO111MODULE=on
