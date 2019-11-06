@@ -1,27 +1,35 @@
-(While submitting an issue briefly describe the problem you are facing or a new feature you would want to see added) 
+<!-- Please answer these questions before submitting your issue. Thanks! -->
 
-## What happens?
+### What version of eunomia are you using?
 
-...
+eunomia version:
 
-## What were you expecting to happen?
+### Does this issue reproduce with the latest release?
 
-...
 
-## Steps to reproduce: 
 
-* ...
-* ...
+### What operating system and processor architecture are you using (`kubectl version`)?
 
-## Any errors, stacktrace, logs? 
+<details><summary><code>kubectl version</code> Output</summary><br><pre>
+$ kubectl version
 
-...
+</pre></details>
 
-## Environment:
+### What did you do?
 
-* Runtime version(Java, Go, Python, etc):
-* Desktop OS/version:
+<!--
+If possible, provide a recipe for reproducing the error.
+A detailed sequence of steps describing what to do to observe the issue is good.
+A complete runnable bash shell script is best.
+-->
 
-## Additional comments:
 
-...
+
+### What did you expect to see?
+
+
+
+### What did you see instead?
+
+
+
