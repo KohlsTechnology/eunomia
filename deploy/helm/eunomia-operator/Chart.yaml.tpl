@@ -1,6 +1,6 @@
 apiVersion: v1
 name: eunomia-operator
-version: 1.0.0
+version: $version
 description: The Eunomia Operator
 home: https://github.com/KohlsTechnology/eunomia
 engine: gotpl

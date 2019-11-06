@@ -1,3 +1,7 @@
+#TODO
+
+Whole this example needs testing. 
+
 # Cluster Example
 
 This example reflects a more real-world scenario. We are starting with a completely empty cluster, then use a "cluster seed" custom resource (CR) to provision all components and end up with a fully functioning and fully configured Kubernetes cluster.

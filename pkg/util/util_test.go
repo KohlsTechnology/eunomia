@@ -71,7 +71,7 @@ var fullconfig = JobMergeData{
 	},
 }
 
-const templateFile string = "../../deploy/helm/operator/eunomia-templates/job.yaml"
+const templateFile string = "../../deploy/helm/eunomia-operator/job-templates/job.yaml"
 
 func TestFullConfig(t *testing.T) {
 	text, err := ioutil.ReadFile(templateFile)

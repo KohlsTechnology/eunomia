@@ -109,7 +109,7 @@ spec:
       volumes:
         - name: template-volume
           configMap:
-            name: eunomia-templates
+            name: job-templates
 
 ---
 
@@ -185,4 +185,4 @@ spec:
       volumes:
         - name: template-volume
           configMap:
-            name: eunomia-templates
+            name: job-templates
