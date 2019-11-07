@@ -13,7 +13,7 @@ spec:
       labels:
         name: eunomia-operator
     spec:
-      serviceAccountName: eunomia
+      serviceAccountName: eunomia-operator
       containers:
         - name: eunomia-operator
           image: "quay.io/kohlstechnology/eunomia-operator:v0.0.2"
