@@ -47,3 +47,24 @@ operator-sdk test local ./test/e2e --namespace "$TEST_NAMESPACE" --up-local --no
 helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.deployment.enabled= \
   --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl delete -f -
+
+helm template deploy/helm/eunomia-operator/ \
+  --set eunomia.operator.image.tag=dev \
+  --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
+
+sleep 30
+
+podname=$(kubectl get pods  -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' -n $TEST_NAMESPACE)
+
+if kubectl exec "${podname}" date -n $TEST_NAMESPACE
+then
+  echo "Pod is Healthy"
+else
+  echo "Pod is not Healthy"
+  exit 1
+fi
+
+helm template deploy/helm/eunomia-operator/ \
+  --set eunomia.operator.image.tag=dev \
+  --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl delete -f -
+
