@@ -1,3 +1,16 @@
+## v0.0.4 (Unreleased)
+BUG FIXES:
+*
+
+FEATURES:
+*
+
+IMPROVEMENTS:
+*
+
+CHANGES:
+*
+
 ## v0.0.3 (November 7, 2019)
 BUG FIXES:
 * Fix k8s finalizer [GH-128]
