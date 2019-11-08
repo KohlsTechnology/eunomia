@@ -1,3 +1,7 @@
+branches:
+  only:
+  - master
+  - /^v\d+\.\d+\.\d+$/
 sudo: required
 language: go
 go_import_path: github.com/KohlsTechnology/eunomia
