@@ -1,0 +1,43 @@
+---
+- name: Run openshift-provision role
+  hosts: localhost
+  gather_facts: false
+
+  pre_tasks:
+    - include_vars:
+        file: "{{ parameter_file }}"
+    - name: Intialize variables to be used in the openshift_provision role
+      set_fact:
+        openshift_resource_path: []
+        openshift_cluster_provision_pre_tasks: []
+        openshift_cluster_provision_post_tasks: []
+
+    - name: Generate openshift_resource_path
+      set_fact:
+        openshift_resource_path: "{{ openshift_resource_path }} + [ '{{ item }}/resources' ]"
+      with_items: "{{ hierarchy_paths }}"
+
+    - name: Check for cluster pre-tasks
+      stat:
+        path: "{{ template_directory }}/cluster-pretasks.yml"
+      register: pretasks_exists
+    - set_fact:
+        openshift_cluster_provision_pre_tasks:
+        - "{{ template_directory }}/cluster-pretasks.yml"
+      when: pretasks_exists.stat.exists
+
+    - name: Check for cluster post-tasks
+      stat:
+        path: "{{ template_directory }}/cluster-posttasks.yml"
+      register: posttasks_exists
+    - set_fact:
+        openshift_cluster_provision_post_tasks:
+        - "{{ template_directory }}/cluster-posttasks.yml"
+      when: posttasks_exists.stat.exists
+
+  roles:
+  - role: openshift-provision
+    openshift_clusters:
+    - "{{ cluster_definition }}"
+    tags:
+    - provision

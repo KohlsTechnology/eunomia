@@ -1,0 +1,22 @@
+FROM @REPOSITORY@/eunomia-base:@IMAGE_TAG@
+
+USER root
+
+ENV OC_VERSION="v3.11.0" \
+    OC_COMMIT="0cbc58b" \
+    OPENSHIFT_PROVISION_COMMIT="156a2e8ab2a16ef3bfb21b68b2b6bd4a7151a233"
+
+COPY bin /usr/local/bin/
+COPY files /files
+
+RUN curl https://github.com/openshift/origin/releases/download/${OC_VERSION}/openshift-origin-client-tools-${OC_VERSION}-${OC_COMMIT}-linux-64bit.tar.gz -L -o /tmp/oc-client.tar.gz && \
+    tar -xzf /tmp/oc-client.tar.gz -C /tmp && \
+    mv /tmp/openshift-origin-client-tools-${OC_VERSION}-${OC_COMMIT}-linux-64bit/oc /usr/bin/oc && \
+    chmod +x /usr/bin/oc && \
+    rm /tmp/oc-client.tar.gz && \
+    rm -rf /tmp/openshift-origin-client-tools-${OC_VERSION}-${OC_COMMIT}-linux-64bit && \
+    git clone https://github.com/gnuthought/ansible-role-openshift-provision.git /files/roles/openshift-provision && \
+    git -C /files/roles/openshift-provision checkout ${OPENSHIFT_PROVISION_COMMIT} && \
+    pip3 install -r /files/requirements.txt
+
+USER ${USER_UID}

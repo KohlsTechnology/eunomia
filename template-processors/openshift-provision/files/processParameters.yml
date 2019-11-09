@@ -1,0 +1,42 @@
+---
+- name: Process parameters
+  hosts: localhost
+  gather_facts: false
+  tasks:
+  - set_fact:
+      _cluster_definition_dir: "{{ parameter_directory }}/cluster/{{ cluster_name }}"
+
+  - name: "Build the hierarchy for your configuration defined for a given cluster"
+    block:
+    - include_vars:
+        file: '{{ _cluster_definition_dir }}/vars/main.yml'
+
+    - name: Initialize hierarchy_paths with the lowest priority subdirectory
+      set_fact:
+        hierarchy_paths: ["{{ parameter_directory }}/default"]
+
+    - name: Add dynamic hierarchy_paths
+      set_fact:
+        hierarchy_paths: "{{ hierarchy_paths }} + [ '{{ parameter_directory }}/{{ item.key }}/{{ item.value }}' ]"
+      with_dict: "{{ hierarchy }}"
+
+    - name: Include hierarchy in top level vars
+      set_fact:
+        "{{ item.key }}": "{{ item.value }}"
+      with_dict: "{{ hierarchy }}"
+
+    - name: Include vars from each level of hierarchy
+      include_vars:
+        dir: "{{ item }}/vars"
+        files_matching: '^[a-zA-Z0-9].*\.(ya?ml|json)$'
+      with_items: "{{ hierarchy_paths }}"
+
+    - name: Include base.yml
+      include_vars:
+        file: "{{ _cluster_definition_dir }}/base.yml"
+        name: cluster_definition
+
+  - name: Dump config YAML to eunomia_values_processed.yaml
+    copy:
+      content: "{{ vars | to_nice_yaml }}"
+      dest: "{{ parameter_directory }}/eunomia_values_processed.yaml"
