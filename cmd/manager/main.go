@@ -30,6 +30,7 @@ import (
 	"github.com/KohlsTechnology/eunomia/pkg/handler"
 	"github.com/KohlsTechnology/eunomia/pkg/util"
 
+	"github.com/operator-framework/operator-sdk/pkg/metrics"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
@@ -139,11 +140,10 @@ func main() {
 	}
 
 	// Create Service object to expose the metrics port.
-	// commented because service is generated via a manifest at deploy time.
-	// _, err = metrics.ExposeMetricsPort(ctx, metricsPort)
-	// if err != nil {
-	// 	log.Info(err.Error())
-	// }
+	_, err = metrics.ExposeMetricsPort(ctx, metricsPort)
+	if err != nil {
+		log.Info(err.Error())
+	}
 
 	// Set up WebHook listener
 
