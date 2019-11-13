@@ -31,9 +31,7 @@ function deleteResources {
     for file in $(find $MANIFEST_DIR -iregex '.*\.yaml'); do
       cat $file | yq 'select(.kind == "GitOpsConfig")' | kube delete -f - --wait=true
     done
-    set +u
     kube delete -R -f $MANIFEST_DIR
-    set -u
 }
 
 function createUpdateResources {
@@ -41,9 +39,7 @@ function createUpdateResources {
     kube apply -R -f $MANIFEST_DIR
   fi
   if [ $CREATE_MODE == "CreateOrUpdate" ]; then
-    set +u
     kube create -R -f $MANIFEST_DIR
-    set -u
     kube update -R -f $MANIFEST_DIR
   fi
   if [ $CREATE_MODE == "Patch" ]; then
