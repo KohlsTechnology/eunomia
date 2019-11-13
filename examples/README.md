@@ -24,6 +24,8 @@ kubectl -n eunomia-operator logs deployment/eunomia-operator
 
 [Helm chart with parameters](hello-world-helm) 
 
+[Helm chart with hierarchical parameters](hello-world-hierarchy) 
+
 ## Real world-ish
 
 [Boostrapping a whole cluster via a cluster-seed](cluster/README.md)

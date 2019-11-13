@@ -19,6 +19,7 @@ package e2e
 import (
 	goctx "context"
 	"fmt"
+	"os"
 	"testing"
 
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
@@ -46,6 +47,16 @@ func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.
 		return fmt.Errorf("could not get namespace: %v", err)
 	}
 
+	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
+	if !found {
+		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
+	}
+
+	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
+	if !found {
+		eunomiaRef = "master"
+	}
+
 	gitops := &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "GitOpsConfig",
@@ -57,14 +68,14 @@ func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/KohlsTechnology/eunomia",
-				Ref:        "master",
-				ContextDir: "examples/simple/templates",
+				URI:        eunomiaURI,
+				Ref:        eunomiaRef,
+				ContextDir: "test/e2e/configs/simple/templates",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        "https://github.com/KohlsTechnology/eunomia",
-				Ref:        "master",
-				ContextDir: "examples/simple/parameters",
+				URI:        eunomiaURI,
+				Ref:        eunomiaRef,
+				ContextDir: "test/e2e/configs/simple/parameters",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
 				{
