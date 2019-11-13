@@ -31,25 +31,26 @@ function kube {
 }
 
 function deleteResources {
-    #first we need to delete the GitOpsConfig resources whose finalizer might not get called otherwise
-    for file in $(find "$MANIFEST_DIR" -iregex '.*\.yaml'); do
-      cat "$file" | yq 'select(.kind == "GitOpsConfig")' | kube delete -f - --wait=true
-    done
-    kube delete -R -f "$MANIFEST_DIR"
+  #first we need to delete the GitOpsConfig resources whose finalizer might not get called otherwise
+  for file in $(find "$MANIFEST_DIR" -iregex '.*\.yaml'); do
+    cat "$file" | yq 'select(.kind == "GitOpsConfig")' | kube delete -f - --wait=true
+  done
+  kube delete -R -f "$MANIFEST_DIR"
 }
 
 function createUpdateResources {
-  if [ $CREATE_MODE == "CreateOrMerge" ]; then
-    kube apply -R -f "$MANIFEST_DIR"
-  fi
-  if [ $CREATE_MODE == "CreateOrUpdate" ]; then
-    kube create -R -f "$MANIFEST_DIR"
-    kube update -R -f "$MANIFEST_DIR"
-  fi
-  if [ $CREATE_MODE == "Patch" ]; then
-    kube patch -R -f "$MANIFEST_DIR"
-  fi
-
+  case "$CREATE_MODE" in
+    CreateOrMerge)
+      kube apply -R -f "$MANIFEST_DIR"
+      ;;
+    CreateOrUpdate)
+      kube create -R -f "$MANIFEST_DIR"
+      kube update -R -f "$MANIFEST_DIR"
+      ;;
+    Patch)
+      kube patch -R -f "$MANIFEST_DIR"
+      ;;
+  esac
 }
 
 if [ "$CREATE_MODE" == "None" ] || [ "$DELETE_MODE" == "None" ]; then
@@ -59,13 +60,8 @@ fi
 
 echo "Managing Resources"
 setContext
+case "$ACTION" in
+  create) createUpdateResources;;
+  delete) deleteResources;;
+esac
 
-if [ $ACTION == "create" ]
-then
-  createUpdateResources
-fi
-
-if [ $ACTION == "delete" ]
-then
-  deleteResources
-fi

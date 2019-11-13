@@ -18,20 +18,16 @@ set -euxo pipefail
 
 function pullFromTemplatesRepo {
   set +u
-  if [ ! -z "$TEMPLATE_GIT_HTTP_PROXY" ] 
-  then
+  if [ "$TEMPLATE_GIT_HTTP_PROXY" ]; then
     local http_proxy="$TEMPLATE_GIT_HTTP_PROXY"
   fi
-  if [ ! -z "$TEMPLATE_GIT_HTTPS_PROXY" ] 
-  then
+  if [ "$TEMPLATE_GIT_HTTPS_PROXY" ]; then
     local https_proxy="$TEMPLATE_GIT_HTTPS_PROXY"
-  fi 
-  if [ ! -z "$TEMPLATE_GIT_NO_PROXY" ] 
-  then
+  fi
+  if [ "$TEMPLATE_GIT_NO_PROXY" ]; then
     local no_proxy="$TEMPLATE_GIT_NO_PROXY"
   fi
-  if [ "$TEMPLATE_GITCONFIG" ] && [ -d "$TEMPLATE_GITCONFIG" ]
-  then
+  if [ "$TEMPLATE_GITCONFIG" ] && [ -d "$TEMPLATE_GITCONFIG" ]; then
     for file in "$TEMPLATE_GITCONFIG"/*; do
       cp -f "$file" "~/$(basename $file)"
     done
@@ -53,20 +49,16 @@ function pullFromTemplatesRepo {
 
 function pullFromParametersRepo {
   set +u
-  if [ ! -z "$PARAMETER_GIT_HTTP_PROXY" ] 
-  then
+  if [ "$PARAMETER_GIT_HTTP_PROXY" ]; then
     local http_proxy="$PARAMETER_GIT_HTTP_PROXY"
   fi
-  if [ ! -z "$PARAMETER_GIT_HTTPS_PROXY" ] 
-  then
+  if [ "$PARAMETER_GIT_HTTPS_PROXY" ]; then
     local https_proxy="$PARAMETER_GIT_HTTPS_PROXY"
-  fi 
-  if [ ! -z "$PARAMETER_GIT_NO_PROXY" ] 
-  then
+  fi
+  if [ "$PARAMETER_GIT_NO_PROXY" ]; then
     local no_proxy="$PARAMETER_GIT_NO_PROXY"
   fi
-  if [ "$PARAMETER_GITCONFIG" ] && [ -d "$PARAMETER_GITCONFIG" ]
-  then 
+  if [ "$PARAMETER_GITCONFIG" ] && [ -d "$PARAMETER_GITCONFIG" ]; then
     for file in "$PARAMETER_GITCONFIG"/*; do
       cp -f "$file" "~/$(basename $file)"
     done
