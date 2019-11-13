@@ -16,39 +16,43 @@
 
 set -euxo pipefail
 
-# this is needed becasue we want the current namespace to be set as default if a namespace is not specified.
+# this is needed because we want the current namespace to be set as default if a namespace is not specified.
 function setContext {
-  $kubectl config set-context current --namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
+  $kubectl config set-context current --namespace="$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)"
   $kubectl config use-context current
 }
 
 function kube {
-  $kubectl -s https://kubernetes.default.svc:443  --token $(cat /var/run/secrets/kubernetes.io/serviceaccount/token) --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt $@
+  $kubectl \
+    -s https://kubernetes.default.svc:443 \
+    --token "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+    --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+    "$@"
 }
 
 function deleteResources {
-    #first we need to delete the GitOpsConfig resources whose finalizer might not work otherwise
-    for file in $(find $MANIFEST_DIR -iregex '.*\.yaml'); do
-      cat $file | yq 'select(.kind == "GitOpsConfig")' | kube delete -f - --wait=true
+    #first we need to delete the GitOpsConfig resources whose finalizer might not get called otherwise
+    for file in $(find "$MANIFEST_DIR" -iregex '.*\.yaml'); do
+      cat "$file" | yq 'select(.kind == "GitOpsConfig")' | kube delete -f - --wait=true
     done
-    kube delete -R -f $MANIFEST_DIR
+    kube delete -R -f "$MANIFEST_DIR"
 }
 
 function createUpdateResources {
   if [ $CREATE_MODE == "CreateOrMerge" ]; then
-    kube apply -R -f $MANIFEST_DIR
+    kube apply -R -f "$MANIFEST_DIR"
   fi
   if [ $CREATE_MODE == "CreateOrUpdate" ]; then
-    kube create -R -f $MANIFEST_DIR
-    kube update -R -f $MANIFEST_DIR
+    kube create -R -f "$MANIFEST_DIR"
+    kube update -R -f "$MANIFEST_DIR"
   fi
   if [ $CREATE_MODE == "Patch" ]; then
-    kube patch -R -f $MANIFEST_DIR
+    kube patch -R -f "$MANIFEST_DIR"
   fi
 
 }
 
-if [ $CREATE_MODE == "None" ] || [ $DELETE_MODE == "None" ]; then
+if [ "$CREATE_MODE" == "None" ] || [ "$DELETE_MODE" == "None" ]; then
   echo "CREATE_MODE and/or DELETE_MODE is set to None; This means that the template processor already applied the resources. Skipping the Manage Resources step."
   exit 0
 fi
