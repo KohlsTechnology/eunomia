@@ -21,15 +21,15 @@ function pullFromTemplatesRepo {
   set +u
   if [ ! -z "$TEMPLATE_GIT_HTTP_PROXY" ] 
   then
-    http_proxy=$TEMPLATE_GIT_HTTP_PROXY
+    local http_proxy="$TEMPLATE_GIT_HTTP_PROXY"
   fi
   if [ ! -z "$TEMPLATE_GIT_HTTPS_PROXY" ] 
   then
-    https_proxy=$TEMPLATE_GIT_HTTPS_PROXY
+    local https_proxy="$TEMPLATE_GIT_HTTPS_PROXY"
   fi 
   if [ ! -z "$TEMPLATE_GIT_NO_PROXY" ] 
   then
-    no_proxy=$TEMPLATE_GIT_NO_PROXY
+    local no_proxy="$TEMPLATE_GIT_NO_PROXY"
   fi
   if [ -z "$TEMPLATE_GITCONFIG" ] && [ -d "$TEMPLATE_GITCONFIG" ]
   then
@@ -57,15 +57,15 @@ function pullFromParametersRepo {
   set +u
   if [ ! -z "$PARAMETER_GIT_HTTP_PROXY" ] 
   then
-    http_proxy=$PARAMETER_GIT_HTTP_PROXY
+    local http_proxy="$PARAMETER_GIT_HTTP_PROXY"
   fi
   if [ ! -z "$PARAMETER_GIT_HTTPS_PROXY" ] 
   then
-    https_proxy=$PARAMETER_GIT_HTTPS_PROXY
+    local https_proxy="$PARAMETER_GIT_HTTPS_PROXY"
   fi 
   if [ ! -z "$PARAMETER_GIT_NO_PROXY" ] 
   then
-    no_proxy=$PARAMETER_GIT_NO_PROXY
+    local no_proxy="$PARAMETER_GIT_NO_PROXY"
   fi
   if [ -z "$PARAMETER_GITCONFIG" ] && [ -d "$PARAMETER_GITCONFIG" ]
   then 

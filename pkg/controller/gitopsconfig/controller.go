@@ -228,9 +228,11 @@ func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 		log.Info("Error in GetJob:", err)
 		return "", err
 	}
-	instance.Status.StartTime = result.Status.StartTime.Format(time.RFC3339)
-	if result.Status.CompletionTime != nil {
-		instance.Status.EndTime = result.Status.CompletionTime.Format(time.RFC3339)
+	if result.Status.StartTime != nil {
+		instance.Status.StartTime = result.Status.StartTime.Format(time.RFC3339)
+		if result.Status.CompletionTime != nil {
+			instance.Status.EndTime = result.Status.CompletionTime.Format(time.RFC3339)
+		}
 	}
 	return getJobStatus(result.Status.Succeeded, result.Status.Failed), nil
 }
@@ -301,9 +303,11 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) (strin
 		log.Info("Error in GetJob for CronJob:", err)
 		return "", err
 	}
-	instance.Status.StartTime = jobOutput.Status.StartTime.Format(time.RFC3339)
-	if jobOutput.Status.CompletionTime != nil {
-		instance.Status.EndTime = jobOutput.Status.CompletionTime.Format(time.RFC3339)
+	if jobOutput.Status.StartTime != nil {
+		instance.Status.StartTime = jobOutput.Status.StartTime.Format(time.RFC3339)
+		if jobOutput.Status.CompletionTime != nil {
+			instance.Status.EndTime = jobOutput.Status.CompletionTime.Format(time.RFC3339)
+		}
 	}
 	return getJobStatus(jobOutput.Status.Succeeded, jobOutput.Status.Failed), nil
 }
