@@ -44,7 +44,13 @@ function pullFromTemplatesRepo {
   fi 
   set -u
   mkdir -p $TEMPLATE_GIT_DIR
-  git clone -b $TEMPLATE_GIT_REF $TEMPLATE_GIT_URI $TEMPLATE_GIT_DIR
+  (
+    export http_proxy
+    export https_proxy
+    export no_proxy
+    git clone -b "$TEMPLATE_GIT_REF" "$TEMPLATE_GIT_URI" "$TEMPLATE_GIT_DIR"
+    export TEMPLATE_SHA1=$(git ls-remote $TEMPLATE_GIT_URI $TEMPLATE_GIT_REF | awk '{ print $1}')
+  )
 }
 
 function pullFromParametersRepo {
@@ -74,7 +80,12 @@ function pullFromParametersRepo {
   fi    
   set -u
   mkdir -p $PARAMETER_GIT_DIR
-  git clone -b $PARAMETER_GIT_REF $PARAMETER_GIT_URI $PARAMETER_GIT_DIR
+  (
+    export http_proxy
+    export https_proxy
+    export no_proxy
+    git clone -b "$PARAMETER_GIT_REF" "$PARAMETER_GIT_URI" "$PARAMETER_GIT_DIR"
+  )
 }
 
 echo Cloning Repositories

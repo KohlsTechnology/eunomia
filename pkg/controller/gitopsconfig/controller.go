@@ -19,6 +19,7 @@ package gitopsconfig
 import (
 	"context"
 	goerrors "errors"
+	"os"
 	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -50,6 +51,13 @@ const kubeGitopsFinalizer string = "eunomia-finalizer"
 
 // PushEvents channel on which we get the github webhook push events
 var PushEvents = make(chan event.GenericEvent)
+
+//CommitID stores the commitid of template source
+var CommitID string
+
+func init() {
+	CommitID = os.Getenv("TEMPLATE_SHA1")
+}
 
 // Add creates a new GitOpsConfig Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
@@ -113,7 +121,8 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 	// if delete and delete cascade allocate the delete pod
 	// if periodic and cronjob does not exist, create cronjob
 	// if change create job
-
+	log.Info("CommitID: " + CommitID)
+	lastCommitID := CommitID
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling GitOpsConfig")
 
@@ -132,6 +141,12 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 	}
 	reqLogger.Info("found instance", "instance", instance.GetName())
 
+	//Checking the template commit id
+	CommitID = os.Getenv("TEMPLATE_SHA1")
+	if instance.Status.CurrentCommit != "" && instance.Status.CurrentCommit != CommitID {
+		lastCommitID = instance.Status.CurrentCommit
+	}
+
 	//object is being deleted
 	if !instance.ObjectMeta.DeletionTimestamp.IsZero() {
 		return r.manageDeletion(instance)
@@ -144,9 +159,10 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 
 	reqLogger.Info("Instance is initialized", "instance", instance.GetName())
 
+	var status string
 	if ContainsTrigger(instance, "Periodic") {
 		reqLogger.Info("Instance has a periodic trigger, creating/updating cronjob", "instance", instance.GetName())
-		err = r.createCronJob(instance)
+		status, err = r.createCronJob(instance)
 		if err != nil {
 			reqLogger.Error(err, "error creating the cronjob, continuing...")
 		}
@@ -154,12 +170,17 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 
 	if ContainsTrigger(instance, "Change") || ContainsTrigger(instance, "Webhook") {
 		reqLogger.Info("Instance has a change or Webhook trigger, creating job", "instance", instance.GetName())
-		err = r.createJob("create", instance)
+		status, err = r.createJob("create", instance)
 		if err != nil {
 			reqLogger.Error(err, "error creating the job, continuing...")
 		}
 	}
 
+	instance.Status.CurrentCommit = CommitID
+	instance.Status.LastCommit = lastCommitID
+	instance.Status.State = status
+
+	err = r.client.Status().Update(context.TODO(), instance)
 	return reconcile.Result{}, err
 }
 
@@ -174,7 +195,7 @@ func ContainsTrigger(instance *gitopsv1alpha1.GitOpsConfig, triggeType string) b
 }
 
 // createJob creates a new gitops job for the passed instance
-func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) error {
+func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) (string, error) {
 	//TODO add logic to ignore if another job was created sooner than x (5 minutes?) time and it is still running.
 	mergedata := util.JobMergeData{
 		Config: *instance,
@@ -183,24 +204,38 @@ func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 	job, err := util.CreateJob(mergedata)
 	if err != nil {
 		log.Error(err, "unable to create job manifest from merge data", "mergedata", mergedata)
-		return err
+		return "", err
 	}
 	err = controllerutil.SetControllerReference(instance, &job, r.scheme)
 	if err != nil {
 		log.Error(err, "unable to the owner for job", "job", job)
-		return err
+		return "", err
 	}
 
 	log.Info("Creating a new Job", "job.Namespace", job.Namespace, "job.Name", job.Name)
 	err = r.client.Create(context.TODO(), &job)
 	if err != nil {
 		log.Error(err, "unable to create the job", "job", job)
-		return err
+		return "", err
 	}
-	return nil
+	time.Sleep(5 * time.Second)
+	var result batchv1.Job
+	err = r.client.Get(context.TODO(),
+		types.NamespacedName{Name: job.Name, Namespace: job.Namespace},
+		&result)
+
+	if err != nil {
+		log.Info("Error in GetJob:", err)
+		return "", err
+	}
+	instance.Status.StartTime = result.Status.StartTime.Format(time.RFC3339)
+	if result.Status.CompletionTime != nil {
+		instance.Status.EndTime = result.Status.CompletionTime.Format(time.RFC3339)
+	}
+	return getJobStatus(result.Status.Succeeded, result.Status.Failed), nil
 }
 
-func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error {
+func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) (string, error) {
 	mergedata := util.JobMergeData{
 		Config: *instance,
 		Action: "create",
@@ -209,7 +244,7 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 	cronjob, err := util.CreateCronJob(mergedata)
 	if err != nil {
 		log.Error(err, "unable to create cronjob manifest from merge data", "mergedata", mergedata)
-		return err
+		return "", err
 	}
 
 	err = r.client.Get(context.TODO(),
@@ -221,14 +256,14 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 			update = false
 		} else {
 			// Error reading the object - requeue the request.
-			return err
+			return "", err
 		}
 	}
 
 	err = controllerutil.SetControllerReference(instance, &cronjob, r.scheme)
 	if err != nil {
 		log.Error(err, "unable to the owner for cronjob", "cronjob", cronjob)
-		return err
+		return "", err
 	}
 	log.Info("Creating/updating CronJob", "cronjob.Namespace", cronjob.Namespace, "cronjob.Name", cronjob.Name)
 	if update {
@@ -239,9 +274,38 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 
 	if err != nil {
 		log.Error(err, "unable to create/update the cronjob", "cronjob", cronjob)
-		return err
+		return "", err
 	}
-	return nil
+	time.Sleep(5 * time.Second)
+	var result batchv1beta1.CronJob
+	err = r.client.Get(context.TODO(),
+		types.NamespacedName{Name: cronjob.Name, Namespace: cronjob.Namespace},
+		&result)
+
+	if err != nil {
+		log.Info("Error in GetCronJob:", err)
+		return "", err
+	}
+	runningJobArr := result.Status.Active
+	length := len(runningJobArr)
+	if length < 1 {
+		return "FAILED", nil
+	}
+	latestJobRunning := runningJobArr[len(runningJobArr)-1]
+	var jobOutput batchv1.Job
+	err = r.client.Get(context.TODO(),
+		types.NamespacedName{Name: latestJobRunning.Name, Namespace: latestJobRunning.Namespace},
+		&jobOutput)
+
+	if err != nil {
+		log.Info("Error in GetJob for CronJob:", err)
+		return "", err
+	}
+	instance.Status.StartTime = jobOutput.Status.StartTime.Format(time.RFC3339)
+	if jobOutput.Status.CompletionTime != nil {
+		instance.Status.EndTime = jobOutput.Status.CompletionTime.Format(time.RFC3339)
+	}
+	return getJobStatus(jobOutput.Status.Succeeded, jobOutput.Status.Failed), nil
 }
 
 // GetAll retrieves all the gitops config in the cluster
@@ -376,7 +440,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 			return reconcile.Result{}, nil
 		}
 		log.Info("Launching delete job for instance", "instance", instance.GetName())
-		err = r.createJob("delete", instance)
+		_, err = r.createJob("delete", instance)
 		if err != nil {
 			log.Error(err, "unable to create deletion job")
 			return reconcile.Result{}, err
@@ -416,4 +480,13 @@ func isOwner(owner, owned metav1.Object) bool {
 		}
 	}
 	return false
+}
+
+func getJobStatus(succeded, failed int32) string {
+	if succeded != 0 {
+		return "SUCCESS"
+	} else if failed != 0 {
+		return "FAILED"
+	}
+	return "INPROGRESS"
 }
