@@ -2,7 +2,19 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    alm-examples: '[{"apiVersion":"eunomia.kohls.io/v1alpha1","kind":"GitOpsConfig","metadata":{"name":"example-gitopsconfig"},"spec":{"size":3}}]'
+    alm-examples: |-
+      [
+        {
+          "apiVersion": "eunomia.kohls.io/v1alpha1",
+          "kind": "GitOpsConfig",
+          "metadata": {
+            "name": "example-gitopsconfig"
+          },
+          "spec": {
+            "size": 3
+          }
+        }
+      ]
     capabilities: Basic Install
     categories: Developer Tools
     certified: "false"
