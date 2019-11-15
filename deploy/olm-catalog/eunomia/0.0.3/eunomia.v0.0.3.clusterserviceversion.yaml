@@ -2,34 +2,22 @@ apiVersion: operators.coreos.com/v1alpha1
 kind: ClusterServiceVersion
 metadata:
   annotations:
-    alm-examples: |-
-      [
-        {
-          "apiVersion": "eunomia.kohls.io/v1alpha1",
-          "kind": "GitOpsConfig",
-          "metadata": {
-            "name": "example-gitopsconfig"
-          },
-          "spec": {
-            "size": 3
-          }
-        }
-      ]
+    alm-examples: '[{"apiVersion":"eunomia.kohls.io/v1alpha1","kind":"GitOpsConfig","metadata":{"name":"example-gitopsconfig"},"spec":{"size":3}}]'
     capabilities: Basic Install
     categories: Developer Tools
     certified: "false"
-    containerImage: quay.io/kohlstechnology/eunomia-operator:latest
+    containerImage: quay.io/kohlstechnology/eunomia-operator:v0.0.3
     createdAt: 8/29/2019
     description: A GitOps Operator for Kubernetes
     repository: https://github.com/KohlsTechnology/eunomia
     support: Best Effort
-  name: eunomia.v0.0.2
+  name: eunomia.v0.0.3
   namespace: eunomia-operator
 spec:
   apiservicedefinitions: {}
   customresourcedefinitions:
     owned:
-    - description: Represents a pointer to a git reposotry with templates and parameters
+    - description: Represents a pointer to a git repository with templates and parameters
         for the creation Kubernetes that should be applied to this cluster.
       displayName: GitOps Configuration
       kind: GitOpsConfig
@@ -128,16 +116,13 @@ spec:
                 - name: CRONJOB_TEMPLATE
                   value: /templates/cronjob.yaml
                 - name: WATCH_NAMESPACE
-                  valueFrom:
-                    fieldRef:
-                      fieldPath: metadata.annotations['olm.targetNamespaces']
                 - name: POD_NAME
                   valueFrom:
                     fieldRef:
                       fieldPath: metadata.name
                 - name: OPERATOR_NAME
                   value: eunomia-operator
-                image: quay.io/kohlstechnology/eunomia-operator:v0.0.2
+                image: quay.io/kohlstechnology/eunomia-operator:v0.0.3
                 imagePullPolicy: IfNotPresent
                 name: eunomia-operator
                 resources: {}
@@ -206,7 +191,7 @@ spec:
   - name: repository
     url: https://github.com/KohlsTechnology/eunomia
   - name: conatinerImage
-    url: https://quay.io/kohlstechnology/eunomia-operator:0.0.2
+    url: https://quay.io/kohlstechnology/eunomia-operator:0.0.3
   maintainers:
   - email: heiko.zuerker@kohls.com
     name: Heiko Zuerker
@@ -215,5 +200,4 @@ spec:
   maturity: alpha
   provider:
     name: Kohls Technology
-  replaces: eunomia.v0.0.1
-  version: 0.0.2
+  version: 0.0.3
