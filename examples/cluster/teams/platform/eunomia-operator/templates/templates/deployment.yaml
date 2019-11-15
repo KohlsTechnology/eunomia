@@ -45,7 +45,7 @@ spec:
       volumes:
         - name: template-volume
           configMap:
-            name: eunomia-templates
+            name: job-templates
     {{- with .Values.affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}

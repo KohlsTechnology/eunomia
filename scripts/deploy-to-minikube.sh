@@ -16,10 +16,8 @@
 
 set -euxo pipefail
 
-GIT_SHA=$(git rev-parse --short HEAD)
+#This scripts helps with deploying images locally to minikube docker registry.
 
-if [ -z "$(git status --porcelain 2>/dev/null)" ]; then
-    echo $GIT_SHA
-else
-    echo "$GIT_SHA-dirty"
-fi
+eval $(minikube docker-env)
+export TRAVIS_TAG=latest
+"$(dirname "$0")/build-images.sh" quay.io/kohlstechnology

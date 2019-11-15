@@ -237,11 +237,8 @@ This field specifies how to handle resources when the GitOpsConfig object is del
 Simply use the helm chart to install it on your flavor of Kubernetes.
 
 ```shell
-# Deploy the operator pre-requisites, which require cluster-admin access
-helm template deploy/helm/prereqs/ | kubectl apply -f -
-
 # Deploy the operator
-helm template deploy/helm/operator/ | kubectl apply -f -
+helm template deploy/helm/eunomia-operator/ | kubectl apply -f -
 ```
 
 ### Installing on OpenShift
@@ -249,11 +246,8 @@ helm template deploy/helm/operator/ | kubectl apply -f -
 Use the below command to install Eunomia on OpenShift. This will also give you the route for the ingress webhook.
 
 ```shell
-# Deploy the operator pre-requisites, which require cluster-admin access
-helm template deploy/helm/prereqs/ | oc apply -f -
-
 # Deploy the operator
-helm template deploy/helm/operator/ --set openshift.route.enabled=true | oc apply -f -
+helm template deploy/helm/eunomia-operator/ --set openshift.route.enabled=true | oc apply -f -
 ```
 
 ## Examples / Demos

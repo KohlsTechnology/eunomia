@@ -9,6 +9,12 @@ BUILD_COMMIT := $(shell ./scripts/build/get-build-commit.sh)
 BUILD_TIMESTAMP := $(shell ./scripts/build/get-build-timestamp.sh)
 BUILD_HOSTNAME := $(shell ./scripts/build/get-build-hostname.sh)
 
+export GITHUB_PAGES_DIR ?= /tmp/helm/publish
+export GITHUB_PAGES_BRANCH ?= gh-pages
+export GITHUB_PAGES_REPO ?= KohlsTechnology/eunomia
+export HELM_CHARTS_SOURCE ?= deploy/helm/eunomia-operator
+export HELM_CHART_DEST ?= $(GITHUB_PAGES_DIR)
+
 LDFLAGS := "-X github.com/KohlsTechnology/eunomia/version.Version=$(VERSION) \
 	-X github.com/KohlsTechnology/eunomia/version.Vcs=$(BUILD_COMMIT) \
 	-X github.com/KohlsTechnology/eunomia/version.Timestamp=$(BUILD_TIMESTAMP) \
@@ -44,6 +50,10 @@ fmt:
 vet:
 	go vet ./pkg/... ./cmd/...
 
+# Run go fmt Test
+check-gofmt:
+	test -z "$(shell gofmt -l . | grep -v ^vendor)"
+
 # Generate code
 generate:
 	go generate ./pkg/... ./cmd/...
@@ -55,3 +65,8 @@ e2e-test-images: manager
 travis-deploy-images: manager
 	docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD} ${REGISTRY}
 	./scripts/build-images.sh ${REPOSITORY} true
+
+publish-chart-repo:
+	./scripts/build/publish-chart-repo.sh
+
+travis-release: travis-deploy-images	publish-chart-repo

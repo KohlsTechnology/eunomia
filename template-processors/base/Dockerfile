@@ -3,7 +3,7 @@ FROM registry.access.redhat.com/ubi8/ubi:latest
 ENV USER_UID=1001 \
     USER_NAME=gitopsjob \
     kubectl=kubectl \
-    KUBECTL_VERSION="v1.15.0" \
+    KUBECTL_VERSION="v1.11.10" \
     YQ_VERSION="2.7.2" \
     GOLANG_YQ_VERSION="2.4.0" \
     JQ_VERSION="1.6"
