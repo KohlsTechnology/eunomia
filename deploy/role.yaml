@@ -4,30 +4,30 @@ metadata:
   name: eunomia-operator
   namespace: eunomia-operator
 rules:
-# leader election   
+# leader election
 - apiGroups:
   - ""
   resources:
   - configmaps
   - pods
   verbs:
-  - "*"  
-#Metrics  
+  - "*"
+#Metrics
 - apiGroups:
   - ""
   resources:
   - services
   verbs:
   - "*"
-#Metrics  
+#Metrics
 - apiGroups:
   - "apps"
   resources:
   - replicasets
   - deployments
-  verbs: 
+  verbs:
   - "*"
-# Metrics  
+# Metrics
 - apiGroups:
   - monitoring.coreos.com
   resources:
@@ -35,7 +35,7 @@ rules:
   verbs:
   - "get"
   - "create"
-# Metrics  
+# Metrics
 - apiGroups:
   - apps
   resources:
@@ -57,11 +57,11 @@ rules:
   - jobs
   - cronjobs
   verbs:
-  - '*'  
-# operator's resources  
+  - '*'
+# operator's resources
 - apiGroups:
   - eunomia.kohls.io
   resources:
   - '*'
   verbs:
-  - '*'  
+  - '*'
