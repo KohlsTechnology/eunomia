@@ -19,7 +19,7 @@ metadata:
     categories: Developer Tools
     certified: "false"
     containerImage: quay.io/kohlstechnology/eunomia-operator:v0.0.3
-    createdAt: 8/29/2019
+    createdAt: 11/18/2019
     description: A GitOps Operator for Kubernetes
     repository: https://github.com/KohlsTechnology/eunomia
     support: Best Effort
