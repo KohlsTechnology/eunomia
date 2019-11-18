@@ -1,5 +1,5 @@
+packageName: eunomia
 channels:
 - currentCSV: eunomia.v0.0.3
   name: alpha
 defaultChannel: alpha
-packageName: eunomia
