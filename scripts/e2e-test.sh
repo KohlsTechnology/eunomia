@@ -52,7 +52,7 @@ helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.image.tag=dev \
   --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
 
-sleep 30
+kubectl wait --for=condition=available --timeout=30s deployment/eunomia-operator -n $TEST_NAMESPACE
 
 podname=$(kubectl get pods  -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' -n $TEST_NAMESPACE)
 
