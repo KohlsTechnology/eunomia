@@ -116,7 +116,6 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 
 	reqLogger := log.WithValues("Request.Namespace", request.Namespace, "Request.Name", request.Name)
 	reqLogger.Info("Reconciling GitOpsConfig")
-
 	// Fetch the GitOpsConfig instance
 	instance := &gitopsv1alpha1.GitOpsConfig{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
@@ -197,6 +196,7 @@ func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 		log.Error(err, "unable to create the job", "job", job)
 		return err
 	}
+	go watchJobForStatus(r.client, job.Name, job.Namespace, instance.Name, instance.Namespace, time.Time{})
 	return nil
 }
 
@@ -241,6 +241,16 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 		log.Error(err, "unable to create/update the cronjob", "cronjob", cronjob)
 		return err
 	}
+	var result batchv1beta1.CronJob
+	err = r.client.Get(context.TODO(),
+		types.NamespacedName{Name: cronjob.Name, Namespace: cronjob.Namespace},
+		&result)
+
+	if err != nil {
+		log.Info("Error in GetCronJob:", err)
+		return err
+	}
+	go scheduleStatusForCronJobs(jobmonitor{r.client, cronjob.Name, cronjob.Namespace, time.Time{}}, result.Spec.Schedule, instance.Name, instance.Namespace)
 	return nil
 }
 
