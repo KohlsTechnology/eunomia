@@ -254,6 +254,43 @@ helm template deploy/helm/eunomia-operator/ --set openshift.route.enabled=true |
 
 We've created several examples for you to test out Eunomia. See [EXAMPLES](examples/README.md) for details.
 
+## Monitoring with Prometheus
+
+[Prometheus](https://prometheus.io/) is an open-source systems monitoring and alerting toolkit.
+
+Prometheus collects metrics from monitored targets by scraping metrics HTTP endpoints.
+
+- [configuring-prometheus](https://prometheus.io/docs/introduction/first_steps/#configuring-prometheus)
+
+- `scrape_configs` controls what resources Prometheus monitors.
+
+- `kubernetes_sd_configs` Kubernetes SD configurations allow retrieving scrape targets. Please see [kubernetes_sd_configs](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#endpoints) for details.
+
+- Additionally, `relabel_configs` allow advanced modifications to any target and its labels before scraping.
+
+By default, the metrics in Operator SDK are exposed on `0.0.0.0:8383/metrics`
+
+For more information, see [Metrics in Operator SDK](https://github.com/operator-framework/operator-sdk/blob/v0.8.1/doc/user/metrics/README.md)
+
+### Usage:
+
+```
+scrape_configs:
+  - job_name: 'kubernetes-service-endpoints'
+    kubernetes_sd_configs:
+    - role: endpoints
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace]
+        action: keep
+        regex: test-eunomia-operator
+```
+You can find additional examples on their [GitHub page](https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml).
+
+### Verify metrics port:
+kubectl exec `POD-NAME` curl localhost:8383/metrics  -n `NAMESPACE`
+
+(e.g. `kubectl exec eunomia-operator-5b9b664cfc-6rdrh curl localhost:8383/metrics  -n test-eunomia-operator`)
+
 ## Development
 
 Please see our [development documentation](DEVELOPMENT.md) for details.
