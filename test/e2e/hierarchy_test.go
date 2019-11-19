@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	test "github.com/KohlsTechnology/eunomia/test"
@@ -13,23 +12,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-var (
-	retryInterval        = time.Second * 5
-	timeout              = time.Second * 60
-	cleanupRetryInterval = time.Second * 1
-	cleanupTimeout       = time.Second * 5
-)
-
-func TestHelmTemplate(t *testing.T) {
+func TestHierarchy(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 	test.AddToFrameworkSchemeForTests(t, ctx)
-	if err := helmTestDeploy(t, framework.Global, ctx); err != nil {
+	if err := hierarchyTestDeploy(t, framework.Global, ctx); err != nil {
 		t.Fatal(err)
 	}
 }
 
-func helmTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
+func hierarchyTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
 	namespace, err := ctx.GetNamespace()
 	if err != nil {
 		return fmt.Errorf("could not get namespace: %v", err)
@@ -51,7 +43,7 @@ func helmTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "gitops-helm",
+			Name:      "gitops-hierarchy",
 			Namespace: namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
@@ -63,7 +55,7 @@ func helmTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/configs/helm/parameters",
+				ContextDir: "test/e2e/configs/hierarchy/level4",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
 				{
@@ -83,5 +75,5 @@ func helmTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		return err
 	}
 
-	return WaitForPodWithImage(t, f, ctx, namespace, "hello-world-helm", "hello-app:1.0", retryInterval, timeout)
+	return WaitForPodWithImage(t, f, ctx, namespace, "hello-world-hierarchy", "hello-app:1.0", retryInterval, timeout)
 }

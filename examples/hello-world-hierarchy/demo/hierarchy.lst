@@ -1,0 +1,6 @@
+# yaml files get loaded in the order of the directories listed
+../default   # this would be the default
+../empty     # dealing with empty yaml files
+../level2    # now this one gets merged
+# ${PROJECT} # hopefully soon we'll support variable injection, then this will be possible
+./           # lastly we want this folder merged
