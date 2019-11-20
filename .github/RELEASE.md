@@ -62,12 +62,15 @@ Now you should see the operator in the operator catalog, follow the normal insta
 ## Pushing the new CSV to OperatorHub
 
 ```shell
-git -C /tmp clone https://github.com/operator-framework/community-operators
-git -C /tmp/community-operators remote add tmp https://github.com/${community_fork}/community-operators
-git -C /tmp/community-operators checkout -b eunomia-${new_version}
-operator-courier flatten deploy/olm-catalog/eunomia /tmp/community-operators/upstream-community-operators/eunomia
-git -C /tmp/community-operators add .
-git -C /tmp/community-operators commit -m "eunomia release ${new_version}"
-git -C /tmp/community-operators push tmp
-hub -C /tmp/community-operators pull-request -m "eunomia release ${new_version}"
+[[ -z "${TMPDIR}" ]] && TMPDIR=/tmp
+git_context="git -C ${TMPDIR}/community-operators"
+git -C ${TMPDIR} clone https://github.com/operator-framework/community-operators
+$git_context remote add tmp https://github.com/${community_fork}/community-operators
+$git_context checkout -b eunomia-${new_version}
+cp -R -f deploy/olm-catalog/eunomia ${TMPDIR}/community-operators/upstream-community-operators/
+$git_context add .
+$git_context commit -m "eunomia release ${new_version}" --signoff
+$git_context push tmp
+hub -C ${TMPDIR}/community-operators pull-request -m "eunomia release ${new_version}"
+rm -rf ${TMPDIR}/community-operators
 ```
