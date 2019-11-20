@@ -6,5 +6,5 @@ nodePort: 31384
 replicas: 1
 service:
   enabled: false
-namespace: "eunomia-hello-world-demo-hierarchy"
+namespace: "test-eunomia-operator"
 appname: "hello-world"

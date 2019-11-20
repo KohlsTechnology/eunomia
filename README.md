@@ -121,6 +121,26 @@ If a secret is provided, then it is assumed that the connection to Git requires 
 
 If the `uri` is not specified in the `parameterSource` section, then it will default to the `uri` specified under `templateSource`.
 
+### parameterSource processing
+Eunomia uses the [yq command](http://mikefarah.github.io/yq/) to merge all yaml files in the specified folder. You have to be careful, if you have the same variable name in multiple files. Dictionaries will merge, lists will get overwritten. 
+
+#### Variable Hierarchy
+You can provide a file `hierarchy.lst`, to allow a variable hierarchy. This will allow you to specify a default value and overwrite it on an environment level if necessary. This will greatly simplify your configuration and allows for deduplication of data, making your operational life a lot easier.
+
+The contents of the file are simply relative path names, with the base being `contextDir`.
+
+Example `hierarchy.lst`:
+```
+../defaults    #this is first ... lowest priority
+../marketing   #this is second
+../development #this is third ... highest priority
+```
+
+In this case it will load all yaml files from `../defaults`, then merge it with everything in `../marketing`, and lastly merges it with everything in `../development`. You can also use the relative path `./`, which means it'll also load the variables defined in `contextDir` directly (same folder that as `hierarchy.lst`).
+
+#### Upcoming features
+Once [issue #4](https://github.com/KohlsTechnology/eunomia/issues/4) is resolved, you will be able to specify variable names to dynamically determine the correct folder. This will allow you to only have one `hierarchy.lst`. (Technically, it is actually already possible to use environment variables, but without #4, there are just none set that would be of any practical use in hierarchy.lst.)
+
 ### Git Authentication
 
 Specifying a `SecretRef` will automatically turn on git authentication. The secrets for the template and parameter repos will be mounted respectively in the `/template-gitconfig` and `/parameter-gitconfig` of the job pod.
@@ -187,7 +207,7 @@ The base image provides the following workflow:
     | `CA_BUNDLE`  | Platform-level CA bundle  |
     | `SERVICE_CA_BUNDLE`  | Service-level CA bundle  |
     | `NAMESPACE`  | Current namespace  |
-3. `processParameters.sh` : This script processes all the parameter files and generates a `eunomia_values_processed.yaml` in the location specified by `CLONED_PARAMETER_GIT_DIR`. This script currently supports the following features:
+3. `processParameters.sh` : This script processes all the parameter files and generates `/tmp/eunomia_values_processed.yaml`. This script currently supports the following features:
     - Merging of all existing yaml files in the `CLONED_PARAMETER_GIT_DIR` location, into a single file for processing by the templating engine. 
     - Substitution of variables with environment variables.
 
@@ -253,6 +273,43 @@ helm template deploy/helm/eunomia-operator/ --set openshift.route.enabled=true |
 ## Examples / Demos
 
 We've created several examples for you to test out Eunomia. See [EXAMPLES](examples/README.md) for details.
+
+## Monitoring with Prometheus
+
+[Prometheus](https://prometheus.io/) is an open-source systems monitoring and alerting toolkit.
+
+Prometheus collects metrics from monitored targets by scraping metrics HTTP endpoints.
+
+- [configuring-prometheus](https://prometheus.io/docs/introduction/first_steps/#configuring-prometheus)
+
+- `scrape_configs` controls what resources Prometheus monitors.
+
+- `kubernetes_sd_configs` Kubernetes SD configurations allow retrieving scrape targets. Please see [kubernetes_sd_configs](https://prometheus.io/docs/prometheus/latest/configuration/configuration/#endpoints) for details.
+
+- Additionally, `relabel_configs` allow advanced modifications to any target and its labels before scraping.
+
+By default, the metrics in Operator SDK are exposed on `0.0.0.0:8383/metrics`
+
+For more information, see [Metrics in Operator SDK](https://github.com/operator-framework/operator-sdk/blob/v0.8.1/doc/user/metrics/README.md)
+
+### Usage:
+
+```
+scrape_configs:
+  - job_name: 'kubernetes-service-endpoints'
+    kubernetes_sd_configs:
+    - role: endpoints
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_namespace]
+        action: keep
+        regex: test-eunomia-operator
+```
+You can find additional examples on their [GitHub page](https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml).
+
+### Verify metrics port:
+kubectl exec `POD-NAME` curl localhost:8383/metrics  -n `NAMESPACE`
+
+(e.g. `kubectl exec eunomia-operator-5b9b664cfc-6rdrh curl localhost:8383/metrics  -n test-eunomia-operator`)
 
 ## Development
 

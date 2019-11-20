@@ -1,0 +1,2 @@
+# let's overwrite the namespace on this level
+namespace: "test-eunomia-operator"

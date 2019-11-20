@@ -14,7 +14,7 @@ objects:
     serviceAccount: eunomia-operator
     serviceAccountName: eunomia-operator
     containers:
-    - image: hello-world:latest
+    - image: "gcr.io/google-samples/hello-app:1.0"
       imagePullPolicy: IfNotPresent
       name: helloworld
       ports:

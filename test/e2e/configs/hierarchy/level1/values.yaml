@@ -4,7 +4,7 @@ imageTag: "1.0"
 imagePullPolicy: IfNotPresent
 nodePort: 31384
 replicas: 1
-service:
-  enabled: false
-namespace: "eunomia-hello-world-demo-hierarchy"
 appname: "hello-world"
+namespace: "eunomia-hello-world-demo-bad"
+service:
+  enabled: true

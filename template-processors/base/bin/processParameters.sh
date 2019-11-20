@@ -14,35 +14,55 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o nounset
-set -o errexit
+set -euxo pipefail
 
-echo Processing Parameters
+echo "Processing Parameters"
 
-# Determine how many yaml files we have
-export YAML_COUNT="$(ls -1 $CLONED_PARAMETER_GIT_DIR/*.{yaml,yml,json} 2> /dev/null | wc -l)"
+FOLDERS=""
 
-# Get the list of yaml files to process
-export YAML_FILES="$(ls $CLONED_PARAMETER_GIT_DIR/*.{yaml,yml,json} 2> /dev/null)"
+if [ -e "${CLONED_PARAMETER_GIT_DIR}/hierarchy.lst" ] ; then
+  echo "Generating hierarchy"
+  # a hierarchy list was provided, so lets process it
+  while IFS= read -r DIR ; do
+      # remove everything after # to allow comments and nuke all whitespaces
+      DIR="$(echo "${DIR}" | sed -e 's/[[:space:]]*#.*//')"
 
-# do a merge if there's more than one yaml file
-if [ "${YAML_COUNT}" -gt 1 ]; then
-  echo "Merging all available yaml files"
-  goyq merge ${YAML_FILES} > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml
+      if [ -n "${DIR}" ]; then
+        # add the folder to the end of the list
+        DIR="$(cd "${CLONED_PARAMETER_GIT_DIR}/${DIR}" ; pwd)"
+        FOLDERS="${FOLDERS} ${DIR}"
+      fi
+    done <<< "$(envsubst < "${CLONED_PARAMETER_GIT_DIR}/hierarchy.lst")"
+else
+  # No hierarchy provided, so lets just use the current folder
+  FOLDERS="${CLONED_PARAMETER_GIT_DIR}"
 fi
 
-# if there's just one, make sure it has the proper name
-if [ "${YAML_COUNT}" -eq 1 ]; then
-    mv ${YAML_FILES} $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml
+# process the folders
+if [ -n "${FOLDERS}" ]; then
+  # ensure our base file exists with one document to make yq happy
+  VALUES_FILE="/tmp/eunomia_values_processed1.yaml"
+  echo "---" > "${VALUES_FILE}"
+
+  for DIR in ${FOLDERS}; do
+    echo "Processing files in ${DIR}"
+
+    # get the list of yaml files to process
+    YAML_FILES="$(find "${DIR}" -name \*.json -o -name \*.yaml -o -name \*.yml  -maxdepth 1)"
+
+    # merge the files
+    goyq merge -i -x "${VALUES_FILE}" ${YAML_FILES}
+  done
+else
+  echo "ERROR - no folders found for processing"
+  exit 1
 fi
 
 # Replace variables from enviroment
 # This allows determining things like cluster names, regions, etc.
-if [ "${YAML_COUNT}" -ge 1 ]; then
-  if [ -e "$CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml" ]; then
-    envsubst < $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed1.yaml > $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml
-  else
-    echo "ERROR - missing parameter files"
-    exit 1
-  fi
+if [ -e "${VALUES_FILE}" ]; then
+  envsubst < "${VALUES_FILE}" > /tmp/eunomia_values_processed.yaml
+else
+  echo "ERROR - missing parameter files"
+  exit 1
 fi
