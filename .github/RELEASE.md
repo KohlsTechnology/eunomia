@@ -1,6 +1,6 @@
 # Operator Hub Release steps
 
-set some environment variables used during the process
+Set some environment variables used during the process
 
 ```shell
 export new_version=<new-version>
@@ -13,12 +13,13 @@ export community_fork=<a-fork-of-community-operator>
 
 I wasn't able to automate this set of steps, unfortunately.
 
-update the [`deploy/operator.yaml`](./deploy/operator.yaml) with the image tag of the version you are about to release. Also update anything else that might have change in this release in the manifests.
+update the [`deploy/operator.yaml`](../deploy/operator.yaml) with the image tag of the version you are about to release. Also update anything else that might have change in this release in the manifests.
 
 run the following:
 
 ```shell
 operator-sdk olm-catalog gen-csv --csv-version $new_version --from-version $old_version
+cp deploy/olm-catalog/eunomia/${old_version}/eunomia_v1alpha1_gitopsconfig_crd.yaml deploy/olm-catalog/eunomia/${new_version}/
 ```
 
 verify the created csv:
@@ -30,7 +31,7 @@ operator-courier --verbose verify --ui_validate_io deploy/olm-catalog/eunomia
 
 ## Test new CSV
 
-Test what the operator would look like in OperatorHub, by going to this [site](https://operatorhub.io/preview) and paste the csv/
+Test what the operator would look like in OperatorHub, by going to this [site](https://operatorhub.io/preview) and pasting content of the newly-generated csv file
 
 Test the operator deployment process from OperatorHub
 
