@@ -42,7 +42,7 @@ func GetPod(namespace, namePrefix, containsImage string, kubeclient kubernetes.I
 	for _, pod := range pods.Items {
 		if strings.HasPrefix(pod.Name, namePrefix) {
 			for _, c := range pod.Spec.Containers {
-				fmt.Printf("Found pod %s\n", c.Image)
+				fmt.Printf("Found pod %s %q\n", c.Image, pod.Name)
 				if strings.Contains(c.Image, containsImage) {
 					return &pod, nil
 				}
@@ -74,7 +74,7 @@ func WaitForPod(t *testing.T, f *framework.Framework, namespace, name string, re
 	if err != nil {
 		return err
 	}
-	t.Logf("pod available\n")
+	t.Logf("pod %s in namespace %s is available", name, namespace)
 	return nil
 }
 
@@ -97,6 +97,16 @@ func WaitForPodWithImage(t *testing.T, f *framework.Framework, namespace, name, 
 		}
 	})
 	if err != nil {
+		pods := []string{}
+		podsList, _ := f.KubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+		for _, p := range podsList.Items {
+			images := []string{}
+			for _, c := range p.Spec.Containers {
+				images = append(images, c.Image)
+			}
+			pods = append(pods, fmt.Sprintf(`"%s" (%s)`, p.Name, strings.Join(images, " ")))
+		}
+		t.Logf("the following pods were found: %s", strings.Join(pods, ", "))
 		return err
 	}
 	t.Logf("pod %s in namespace %s is available", name, namespace)
