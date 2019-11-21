@@ -95,5 +95,5 @@ func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.
 		return err
 	}
 
-	return WaitForPod(t, f, ctx, namespace, "helloworld", retryInterval, timeout)
+	return WaitForPod(t, f, namespace, "helloworld", retryInterval, timeout)
 }

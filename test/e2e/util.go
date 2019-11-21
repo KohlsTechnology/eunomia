@@ -53,7 +53,7 @@ func GetPod(namespace, namePrefix, containsImage string, kubeclient kubernetes.I
 }
 
 // WaitForPod retrieves a specific pod with a known name and namespace and waits for it to be running and available
-func WaitForPod(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, namespace, name string, retryInterval time.Duration, timeout time.Duration) error {
+func WaitForPod(t *testing.T, f *framework.Framework, namespace, name string, retryInterval, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		// Check if the CRD has been created
 		pod := &v1.Pod{}
@@ -79,7 +79,7 @@ func WaitForPod(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, na
 }
 
 // WaitForPodWithImage retrieves a pod using GetPod and waits for it to be running and available
-func WaitForPodWithImage(t *testing.T, f *framework.Framework, ctx *framework.TestCtx, namespace, name string, image string, retryInterval time.Duration, timeout time.Duration) error {
+func WaitForPodWithImage(t *testing.T, f *framework.Framework, namespace, name, image string, retryInterval, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		// Check if the CRD has been created
 		pod, err := GetPod(namespace, name, image, f.KubeClient)

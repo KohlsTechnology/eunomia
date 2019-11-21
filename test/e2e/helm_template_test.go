@@ -76,5 +76,5 @@ func helmTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		return err
 	}
 
-	return WaitForPodWithImage(t, f, ctx, namespace, "hello-world-helm", "hello-app:1.0", retryInterval, timeout)
+	return WaitForPodWithImage(t, f, namespace, "hello-world-helm", "hello-app:1.0", retryInterval, timeout)
 }

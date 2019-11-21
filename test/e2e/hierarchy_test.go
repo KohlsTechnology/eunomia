@@ -75,5 +75,5 @@ func hierarchyTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.Te
 		return err
 	}
 
-	return WaitForPodWithImage(t, f, ctx, namespace, "hello-world-hierarchy", "hello-app:1.0", retryInterval, timeout)
+	return WaitForPodWithImage(t, f, namespace, "hello-world-hierarchy", "hello-app:1.0", retryInterval, timeout)
 }
