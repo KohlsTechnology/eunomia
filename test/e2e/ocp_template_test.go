@@ -68,12 +68,12 @@ func disabledOCPTemplate(t *testing.T) {
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/configs/simple/templates",
+				ContextDir: "test/e2e/testdata/simple/templates",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/configs/simple/parameters",
+				ContextDir: "test/e2e/testdata/simple/parameters",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
 				{Type: "Change"},

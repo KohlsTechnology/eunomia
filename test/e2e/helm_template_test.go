@@ -48,12 +48,12 @@ func TestHelmTemplate(t *testing.T) {
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/configs/helm/templates",
+				ContextDir: "test/e2e/testdata/helm/templates",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/configs/helm/parameters",
+				ContextDir: "test/e2e/testdata/helm/parameters",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
 				{Type: "Change"},
