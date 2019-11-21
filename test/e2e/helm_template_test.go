@@ -5,19 +5,12 @@ import (
 	"fmt"
 	"os"
 	"testing"
-	"time"
 
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	test "github.com/KohlsTechnology/eunomia/test"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-)
 
-var (
-	retryInterval        = time.Second * 5
-	timeout              = time.Second * 60
-	cleanupRetryInterval = time.Second * 1
-	cleanupTimeout       = time.Second * 5
 )
 
 func TestHelmTemplate(t *testing.T) {
