@@ -112,3 +112,27 @@ func WaitForPodWithImage(t *testing.T, f *framework.Framework, namespace, name, 
 	t.Logf("pod %s in namespace %s is available", name, namespace)
 	return nil
 }
+
+// WaitForPodAbsence waits until a pod with specified name (including namespace) and image is not found, or is Terminated.
+func WaitForPodAbsence(t *testing.T, f *framework.Framework, namespace, name, image string, retryInterval, timeout time.Duration) error {
+	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		// Check that there's *no* pod with specified name
+		pod, err := GetPod(namespace, name, image, f.KubeClient)
+		switch {
+		case apierrors.IsNotFound(err):
+			return true, nil
+		case err != nil:
+			return false, err
+		case pod == nil || pod.Status.Phase == "Terminated":
+			return true, nil
+		default:
+			t.Logf("Waiting for termination of %s pod [status: %s]", name, pod.Status.Phase)
+			return false, nil
+		}
+	})
+	if err != nil {
+		return err
+	}
+	t.Logf("pod %s in namespace %s is absent", name, namespace)
+	return nil
+}
