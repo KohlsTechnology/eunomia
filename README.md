@@ -237,7 +237,7 @@ This is the service account used by the job pod that will process the resources.
 
 This field specifies how resources should be handled, once the templates are processed. The following modes are currently supported:
 
-1. `CreateOrMerge`, which is roughly equivalent to `kubectl apply`.
+1. `CreateOrMerge`, which is roughly equivalent to `kubectl apply`. Additionally, auto-detection of resources removed from git is performed, and they're deleted from the cluster. This is done by marking all the resources with a custom label, and removing resources for which the label was not touched by `kubectl apply`.
 2. `CreateOrUpdate`, which will overwrite any existing configuration.
 3. `Patch`. Patch requires objects to already exists and will patch them. It's useful when customizing objects that are provided through other means.
 4. `None`. In some cases there may be template processors or automation frameworks where the processing of templates and handling of generated resources are a single step. In that case, Eunomia can be configured to skip the built-in resource handling step.
