@@ -111,15 +111,18 @@ helm template deploy/helm/eunomia-operator/ --set eunomia.openshift.route.enable
 For testing and CI purposes, we manage several set of tests. These tests can be run locally by following the below instructions. All test scripts assume that you are already logged into your minikube cluster.
 
 ### Running Unit Tests
-
 ```shell
-./scripts/unit-tests.sh
+make test-unit
 ```
 
 ### Running End-to-End Tests
-
 ```shell
 # Optional: Set the environment variable $EUNOMIA_URI to point to a specific git url for testing
 # Optional: Set the environment variable $EUNOMIA_REF to point to a specific git reference for testing
-./scripts/e2e-test.sh
+make test-e2e
+```
+
+### Running All Tests
+```shell
+make test
 ```
