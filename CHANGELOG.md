@@ -1,3 +1,5 @@
+## v0.0.5 (Unreleased)
+
 ## v0.0.4 (November 21, 2019)
 BUG FIXES:
 * Fix proxy support in base template processor [GH-155](https://github.com/KohlsTechnology/eunomia/pull/155)
