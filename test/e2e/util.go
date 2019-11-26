@@ -17,8 +17,10 @@ limitations under the License.
 package e2e
 
 import (
+	"bytes"
 	goctx "context"
 	"fmt"
+	"io"
 	"strings"
 	"testing"
 	"time"
@@ -135,4 +137,44 @@ func WaitForPodAbsence(t *testing.T, f *framework.Framework, namespace, name, im
 	}
 	t.Logf("pod %s in namespace %s is absent", name, namespace)
 	return nil
+}
+
+// DumpJobsLogsOnError checks if t is marked as failed, and if yes, dumps the logs of all pods in the specified namespace.
+func DumpJobsLogsOnError(t *testing.T, f *framework.Framework, namespace string) {
+	if !t.Failed() {
+		return
+	}
+	pods := f.KubeClient.CoreV1().Pods(namespace)
+	podsList, err := pods.List(metav1.ListOptions{})
+	if err != nil {
+		t.Logf("failed to list pods in namespace %s: %s", namespace, err)
+		return
+	}
+	for _, p := range podsList.Items {
+		match := false
+		for _, c := range p.Spec.Containers {
+			if strings.HasPrefix(c.Image, "quay.io/kohlstechnology/eunomia-") {
+				match = true
+				break
+			}
+		}
+		if !match {
+			continue
+		}
+		// Retrieve pod's logs
+		req := pods.GetLogs(p.Name, &v1.PodLogOptions{Timestamps: true})
+		logs, err := req.Stream()
+		if err != nil {
+			t.Logf("failed to retrieve logs for pod %s: %s", p.Name, err)
+			continue
+		}
+		buf := &bytes.Buffer{}
+		_, err = io.Copy(buf, logs)
+		logs.Close()
+		if err != nil {
+			t.Logf("failed to retrieve logs for pod %s: %s", p.Name, err)
+			continue
+		}
+		t.Logf("================ POD LOGS FOR %s ================\n%s\n\n", p.Name, buf.String())
+	}
 }

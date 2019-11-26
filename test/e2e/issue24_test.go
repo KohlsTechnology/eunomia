@@ -20,6 +20,7 @@ func TestIssue24_RemovedResourceGetsDeleted(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get namespace: %v", err)
 	}
+	defer DumpJobsLogsOnError(t, framework.Global, namespace)
 	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
 	if err != nil {
 		t.Fatal(err)
