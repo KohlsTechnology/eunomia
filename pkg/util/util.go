@@ -41,11 +41,11 @@ type JobMergeData struct {
 	Action string `json:"action,omitempty"`
 }
 
-// InitializeTemplates initializes the temolates needed by this controller, it must be called at controller boot time
-func InitializeTemplates(jobTempateFileName string, cronJobTemplateFilename string) error {
-	text, err := ioutil.ReadFile(jobTempateFileName)
+// InitializeTemplates initializes the templates needed by this controller, it must be called at controller boot time
+func InitializeTemplates(jobTemplateFileName string, cronJobTemplateFilename string) error {
+	text, err := ioutil.ReadFile(jobTemplateFileName)
 	if err != nil {
-		log.Error(err, "Error reading job template file", "filename", jobTempateFileName)
+		log.Error(err, "Error reading job template file", "filename", jobTemplateFileName)
 		return err
 	}
 	jobTemplate = template.New("Job").Funcs(template.FuncMap{
