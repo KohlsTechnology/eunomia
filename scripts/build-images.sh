@@ -31,6 +31,7 @@ PUSH_IMAGES=${2:+true}
 build_image() {
   local context_dir=$1
   local image_url=${REPOSITORY}/$2
+  local dockerfile_path=${3:-"${context_dir}/Dockerfile"}
   local push=${PUSH_IMAGES:-false}
 
   if [ -f "${context_dir}/Dockerfile.in" ]; then
@@ -41,7 +42,7 @@ build_image() {
   fi
 
   # Make sure "dev" docker tag always points to the most recently changed commit
-  docker build "${context_dir}" -t "${image_url}:dev"
+  docker build "${context_dir}" -t "${image_url}:dev" -f "${dockerfile_path}"
   if $push; then
       docker push "${image_url}:dev"
   fi
@@ -66,7 +67,7 @@ build_image() {
 }
 
 # building and pushing the operator images
-build_image build/ eunomia-operator
+build_image . eunomia-operator build/Dockerfile
 
 # building and pushing base template processor images
 build_image template-processors/base/ eunomia-base
