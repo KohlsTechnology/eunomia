@@ -32,6 +32,8 @@ import (
 var jobTemplate *template.Template
 var cronJobTemplate *template.Template
 var log = logf.Log.WithName("util")
+var defaultJobTemplateFileName string = "/default-templates/job.yaml"
+var defaultCronJobTemplateFileName string = "/default-templates/cronjob.yaml"
 
 // JobMergeData is the structs that will be used to merge with the job template
 type JobMergeData struct {
@@ -42,11 +44,15 @@ type JobMergeData struct {
 }
 
 // InitializeTemplates initializes the templates needed by this controller, it must be called at controller boot time
-func InitializeTemplates(jobTemplateFileName string, cronJobTemplateFilename string) error {
+func InitializeTemplates(jobTemplateFileName string, cronJobTemplateFileName string) error {
 	text, err := ioutil.ReadFile(jobTemplateFileName)
 	if err != nil {
-		log.Error(err, "Error reading job template file", "filename", jobTemplateFileName)
-		return err
+		log.Info("Error reading job template file, using default one.", "filename", jobTemplateFileName)
+		text, err = ioutil.ReadFile(defaultJobTemplateFileName)
+		if err != nil {
+			log.Error(err, "Error reading default job template file", "filename", defaultJobTemplateFileName)
+			return err
+		}
 	}
 	jobTemplate = template.New("Job").Funcs(template.FuncMap{
 		"getID": func() string {
@@ -60,10 +66,14 @@ func InitializeTemplates(jobTemplateFileName string, cronJobTemplateFilename str
 		return err
 	}
 
-	text, err = ioutil.ReadFile(cronJobTemplateFilename)
+	text, err = ioutil.ReadFile(cronJobTemplateFileName)
 	if err != nil {
-		log.Error(err, "Error reading job template file", "filename", cronJobTemplateFilename)
-		return err
+		log.Info("Error reading job template file, using default one.", "filename", cronJobTemplateFileName)
+		text, err = ioutil.ReadFile(defaultCronJobTemplateFileName)
+		if err != nil {
+			log.Error(err, "Error reading default job template file", "filename", defaultCronJobTemplateFileName)
+			return err
+		}
 	}
 	cronJobTemplate = template.New("Job").Funcs(template.FuncMap{
 		"getCron": func(config v1alpha1.GitOpsConfig) string {

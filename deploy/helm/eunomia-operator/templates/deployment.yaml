@@ -37,17 +37,10 @@ spec:
               value: "eunomia-operator"
           resources:
             {{- toYaml .resources | nindent 12 }}
-          volumeMounts:
-          - name: template-volume
-            mountPath: /templates
       {{- with .nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}
       {{- end }}
-      volumes:
-        - name: template-volume
-          configMap:
-            name: job-templates
     {{- with .affinity }}
       affinity:
         {{- toYaml . | nindent 8 }}
