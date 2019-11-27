@@ -19,4 +19,4 @@ ENV OPERATOR=/usr/local/bin/eunomia-operator
 # install operator binary
 COPY _output/bin/eunomia ${OPERATOR}
 
-ENTRYPOINT ["/usr/local/bin/entrypoint"]
+ENTRYPOINT ["/usr/local/bin/eunomia-operator"]
