@@ -20,13 +20,7 @@ spec:
         - name: eunomia-operator
           image: "{{ .image.repository }}/{{ .image.name }}:{{ .image.tag }}"
           imagePullPolicy: {{ .image.pullPolicy }}
-          command:
-          - eunomia-operator
           env:
-            - name: JOB_TEMPLATE
-              value: /templates/job.yaml
-            - name: CRONJOB_TEMPLATE
-              value: /templates/cronjob.yaml
             - name: WATCH_NAMESPACE
               value: ""
             - name: POD_NAME

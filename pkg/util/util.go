@@ -32,8 +32,6 @@ import (
 var jobTemplate *template.Template
 var cronJobTemplate *template.Template
 var log = logf.Log.WithName("util")
-var defaultJobTemplateFileName string = "/default-templates/job.yaml"
-var defaultCronJobTemplateFileName string = "/default-templates/cronjob.yaml"
 
 // JobMergeData is the structs that will be used to merge with the job template
 type JobMergeData struct {
@@ -47,12 +45,8 @@ type JobMergeData struct {
 func InitializeTemplates(jobTemplateFileName string, cronJobTemplateFileName string) error {
 	text, err := ioutil.ReadFile(jobTemplateFileName)
 	if err != nil {
-		log.Info("Error reading job template file, using default one.", "filename", jobTemplateFileName)
-		text, err = ioutil.ReadFile(defaultJobTemplateFileName)
-		if err != nil {
-			log.Error(err, "Error reading default job template file", "filename", defaultJobTemplateFileName)
-			return err
-		}
+		log.Error(err, "Error reading job template file", "filename", jobTemplateFileName)
+		return err
 	}
 	jobTemplate = template.New("Job").Funcs(template.FuncMap{
 		"getID": func() string {
@@ -68,12 +62,8 @@ func InitializeTemplates(jobTemplateFileName string, cronJobTemplateFileName str
 
 	text, err = ioutil.ReadFile(cronJobTemplateFileName)
 	if err != nil {
-		log.Info("Error reading job template file, using default one.", "filename", cronJobTemplateFileName)
-		text, err = ioutil.ReadFile(defaultCronJobTemplateFileName)
-		if err != nil {
-			log.Error(err, "Error reading default job template file", "filename", defaultCronJobTemplateFileName)
-			return err
-		}
+		log.Error(err, "Error reading job template file", "filename", cronJobTemplateFileName)
+		return err
 	}
 	cronJobTemplate = template.New("Job").Funcs(template.FuncMap{
 		"getCron": func(config v1alpha1.GitOpsConfig) string {

@@ -16,8 +16,8 @@ FROM registry.access.redhat.com/ubi8/ubi:latest
 
 ENV OPERATOR=/usr/local/bin/eunomia-operator
 
-# include template files as default ones
-COPY deploy/helm/eunomia-operator/job-templates/* /default-templates/
+# include default job-templates
+COPY build/job-templates/* /default-templates/
 
 # install operator binary
 COPY _output/bin/eunomia ${OPERATOR}
