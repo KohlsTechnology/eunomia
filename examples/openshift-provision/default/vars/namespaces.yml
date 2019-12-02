@@ -1,0 +1,16 @@
+---
+eunomia_provisioned:
+  name: eunomia-provisioned
+  display_name: Eunomia example namespace
+  description: Namespace provisioned as an example of the openshift-provision template processor
+  labels:
+    example: labels
+  resources:
+  - Deployment/hello-world.yml.j2
+  - ConfigMap/my-config-map.yml
+  service_accounts:
+  - cicd
+  role_bindings:
+  - role: edit
+    users:
+    - system:serviceaccount:eunomia-provisioned:cicd

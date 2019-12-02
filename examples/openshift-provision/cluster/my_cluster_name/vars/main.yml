@@ -1,0 +1,6 @@
+---
+hierarchy:
+- env: sandbox
+- cluster: my_cluster_name
+
+hello_world_replica_count: 2

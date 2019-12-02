@@ -1,0 +1,14 @@
+---
+projects:
+# You can define namespaces/projects in other var files for better organization.
+# In this case, `eunomia_provisioned` is defined in `default/vars/namespaces.yml`.
+- "{{ eunomia_provisioned }}"
+
+# You can also define the namespace/project directly within the `base.yml`.
+- name: eunomia-secondary
+  resources:
+  - ConfigMap/my-config-map.yml
+  role_bindings:
+  - role: edit
+    users:
+    - system:serviceaccount:eunomia-provisioned:cicd
