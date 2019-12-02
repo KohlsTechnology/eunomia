@@ -87,13 +87,13 @@ func main() {
 	// initialize the templates
 	jt, found := os.LookupEnv("JOB_TEMPLATE")
 	if !found {
-		log.Info("JOB_TEMPLATE not set. Using default template.")
-		jt = "/default-templates/job.yaml"
+		log.Info("JOB_TEMPLATE not set. Using default job template.")
+		jt = "/default-job-templates/job.yaml"
 	}
 	cjt, found := os.LookupEnv("CRONJOB_TEMPLATE")
 	if !found {
-		log.Info("CRONJOB_TEMPLATE not set. Using default template.")
-		cjt = "/default-templates/cronjob.yaml"
+		log.Info("CRONJOB_TEMPLATE not set. Using default job template.")
+		cjt = "/default-job-templates/cronjob.yaml"
 	}
 	util.InitializeTemplates(jt, cjt)
 	log.Info("Templates initialized correctly")

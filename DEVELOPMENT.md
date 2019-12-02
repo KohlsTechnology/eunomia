@@ -67,11 +67,10 @@ See https://golang.org/doc/install to install/setup your Go Programming environm
 
 ```shell
 export GO111MODULE=on
-go mod vendor
-GOOS=linux operator-sdk build eunomia-operator
+GOOS=linux make
 ```
 
-From here you could manually push the image to a registry, or run the image locally (out of scope for this doc).
+From here you could build the eunomia-operator Docker image and manually push it to a registry, or run it locally (out of scope for this doc).
 
 ### Building the image and pushing to a remote registry
 
