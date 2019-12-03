@@ -24,6 +24,16 @@ all: build
 clean:
 	rm -rf build/_output
 
+generate:
+	docker build ./scripts -f ./scripts/operator-sdk.docker -t 'operator-sdk:old'
+	GO111MODULE=on go mod vendor
+	docker run \
+		-u "$(shell id -u)" \
+		-v "$(shell go env GOCACHE):/gocache" \
+		-v "$(PWD):/gopath/src/github.com/KohlsTechnology/eunomia" \
+		-v "$(shell go env GOPATH | sed 's/:.*//' )/pkg:/gopath/pkg" \
+		operator-sdk:old
+
 # Build binary
 .PHONY: build
 build:

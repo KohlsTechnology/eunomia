@@ -35,7 +35,7 @@ type GitOpsTrigger struct {
 // +k8s:openapi-gen=true
 type GitOpsConfigSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Important: Run "make generate" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// TemplateSource is the location of the templated resources
@@ -60,7 +60,7 @@ type GitOpsConfigSpec struct {
 // +k8s:openapi-gen=true
 type GitOpsConfigStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Important: Run "make generate" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 	State            string       `json:"state,omitempty"`
 	StartTime        *metav1.Time `json:"startTime,omitempty"`
