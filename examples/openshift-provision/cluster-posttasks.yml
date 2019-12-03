@@ -1,0 +1,4 @@
+---
+- name: Run Posttasks
+  debug:
+    msg: "Hello from posttasks!"

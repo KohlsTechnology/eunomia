@@ -1,0 +1,4 @@
+---
+- name: Run Pretasks
+  debug:
+    msg: "Hello from pretasks!"
