@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: now-only
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: now-only
+  template:
+    metadata:
+      labels:
+        name: now-only
+    spec:
+      containers:
+        - name: now-only
+          image: gcr.io/google-samples/hello-app:2.0
+          imagePullPolicy: IfNotPresent
+
