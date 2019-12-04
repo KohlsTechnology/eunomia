@@ -192,6 +192,15 @@ You can enable one or multiple triggers.
 |`Periodic` | Periodically apply the configuration. This can be used to either schedule changes for a specific time, use it for drift management to revert any changes, or as a safeguard in case webhooks were missed. It uses a cron-style expression.
 |`Webhook` | This triggers when something on git changes. You have to configure the webhook yourself.
 
+### GitHub webhook configuration
+
+To set up GitHub webhook follow this [GitHub documentation](https://developer.github.com/webhooks/creating/). 
+Create route on port 8080 to eunomia-service and use this route as GitHub webhook `Payload URL`. 
+
+Content type needs to be set to `application/json`.
+
+Choose `Just the push event` to trigger webhook.
+
 ## Template Engine
 
 When it's time to apply a configuration, the GitOps controller runs a job pod. The image of the job pod can be specified in the `templateProcessorImage` field.
