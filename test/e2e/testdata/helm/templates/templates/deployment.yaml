@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Values.appname }}
+  namespace: {{ .Values.namespace }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+      name: {{ .Values.appname }}
+  template:
+    metadata:
+      labels:
+        name: {{ .Values.appname }}
+        version: "{{ .Values.imageTag }}"
+    spec:
+      containers:
+        - name: {{ .Values.appname }}
+          image: "{{ .Values.imageRegistry }}/{{ .Values.imageName }}:{{ .Values.imageTag }}"
+          imagePullPolicy: {{ .Values.imagePullPolicy }}
+          env:
+            - name: EXAMPLE_SETTING_1
+              value: one
+            - name: EXAMPLE_SETTING_2
+              value: two
+            - name: EXAMPLE_SETTING_3
+              value: three

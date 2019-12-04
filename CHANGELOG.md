@@ -1,15 +1,16 @@
-## v0.0.4 (Unreleased)
+## v0.0.5 (Unreleased)
+
+## v0.0.4 (November 21, 2019)
 BUG FIXES:
-*
+* Fix proxy support in base template processor [GH-155](https://github.com/KohlsTechnology/eunomia/pull/155)
+* Improve error handling and logging in base template processor [GH-151](https://github.com/KohlsTechnology/eunomia/pull/151)
 
 FEATURES:
-*
-
-IMPROVEMENTS:
-*
+* Support Ansible htpasswd module in applier template processor [GH-159](https://github.com/KohlsTechnology/eunomia/pull/159)
+* Initial support for parameters variable hierarchy [GH-156](https://github.com/KohlsTechnology/eunomia/pull/156)
 
 CHANGES:
-*
+* Document Prometheus metrics support [GH-150](https://github.com/KohlsTechnology/eunomia/pull/150)
 
 ## v0.0.3 (November 7, 2019)
 BUG FIXES:

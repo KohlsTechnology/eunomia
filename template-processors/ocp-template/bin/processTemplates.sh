@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o nounset
-set -o errexit
+set -euxo pipefail
 
 ## we assume in $CLONED_TEMPLATE_GIT_DIR there is a template called template.yaml
 ## we assume that in $CLONED_PARAMETER_GIT_DIR there is a parameter file called parameters.ini

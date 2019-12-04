@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world-issue24
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: hello-world-issue24
+  template:
+    metadata:
+      labels:
+        name: hello-world-issue24
+    spec:
+      containers:
+        - name: hello-world
+          image: gcr.io/google-samples/hello-app:1.0
+          imagePullPolicy: IfNotPresent
+

@@ -25,6 +25,15 @@ export OPERATOR_NAME=eunomia-operator
 export TEST_NAMESPACE=test-eunomia-operator
 export GO111MODULE=on
 
+# If we're called as part of CI build on a PR, make sure we test the resources
+# (templates etc.) from the PR, instead of the master branch of the main repo
+if [ "${TRAVIS_PULL_REQUEST_BRANCH}" ]; then
+  export EUNOMIA_URI="https://github.com/${TRAVIS_PULL_REQUEST_SLUG}"
+  export EUNOMIA_REF="${TRAVIS_PULL_REQUEST_BRANCH}"
+fi
+echo "EUNOMIA_URI=${EUNOMIA_URI:-}"
+echo "EUNOMIA_REF=${EUNOMIA_REF:-}"
+
 # Ensure minikube is running
 #minikube start
 

@@ -14,15 +14,14 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o nounset
-set -o errexit
+set -euxo pipefail
 
 ## we assume in $CLONED_TEMPLATE_GIT_DIR there is a helm chart
 ## the helm chart may need updating
 
 echo "Initializing helm"
 helm init --client-only
-helm repo update $CLONED_TEMPLATE_GIT_DIR
+helm repo update "${CLONED_TEMPLATE_GIT_DIR}"
 
 echo "Generating manifest files"
-helm template -f $CLONED_PARAMETER_GIT_DIR/eunomia_values_processed.yaml --output-dir $MANIFEST_DIR --namespace $NAMESPACE $CLONED_TEMPLATE_GIT_DIR
+helm template -f /tmp/eunomia_values_processed.yaml --output-dir "${MANIFEST_DIR}" --namespace "${NAMESPACE}" "${CLONED_TEMPLATE_GIT_DIR}"

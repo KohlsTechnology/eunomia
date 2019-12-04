@@ -20,31 +20,36 @@ import (
 	goctx "context"
 	"testing"
 
-	"github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-
-	test "github.com/KohlsTechnology/eunomia/test"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	"github.com/stretchr/testify/assert"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
+
+	"github.com/KohlsTechnology/eunomia/pkg/apis"
+	"github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 )
 
 func TestNone(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
-	test.AddToFrameworkSchemeForTests(t, ctx)
-	simpleTestDeploy(t, framework.Global, ctx)
-}
 
-func noneTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) {
 	namespace, err := ctx.GetNamespace()
-	assert.NoError(t, err)
+	if err != nil {
+		t.Fatalf("could not get namespace: %v", err)
+	}
+	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Check if the CRD has been created
-	crd := &gitopsv1alpha1.GitOpsConfig{}
-	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "gitops-simple", Namespace: namespace}, crd)
-	assert.Error(t, err)
+	err = framework.Global.Client.Get(
+		goctx.TODO(),
+		types.NamespacedName{Name: "gitops-simple", Namespace: namespace},
+		&gitopsv1alpha1.GitOpsConfig{})
+	if err == nil {
+		t.Error("expected error, got nil")
+	}
 
 	gitops := &v1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
@@ -67,9 +72,7 @@ func noneTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 				ContextDir: "/",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
-				{
-					Type: "Change",
-				},
+				{Type: "Change"},
 			},
 			ResourceDeletionMode: "None",
 			ResourceHandlingMode: "None",
@@ -77,11 +80,20 @@ func noneTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx
 		},
 	}
 
-	err = f.Client.Create(goctx.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
-	assert.NoError(t, err)
+	err = framework.Global.Client.Create(
+		goctx.TODO(),
+		gitops,
+		&framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	// Check if the CRD has been created
-	crd = &gitopsv1alpha1.GitOpsConfig{}
-	err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: "gitops-none", Namespace: namespace}, crd)
-	assert.NoError(t, err)
+	err = framework.Global.Client.Get(
+		goctx.TODO(),
+		types.NamespacedName{Name: "gitops-none", Namespace: namespace},
+		&gitopsv1alpha1.GitOpsConfig{})
+	if err != nil {
+		t.Error(err)
+	}
 }

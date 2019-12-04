@@ -5,7 +5,7 @@ ENV USER_UID=1001 \
     kubectl=kubectl \
     KUBECTL_VERSION="v1.11.10" \
     YQ_VERSION="2.7.2" \
-    GOLANG_YQ_VERSION="2.4.0" \
+    GOLANG_YQ_VERSION="2.4.1" \
     JQ_VERSION="1.6"
 
 COPY bin /usr/local/bin

@@ -28,6 +28,13 @@ rules:
   - deployments
   verbs: 
   - "*"
+# In Kubernetes <1.16, "deployments" also require API group "extensions" (see: https://stackoverflow.com/a/57854939)
+- apiGroups:
+  - "extensions"
+  resources:
+  - deployments
+  verbs:
+  - "*"
 # Metrics  
 - apiGroups:
   - monitoring.coreos.com

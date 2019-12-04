@@ -84,3 +84,5 @@ build_image template-processors/applier/ eunomia-applier
 # building and pushing jinja template processor images
 build_image template-processors/jinja/ eunomia-jinja
 
+# building and pushing openshift-provision template processor image
+build_image template-processors/openshift-provision/ eunomia-openshift-provision

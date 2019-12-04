@@ -18,6 +18,8 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: metadata.namespace            
+            - name: GITOPSCONFIG_NAME
+              value: {{ .Config.ObjectMeta.Name }}
             - name: TEMPLATE_GIT_URI
               value: {{ .Config.Spec.TemplateSource.URI }}
             - name: TEMPLATE_GIT_REF
