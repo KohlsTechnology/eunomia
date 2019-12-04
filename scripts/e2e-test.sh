@@ -27,7 +27,7 @@ export GO111MODULE=on
 
 # If we're called as part of CI build on a PR, make sure we test the resources
 # (templates etc.) from the PR, instead of the master branch of the main repo
-if [ "${TRAVIS_PULL_REQUEST_BRANCH}" ]; then
+if [ "${TRAVIS_PULL_REQUEST_BRANCH:-}" ]; then
   export EUNOMIA_URI="https://github.com/${TRAVIS_PULL_REQUEST_SLUG}"
   export EUNOMIA_REF="${TRAVIS_PULL_REQUEST_BRANCH}"
 fi
