@@ -7,6 +7,7 @@ import (
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
@@ -85,6 +86,10 @@ func TestIssue24_RemovedResourceGetsDeleted(t *testing.T) {
 
 	// Step 2: change the CR to one with missing 'now-only' resource, then check that the pod gets deleted
 
+	err = framework.Global.Client.Get(context.TODO(), types.NamespacedName{namespace, gitops.ObjectMeta.Name}, gitops)
+	if err != nil {
+		t.Fatal(err)
+	}
 	gitops.Spec.TemplateSource.ContextDir = "test/e2e/testdata/issue24/template2"
 	err = framework.Global.Client.Update(context.Background(), gitops)
 	if err != nil {
