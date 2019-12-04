@@ -182,17 +182,15 @@ func (job *jobmonitor) watchjob(instanceName, instanceNamespace string) {
 
 //Checking the Job to get the actual state of the job.
 func (job *jobmonitor) checkResult() (jobState gitopsv1alpha1.GitOpsConfigStatus, err error) {
-	var jobOutput batchv1.Job
-	err = job.client.Get(context.TODO(),
-		types.NamespacedName{
-			Name:      job.Name,
-			Namespace: job.Namespace,
-		},
-		&jobOutput)
-
+	jobOutput, err := job.getjobmonitor()
 	if err != nil {
-		log.Error(err, "Error in GetJob for CheckResult")
-		return jobState, err
+		time.Sleep(time.Second * 10)
+		log.Info("retrying the GetJob for CheckResult")
+		jobOutput, err = job.getjobmonitor()
+		if err != nil {
+			log.Error(err, "Error in GetJob for CheckResult")
+			return jobState, err
+		}
 	}
 
 	jobState.State = getJobStatus(jobOutput.Status)
@@ -203,6 +201,18 @@ func (job *jobmonitor) checkResult() (jobState gitopsv1alpha1.GitOpsConfigStatus
 	jobState.CompletionTime = jobOutput.Status.CompletionTime
 
 	return jobState, nil
+}
+
+//To get the job
+func (job *jobmonitor) getjobmonitor() (batchv1.Job, error) {
+	var jobOutput batchv1.Job
+	err := job.client.Get(context.TODO(),
+		types.NamespacedName{
+			Name:      job.Name,
+			Namespace: job.Namespace,
+		},
+		&jobOutput)
+	return jobOutput, err
 }
 
 //To get the cron job
