@@ -184,7 +184,7 @@ func (job *jobmonitor) watchjob(instanceName, instanceNamespace string) {
 func (job *jobmonitor) checkResult() (jobState gitopsv1alpha1.GitOpsConfigStatus, err error) {
 	jobOutput, err := job.getjobmonitor()
 	if err != nil {
-		time.Sleep(time.Second * 10)
+		time.Sleep(time.Second * 15)
 		log.Info("retrying the GetJob for CheckResult")
 		jobOutput, err = job.getjobmonitor()
 		if err != nil {
