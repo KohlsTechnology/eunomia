@@ -86,7 +86,7 @@ func TestIssue24_RemovedResourceGetsDeleted(t *testing.T) {
 
 	// Step 2: change the CR to one with missing 'now-only' resource, then check that the pod gets deleted
 
-	err = framework.Global.Client.Get(context.TODO(), types.NamespacedName{namespace, gitops.ObjectMeta.Name}, gitops)
+	err = framework.Global.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: gitops.ObjectMeta.Name}, gitops)
 	if err != nil {
 		t.Fatal(err)
 	}
