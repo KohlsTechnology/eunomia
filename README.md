@@ -204,7 +204,7 @@ You can enable one or multiple triggers.
 ### GitHub webhook configuration
 
 To set up GitHub webhook follow this [GitHub documentation](https://developer.github.com/webhooks/creating/). 
-Create route on port 8080 to eunomia-service and use this route as GitHub webhook `Payload URL`. 
+Create route on port 8080 to eunomia-service and use this route as GitHub webhook `Payload URL` with added webhook/ endpoint at the end.
 
 Content type needs to be set to `application/json`.
 
