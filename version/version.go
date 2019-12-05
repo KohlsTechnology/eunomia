@@ -18,5 +18,5 @@ package version
 
 var (
 	// Version to make linter happy
-	Version = "v0.0.5"
+	Version = "v0.0.6-dev"
 )

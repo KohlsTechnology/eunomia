@@ -1,3 +1,5 @@
+## v0.0.6 (Unreleased)
+
 ## v0.0.5 (December 5, 2019)
 BUG FIXES:
 * Multiple documentation fixes [GH-187](https://github.com/KohlsTechnology/eunomia/pull/187) [GH-191](https://github.com/KohlsTechnology/eunomia/pull/191) [GH-192](https://github.com/KohlsTechnology/eunomia/pull/192)
