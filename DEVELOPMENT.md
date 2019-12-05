@@ -46,8 +46,8 @@ The most efficient way to develop the operator locally is run the code on your l
 ```
 minikube start
 kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
-export JOB_TEMPLATE=./deploy/helm/eunomia-operator/job-templates/job.yaml
-export CRONJOB_TEMPLATE=./deploy/helm/eunomia-operator/job-templates/cronjob.yaml
+export JOB_TEMPLATE=./build/job-templates/job.yaml
+export CRONJOB_TEMPLATE=./build/job-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export GO111MODULE=on
@@ -67,11 +67,10 @@ See https://golang.org/doc/install to install/setup your Go Programming environm
 
 ```shell
 export GO111MODULE=on
-go mod vendor
-GOOS=linux operator-sdk build eunomia-operator
+GOOS=linux make
 ```
 
-From here you could manually push the image to a registry, or run the image locally (out of scope for this doc).
+From here you could build the eunomia-operator Docker image and manually push it to a registry, or run it locally (out of scope for this doc).
 
 ### Building the image and pushing to a remote registry
 

@@ -182,6 +182,15 @@ For certificate based authentication, create the following `.gitconfig`:
 
 and add the `mykey.rsa` file to the secret.
 
+## Job templates
+
+For Eunomia to work properly there is a need for a specific [`Job`](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/) or a [`CronJob`](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/).
+
+A [`Job default template`](./build/job-templates/job.yaml) and a [`CronJob default template`](./build/job-templates/cronjob.yaml) are built into the Dockerfile.
+
+If you want to provide your own job templates, set the env variables `JOB_TEMPLATE` and `CRONJOB_TEMPLATE`. Their values should be set to paths, where appropriate yaml files can be found.
+The files themselves have to be accessible in the pod. To achieve this, you can for instance [`add ConfigMap data to a Volume`](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#add-configmap-data-to-a-volume).
+
 ## Triggers
 
 You can enable one or multiple triggers.
