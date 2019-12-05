@@ -62,11 +62,12 @@ type GitOpsConfigStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make generate" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
+
 	State            string       `json:"state,omitempty"`
 	StartTime        *metav1.Time `json:"startTime,omitempty"`
 	CompletionTime   *metav1.Time `json:"completionTime,omitempty"`
 	Message          string       `json:"message,omitempty"`
-	LastScheduleTime *metav1.Time `json:"lastScheduledTime,omitempty"`
+	LastScheduleTime *metav1.Time `json:"lastScheduleTime,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object
