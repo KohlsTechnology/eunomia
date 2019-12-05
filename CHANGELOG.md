@@ -1,4 +1,15 @@
-## v0.0.5 (Unreleased)
+## v0.0.5 (December 5, 2019)
+BUG FIXES:
+* Multiple documentation fixes [GH-187](https://github.com/KohlsTechnology/eunomia/pull/187) [GH-191](https://github.com/KohlsTechnology/eunomia/pull/191) [GH-192](https://github.com/KohlsTechnology/eunomia/pull/192)
+
+FEATURES:
+* Delete k8s objects when removed from git repo [GH-157](https://github.com/KohlsTechnology/eunomia/pull/157)
+* Add new openshift-provision template processor [GH-147](https://github.com/KohlsTechnology/eunomia/pull/147)
+* Add initial fields to the GitOpsConfig status section [GH-163](https://github.com/KohlsTechnology/eunomia/pull/163)
+
+CHANGES:
+* Allow scheduling operator pod on all OpenShift nodes [GH-170](https://github.com/KohlsTechnology/eunomia/pull/170)
+* Default Job and CronJob templates are not ConfigMaps anymore [GH-177](https://github.com/KohlsTechnology/eunomia/pull/177)
 
 ## v0.0.4 (November 21, 2019)
 BUG FIXES:
