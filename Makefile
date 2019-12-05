@@ -53,7 +53,7 @@ test-dirty: generate
 	# TODO: also check that there are no untracked files, e.g. extra .go and .yaml ones
 
 .PHONY: test
-test: fmt lint vet test-unit test-e2e
+test: check-fmt lint vet test-unit test-e2e
 
 .PHONY: test-e2e
 test-e2e:
@@ -68,9 +68,9 @@ test-unit:
 install:
 	cat deploy/crds/*crd.yaml | kubectl apply -f-
 
-# Run gofmt against code
-.PHONY: fmt
-fmt:
+# Check if gofmt against code is clean
+.PHONY: check-fmt
+check-fmt:
 	test -z "$(shell gofmt -l . | grep -v ^vendor)"
 
 .PHONY: lint
