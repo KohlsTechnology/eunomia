@@ -45,7 +45,7 @@ fi
 # Pre-populate the Docker registry in minikube with images built from the current commit
 # See also: https://stackoverflow.com/q/42564058
 eval $(minikube docker-env)
-make e2e-test-images
+GOOS=linux make e2e-test-images
 
 helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.deployment.enabled= \
@@ -59,6 +59,7 @@ helm template deploy/helm/eunomia-operator/ \
 
 helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.image.tag=dev \
+  --set eunomia.operator.image.pullPolicy=Never \
   --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
 
 kubectl wait --for=condition=available --timeout=30s deployment/eunomia-operator -n $TEST_NAMESPACE
