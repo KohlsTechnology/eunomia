@@ -285,7 +285,7 @@ Use the below command to install Eunomia on OpenShift. This will also give you t
 
 ```shell
 # Deploy the operator
-helm template deploy/helm/eunomia-operator/ --set openshift.route.enabled=true | oc apply -f -
+helm template deploy/helm/eunomia-operator/ --set eunomia.operator.openshift.route.enabled=true | oc apply -f -
 ```
 
 ## Examples / Demos
