@@ -17,8 +17,8 @@
 set -euxo pipefail
 
 export EUNOMIA_PATH=$(cd "${0%/*}/.." ; pwd)
-export JOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/eunomia-operator/job-templates/job.yaml
-export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/eunomia-operator/job-templates/cronjob.yaml
+export JOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/job.yaml
+export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export GO111MODULE=on
