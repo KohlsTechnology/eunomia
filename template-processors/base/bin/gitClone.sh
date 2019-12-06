@@ -28,12 +28,7 @@ function pullFromTemplatesRepo {
     local no_proxy="$TEMPLATE_GIT_NO_PROXY"
   fi
   if [ "$TEMPLATE_GITCONFIG" ] && [ -d "$TEMPLATE_GITCONFIG" ]; then
-    for file in "$TEMPLATE_GITCONFIG"/*; do
-      cp -f "$file" "~/$(basename $file)"
-    done
-    for file in "$TEMPLATE_GITCONFIG"/.git*; do
-      cp -f "$file" "~/$(basename $file)"
-    done
+    cp -r "${TEMPLATE_GITCONFIG}/." "${HOME}/"
   else
     export GIT_SSL_NO_VERIFY=true
   fi
@@ -59,12 +54,7 @@ function pullFromParametersRepo {
     local no_proxy="$PARAMETER_GIT_NO_PROXY"
   fi
   if [ "$PARAMETER_GITCONFIG" ] && [ -d "$PARAMETER_GITCONFIG" ]; then
-    for file in "$PARAMETER_GITCONFIG"/*; do
-      cp -f "$file" "~/$(basename $file)"
-    done
-    for file in "$PARAMETER_GITCONFIG"/.git*; do
-      cp -f "$file" "~/$(basename $file)"
-    done
+    cp -r "${PARAMETER_GITCONFIG}/." "${HOME}/"
   else
     export GIT_SSL_NO_VERIFY=true
   fi
