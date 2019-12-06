@@ -51,7 +51,9 @@ if [ -n "${FOLDERS}" ]; then
     YAML_FILES="$(find "${DIR}" -maxdepth 1 -name \*.json -o -name \*.yaml -o -name \*.yml)"
 
     # merge the files
-    goyq merge -i -x "${VALUES_FILE}" ${YAML_FILES}
+    if [ ! -z "${YAML_FILES}" ]; then
+      goyq merge -i -x "${VALUES_FILE}" ${YAML_FILES}
+    fi
   done
 else
   echo "ERROR - no folders found for processing"

@@ -1,4 +1,6 @@
 ## v0.0.6 (Unreleased)
+BUG FIXES:
+* Allow empty hierarchy directories [GH-184](https://github.com/KohlsTechnology/eunomia/pull/184)
 
 ## v0.0.5 (December 5, 2019)
 BUG FIXES:
