@@ -48,7 +48,7 @@ if [ -n "${FOLDERS}" ]; then
     echo "Processing files in ${DIR}"
 
     # get the list of yaml files to process
-    YAML_FILES="$(find "${DIR}" -name \*.json -o -name \*.yaml -o -name \*.yml  -maxdepth 1)"
+    YAML_FILES="$(find "${DIR}" -maxdepth 1 -name \*.json -o -name \*.yaml -o -name \*.yml)"
 
     # merge the files
     goyq merge -i -x "${VALUES_FILE}" ${YAML_FILES}
