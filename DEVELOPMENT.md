@@ -70,7 +70,7 @@ export GO111MODULE=on
 GOOS=linux make
 ```
 
-From here you could build the eunomia-operator Docker image and manually push it to a registry, or run it locally (out of scope for this doc).
+From here you can build the eunomia-operator Docker image and manually push it to a registry, or run it in a local cluster (see [Using Minikube](#using-minikube) or [Using Openshift](#using-openshift)).
 
 ### Building the image and pushing to a remote registry
 
@@ -84,25 +84,54 @@ docker login $REGISTRY
 
 ## Testing
 
-### Using Minikube
+If you want to play with eunomia deployed to Minikube or Minishift, here are some preliminary instructions. They still need a lot of TLC so feel free to send in PRs.
 
-Here are some preliminary instructions. This still needs a lot of TLC. Feel free to send in PRs.
+### <a name="using-minikube"></a>Using Minikube
 
 ```shell
 # Start minikube
 minikube start
 
-# Deploy the operator
-helm template deploy/helm/eunomia-operator/ | kubectl apply -f -
+# Set env variables for docker CLI to use minikube's docker daemon
+eval $(minikube docker-env)
+
+# Build your eunomia-operator image and store it in minikube's docker registry
+GOOS=linux make
+docker build build/ --tag quay.io/kohlstechnology/eunomia-operator:dev
+
+# Deploy the operator, use your locally-built image
+helm template deploy/helm/eunomia-operator/ \
+  --set eunomia.operator.image.tag=dev \
+  --set eunomia.operator.image.pullPolicy=Never | kubectl apply -f -
 ```
 
-### Using Openshift
-
-Here are some preliminary instructions. This still needs a lot of TLC. Feel free to send in PRs.
+### <a name="using-openshift"></a>Using Openshift
 
 ```shell
-# Deploy the operator
-helm template deploy/helm/eunomia-operator/ --set eunomia.openshift.route.enabled=true | oc apply -f -
+# Start minishift
+minishift start --vm-driver virtualbox
+
+# Set env variables for docker CLI to use minishift's docker daemon
+eval $(minishift docker-env)
+
+# Build eunomia-operator image and store it in minishift's docker registry
+GOOS=linux make
+docker build build/ --tag quay.io/kohlstechnology/eunomia-operator:dev
+
+# Log in to minishift as admin
+oc login -u system:admin
+
+# Deploy the operator, use your locally-built image
+helm template deploy/helm/eunomia-operator/ \
+  --set eunomia.operator.image.tag=dev \
+  --set eunomia.operator.image.pullPolicy=Never \
+  --set eunomia.openshift.route.enabled=true | oc apply -f -
+```
+
+### After testing configure docker CLI to use local docker daemon again
+After Testing you might want to use your local docker daemon again. To do it just issue
+```
+eval "$(docker-machine env -u)"
 ```
 
 ## Run Tests
