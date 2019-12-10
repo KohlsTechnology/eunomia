@@ -6,7 +6,7 @@ Here are some basic examples for you to try out and get a feel for what Eunomia 
 
 ### Install the Operator
 
-Before you can execute any of the hello-world examples, you need to install the operator first.
+Before you can execute any of the hello-world examples, you need to install the operator first. You'll be using the latest eunomia-operator image from [this repo](https://quay.io/repository/kohlstechnology/eunomia-operator?tab=tags).
 
 ```shell
 # Deploy the operator
