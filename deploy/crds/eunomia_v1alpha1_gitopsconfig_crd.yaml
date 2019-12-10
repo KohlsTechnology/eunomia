@@ -60,11 +60,10 @@ spec:
               type: string
             resourceHandlingMode:
               description: ResourceHandlingMode represents how resource creation/update
-                should be handled. Supported values are CreateOrMerge,CreateOrUpdate,Patch,None.
+                should be handled. Supported values are CreateOrMerge,Patch,None.
                 Default is CreateOrMerge.
               enum:
               - CreateOrMerge
-              - CreateOrUpdate
               - Patch
               - None
               type: string
@@ -119,6 +118,20 @@ spec:
               type: array
           type: object
         status:
+          properties:
+            completionTime:
+              format: date-time
+              type: string
+            lastScheduleTime:
+              format: date-time
+              type: string
+            message:
+              type: string
+            startTime:
+              format: date-time
+              type: string
+            state:
+              type: string
           type: object
   version: v1alpha1
   versions:

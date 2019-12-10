@@ -35,7 +35,7 @@ type GitOpsTrigger struct {
 // +k8s:openapi-gen=true
 type GitOpsConfigSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Important: Run "make generate" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
 
 	// TemplateSource is the location of the templated resources
@@ -48,8 +48,8 @@ type GitOpsConfigSpec struct {
 	ServiceAccountRef string `json:"serviceAccountRef,omitempty"`
 	// TemplateEngine, the gitops operator config map contains the list of available template engines, the value used here must exist in that list. Identity (i.e. no resource processing) is the default
 	TemplateProcessorImage string `json:"templateProcessorImage,omitempty"`
-	// ResourceHandlingMode represents how resource creation/update should be handled. Supported values are CreateOrMerge,CreateOrUpdate,Patch,None. Default is CreateOrMerge.
-	// +kubebuilder:validation:Enum=CreateOrMerge,CreateOrUpdate,Patch,None
+	// ResourceHandlingMode represents how resource creation/update should be handled. Supported values are CreateOrMerge,Patch,None. Default is CreateOrMerge.
+	// +kubebuilder:validation:Enum=CreateOrMerge,Patch,None
 	ResourceHandlingMode string `json:"resourceHandlingMode,omitempty"`
 	// ResourceDeletionMode represents how resource deletion should be handled. Supported values are Retain,Delete,None. Default is Delete
 	// +kubebuilder:validation:Enum=Retain,Delete,None
@@ -60,13 +60,14 @@ type GitOpsConfigSpec struct {
 // +k8s:openapi-gen=true
 type GitOpsConfigStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
-	// Important: Run "operator-sdk generate k8s" to regenerate code after modifying this file
+	// Important: Run "make generate" to regenerate code after modifying this file
 	// Add custom validation using kubebuilder tags: https://book.kubebuilder.io/beyond_basics/generating_crd.html
+
 	State            string       `json:"state,omitempty"`
 	StartTime        *metav1.Time `json:"startTime,omitempty"`
 	CompletionTime   *metav1.Time `json:"completionTime,omitempty"`
 	Message          string       `json:"message,omitempty"`
-	LastScheduleTime *metav1.Time `json:"lastScheduledTime,omitempty"`
+	LastScheduleTime *metav1.Time `json:"lastScheduleTime,omitempty"`
 }
 
 // +k8s:deepcopy-gen:interfaces=k8s.io/apimachinery/pkg/runtime.Object

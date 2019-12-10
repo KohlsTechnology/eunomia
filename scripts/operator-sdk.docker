@@ -1,0 +1,17 @@
+FROM golang:1.12
+
+ENV OPERATOR_SDK_VERSION="v0.8.1"
+
+RUN curl -L https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk-${OPERATOR_SDK_VERSION}-x86_64-linux-gnu -o /usr/bin/operator-sdk && \
+    chmod +x /usr/bin/operator-sdk
+
+ENV GOPATH=/gopath \
+    GO111MODULE=on \
+    GOCACHE=/gocache
+
+VOLUME /gobase
+VOLUME /gocache
+VOLUME /gopath/src/github.com/KohlsTechnology/eunomia
+WORKDIR /gopath/src/github.com/KohlsTechnology/eunomia
+CMD echo "generating openapi..." && operator-sdk --verbose generate openapi && echo "generating k8s..." && operator-sdk --verbose generate k8s
+
