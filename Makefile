@@ -3,19 +3,18 @@
 REGISTRY ?= quay.io
 REPOSITORY ?= $(REGISTRY)/kohlstechnology
 
-BUILD_COMMIT := $(shell ./scripts/build/get-build-commit.sh)
-BUILD_TIMESTAMP := $(shell ./scripts/build/get-build-timestamp.sh)
-BUILD_HOSTNAME := $(shell ./scripts/build/get-build-hostname.sh)
+COMMIT := $(shell git rev-parse HEAD)
+BRANCH := $(shell git symbolic-ref --short -q HEAD || echo HEAD)
+DATE := $(shell date -u +%Y%m%d-%H:%M:%S)
+VERSION_PKG = github.com/KohlsTechnology/eunomia/version
+LDFLAGS := "-X ${VERSION_PKG}.Branch=${BRANCH} -X ${VERSION_PKG}.BuildDate=${DATE} \
+	-X ${VERSION_PKG}.GitSHA1=${COMMIT}"
 
 export GITHUB_PAGES_DIR ?= /tmp/helm/publish
 export GITHUB_PAGES_BRANCH ?= gh-pages
 export GITHUB_PAGES_REPO ?= KohlsTechnology/eunomia
 export HELM_CHARTS_SOURCE ?= deploy/helm/eunomia-operator
 export HELM_CHART_DEST ?= $(GITHUB_PAGES_DIR)
-
-LDFLAGS := "-X github.com/KohlsTechnology/eunomia/version.Vcs=$(BUILD_COMMIT) \
-	-X github.com/KohlsTechnology/eunomia/version.Timestamp=$(BUILD_TIMESTAMP) \
-	-X github.com/KohlsTechnology/eunomia/version.Hostname=$(BUILD_HOSTNAME)"
 
 .PHONY: all
 all: build
