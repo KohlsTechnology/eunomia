@@ -80,9 +80,11 @@ function deleteByOldLabels {
 
 function createUpdateResources {
   # NOTE: Kubernetes currently requires that first *and last* character of
-  # label values are alphanumerical - we're adding the ".owned" suffix to
-  # ensure that.
-  local owner="ns-$NAMESPACE.gitopsconfig-$GITOPSCONFIG_NAME.owned"
+  # label values are alphanumerical - we're adding the "own" prefix & suffix to
+  # ensure that. Also, Kubernetes requires it to be <=63 chars long, so we're
+  # taking a MD5 hash of actual name (MD5 hash is 33 chars long).
+  # See: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
+  local owner="own.$( echo "$NAMESPACE $GITOPSCONFIG_NAME" | md5sum | awk '{print$1}' ).own"
   local timestamp="$(date +%s)"
   case "$CREATE_MODE" in
     CreateOrMerge)
