@@ -64,7 +64,8 @@ function addLabels {
 function deleteByOldLabels {
   local owner="$1"
   local timestamp="$2"
-  local allKinds="$(kube api-resources --verbs=list -o name | paste -sd, -)"
+  # NOTE: removing componentstatus because it shows up unintended in ownedKinds: https://github.com/kubernetes/kubectl/issues/151#issuecomment-562578617
+  local allKinds="$(kube api-resources --verbs=list -o name  | egrep -iv '^componentstatus(es)?$' | paste -sd, -)"
   local ownedKinds="$(kube get "$allKinds" --ignore-not-found \
       -l "$TAG_OWNER==$owner" \
       -o custom-columns=kind:.kind \
