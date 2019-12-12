@@ -19,5 +19,6 @@ Fixes #ISSUE
 * Breaking change (fix or feature that would cause existing functionality to not work as expected)
 
 **Checklist**
-[ ] Unit tests and e2e tests updated
-[ ] Documentation updated
+
+- [ ] Unit tests and e2e tests updated
+- [ ] Documentation updated
