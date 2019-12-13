@@ -35,6 +35,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -76,7 +77,26 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	}
 
 	// Watch for changes to primary resource GitOpsConfig
-	err = c.Watch(&source.Kind{Type: &gitopsv1alpha1.GitOpsConfig{}}, &handler.EnqueueRequestForObject{})
+	err = c.Watch(
+		&source.Kind{Type: &gitopsv1alpha1.GitOpsConfig{}},
+		&handler.EnqueueRequestForObject{},
+		// TODO: once we update to sigs.k8s.io/controller-runtime >=0.2.0, use their
+		// .../pkg/predicate.GenerationChangedPredicate instead of rewriting it on our own
+		predicate.Funcs{
+			UpdateFunc: func(e event.UpdateEvent) bool {
+				if e.MetaOld == nil {
+					log.Error(nil, "Update event has no old metadata", "event", e)
+					return false
+				}
+				if e.MetaNew == nil {
+					log.Error(nil, "Update event has no new metadata", "event", e)
+					return false
+				}
+				// If there's a status update, .metadata.Generation field isn't changed - ignore such event
+				return e.MetaOld.GetGeneration() != e.MetaNew.GetGeneration()
+			},
+		},
+	)
 	if err != nil {
 		return err
 	}
