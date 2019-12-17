@@ -281,7 +281,7 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 		&result)
 
 	if err != nil {
-		log.Info("Error in GetCronJob:", err)
+		log.Error(err, "Error in GetCronJob")
 		return err
 	}
 	go scheduleStatusForCronJobs(jobmonitor{r.client, cronjob.Name, cronjob.Namespace, time.Time{}}, result.Spec.Schedule, instance.Name, instance.Namespace)
