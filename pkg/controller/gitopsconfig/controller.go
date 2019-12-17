@@ -44,11 +44,12 @@ import (
 	util "github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
-var log = logf.Log.WithName("controller_gitopsconfig")
+var log = logf.Log.WithName(controllerName)
 
 const (
 	tagInitialized string = "gitopsconfig.eunomia.kohls.io/initialized"
 	tagFinalizer   string = "gitopsconfig.eunomia.kohls.io/finalizer"
+	controllerName string = "gitopsconfig-controller"
 )
 
 // PushEvents channel on which we get the github webhook push events
@@ -73,7 +74,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
-	c, err := controller.New("gitopsconfig-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
