@@ -291,7 +291,9 @@ helm template deploy/helm/eunomia-operator/ --set eunomia.operator.openshift.rou
 
 We've created several examples for you to test out Eunomia. See [EXAMPLES](examples/README.md) for details.
 
-## Monitoring with Prometheus
+## Monitoring
+
+### Monitoring with Prometheus
 
 [Prometheus](https://prometheus.io/) is an open-source systems monitoring and alerting toolkit.
 
@@ -309,7 +311,7 @@ By default, the metrics in Operator SDK are exposed on `0.0.0.0:8383/metrics`
 
 For more information, see [Metrics in Operator SDK](https://github.com/operator-framework/operator-sdk/blob/v0.8.1/doc/user/metrics/README.md)
 
-### Usage:
+#### Usage:
 
 ```
 scrape_configs:
@@ -323,10 +325,17 @@ scrape_configs:
 ```
 You can find additional examples on their [GitHub page](https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml).
 
-### Verify metrics port:
+#### Verify metrics port:
 kubectl exec `POD-NAME` curl localhost:8383/metrics  -n `NAMESPACE`
 
 (e.g. `kubectl exec eunomia-operator-5b9b664cfc-6rdrh curl localhost:8383/metrics  -n test-eunomia-operator`)
+
+### Kubernetes Events
+
+Eunomia emits the following events in the namespace of the GitOpsConfig CR:
+
+  - JobSuccessful - when a Job applying the CR finished successfully
+  - JobFailed - when a Job applying the CR has finished with a failure (after all retries have failed)
 
 ## Development
 

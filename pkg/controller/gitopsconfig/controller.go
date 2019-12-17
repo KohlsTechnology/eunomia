@@ -111,8 +111,19 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
-	return nil
 
+	// TODO: we should somehow detect when Reconciler is stopped, and run the
+	// stop func returned by addJobWatch, to not leak resources (though if it's
+	// done only once, it's not such a big problem)
+	_, err = addJobWatch(mgr.GetConfig(), &jobCompletionEmitter{
+		client:        mgr.GetClient(),
+		eventRecorder: mgr.GetRecorder(controllerName),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 var _ reconcile.Reconciler = &Reconciler{}
