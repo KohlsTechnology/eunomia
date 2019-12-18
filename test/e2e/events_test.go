@@ -1,3 +1,19 @@
+/*
+Copyright 2019 Kohl's Department Stores, Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+	http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 package e2e
 
 import (
@@ -9,10 +25,10 @@ import (
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	eventv1beta1 "k8s.io/api/events/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/watch"
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/KohlsTechnology/eunomia/test"
 )
 
 // TestJobEvents_JobSuccess verifies that a JobSucceeded event is emitted by
@@ -43,7 +59,7 @@ func TestJobEvents_JobSuccess(t *testing.T) {
 	// Step 1: register an event monitor/watcher
 
 	events := make(chan *eventv1beta1.Event, 5)
-	closer, err := watchEvents(events, 120*time.Second, namespace, "gitops-events-hello-success")
+	closer, err := test.WatchEvents(framework.Global.KubeClient, events, namespace, "gitops-events-hello-success", 120*time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -97,7 +113,8 @@ func TestJobEvents_JobSuccess(t *testing.T) {
 	// Verify there was an event emitted mentioning that Job finished successfully
 	select {
 	case event := <-events:
-		if event.Reason != "JobSuccessful" {
+		if event.Reason != "JobSuccessful" ||
+			event.DeprecatedSource.Component != "gitopsconfig-controller" {
 			t.Errorf("got bad event: %v", event)
 		}
 	case <-time.After(10 * time.Second):
@@ -140,7 +157,7 @@ func TestJobEvents_PeriodicJobSuccess(t *testing.T) {
 	// Step 1: register an event monitor/watcher
 
 	events := make(chan *eventv1beta1.Event, 5)
-	closer, err := watchEvents(events, 180*time.Second, namespace, "gitops-events-periodic-success")
+	closer, err := test.WatchEvents(framework.Global.KubeClient, events, namespace, "gitops-events-periodic-success", 180*time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -197,7 +214,8 @@ func TestJobEvents_PeriodicJobSuccess(t *testing.T) {
 	// Verify there was an event emitted mentioning that Job finished successfully
 	select {
 	case event := <-events:
-		if event.Reason != "JobSuccessful" {
+		if event.Reason != "JobSuccessful" ||
+			event.DeprecatedSource.Component != "gitopsconfig-controller" {
 			t.Errorf("got bad event: %v", event)
 		}
 	case <-time.After(10 * time.Second):
@@ -244,7 +262,7 @@ func TestJobEvents_JobFailed(t *testing.T) {
 	// Step 1: register an event monitor/watcher
 
 	events := make(chan *eventv1beta1.Event, 5)
-	closer, err := watchEvents(events, 5*time.Minute, namespace, "gitops-events-hello-failed")
+	closer, err := test.WatchEvents(framework.Global.KubeClient, events, namespace, "gitops-events-hello-failed", 5*time.Minute)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -293,45 +311,11 @@ func TestJobEvents_JobFailed(t *testing.T) {
 	// Verify there was an event emitted mentioning that Job failed
 	select {
 	case event := <-events:
-		if event.Reason != "JobFailed" {
+		if event.Reason != "JobFailed" ||
+			event.DeprecatedSource.Component != "gitopsconfig-controller" {
 			t.Errorf("got bad event: %v", event)
 		}
 	case <-time.After(3 * time.Minute):
 		t.Errorf("timeout waiting for JobFailed event")
 	}
-}
-
-func watchEvents(events chan<- *eventv1beta1.Event, timeout time.Duration, namespace, gitops string) (closer func(), err error) {
-	timeoutSeconds := int64(timeout / time.Second)
-	watcher, err := framework.Global.KubeClient.EventsV1beta1().Events(namespace).Watch(metav1.ListOptions{
-		TimeoutSeconds: &timeoutSeconds,
-	})
-	if err != nil {
-		return nil, err
-	}
-	go func() { // based on: https://stackoverflow.com/a/54930836
-		ch := watcher.ResultChan()
-		for {
-			select {
-			case change, ok := <-ch:
-				if !ok {
-					// Channel closed, finish watching.
-					return
-				}
-				if change.Type != watch.Added {
-					continue
-				}
-				event, ok := change.Object.(*eventv1beta1.Event)
-				if !ok {
-					continue
-				}
-				if event.DeprecatedSource.Component != "gitopsconfig-controller" || event.Regarding.Name != gitops {
-					continue
-				}
-				events <- event
-			}
-		}
-	}()
-	closer = func() { watcher.Stop() }
-	return closer, nil
 }
