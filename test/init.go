@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package unittest
+package test
 
 import (
 	"flag"
@@ -27,7 +27,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-// Initialize initialize the test suite
+// Initialize infrastructure for eunomia unit tests
 func Initialize() {
 
 	logf.Log.Info("Initializing Test")
