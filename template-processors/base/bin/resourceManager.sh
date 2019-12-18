@@ -33,15 +33,6 @@ function kube {
     "$@"
 }
 
-function deleteResources {
-  #first we need to delete the GitOpsConfig resources whose finalizer might not get called otherwise
-  for file in $(find "$MANIFEST_DIR" -iregex '.*\.yaml'); do
-    cat "$file" | yq 'select(.kind == "GitOpsConfig")' | kube delete -f - --wait=true
-  done
-  kube delete -R -f "$MANIFEST_DIR"
-  # TODO: deleteByOldLabels deleteAll
-}
-
 # addLabels OWNER TIMESTAMP - patches the YAML&JSON files in $MANIFEST_DIR,
 # adding labels tracking the OWNER and TIMESTAMP. The labels are intended to be
 # used later in function deleteByOldLabels.
@@ -59,11 +50,11 @@ function addLabels {
   done
 }
 
-# deleteByOldLabels OWNER TIMESTAMP - deletes all kubernetes resources which have
-# the OWNER label as provided, but TIMESTAMP label different than provided.
+# deleteByOldLabels OWNER [TIMESTAMP] - deletes all kubernetes resources which have
+# the OWNER label as provided [optional: but TIMESTAMP label different than provided].
 function deleteByOldLabels {
   local owner="$1"
-  local timestamp="$2"
+  local timestamp="${2:-}"
   # NOTE: removing componentstatus because it shows up unintended in ownedKinds: https://github.com/kubernetes/kubectl/issues/151#issuecomment-562578617
   local allKinds="$(kube api-resources --verbs=list -o name  | egrep -iv '^componentstatus(es)?$' | paste -sd, -)"
   local ownedKinds="$(kube get "$allKinds" --ignore-not-found \
@@ -75,8 +66,11 @@ function deleteByOldLabels {
   if [ -z "$ownedKinds" ]; then
     return
   fi
-  kube delete "$ownedKinds" \
-    -l "$TAG_OWNER==$owner,$TAG_APPLIED!=$timestamp"
+  local filter="${TAG_OWNER}==${owner}"
+  if [[ "${timestamp}" ]]; then
+    filter="${filter},${TAG_APPLIED}!=${timestamp}"
+  fi
+  kube delete "${ownedKinds}" -l "${filter}"
 }
 
 function createUpdateResources {
@@ -85,7 +79,7 @@ function createUpdateResources {
   # ensure that. Also, Kubernetes requires it to be <=63 chars long, so we're
   # taking a MD5 hash of actual name (MD5 hash is 33 chars long).
   # See: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
-  local owner="own.$( echo "$NAMESPACE $GITOPSCONFIG_NAME" | md5sum | awk '{print$1}' ).own"
+  local owner="$1"
   local timestamp="$(date +%s)"
   case "$CREATE_MODE" in
     CreateOrMerge)
@@ -106,8 +100,8 @@ fi
 
 echo "Managing Resources"
 setContext
+owner="own.$( echo "$NAMESPACE $GITOPSCONFIG_NAME" | md5sum | awk '{print$1}' ).own"
 case "$ACTION" in
-  create) createUpdateResources;;
-  delete) deleteResources;;
+  create) createUpdateResources "$owner";;
+  delete) deleteByOldLabels "$owner";;
 esac
-

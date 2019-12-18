@@ -157,6 +157,11 @@ func (job *jobmonitor) watchjob(instanceName, instanceNamespace string) {
 		time.Sleep(10 * time.Second)
 		jobState, err := job.checkResult()
 		if err != nil {
+			// FIXME: change below error message detection to something more robust, string matching is super flaky
+			if err.Error() == `Job.batch "`+instanceName+`" not found` {
+				log.Info("The job has been deleted")
+				break
+			}
 			continue
 		}
 
@@ -188,7 +193,7 @@ func (job *jobmonitor) checkResult() (jobState gitopsv1alpha1.GitOpsConfigStatus
 		log.Info("retrying the GetJob for CheckResult")
 		jobOutput, err = job.getjobmonitor()
 		if err != nil {
-			log.Error(err, "Error in GetJob for CheckResult")
+			log.Info("Retry of GetJob for CheckResult unsuccessful: " + err.Error())
 			return jobState, err
 		}
 	}
