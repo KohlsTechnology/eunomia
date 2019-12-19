@@ -1,0 +1,78 @@
+package e2e
+
+import (
+	goctx "context"
+	"os"
+	"testing"
+
+	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/KohlsTechnology/eunomia/pkg/apis"
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+)
+
+func TestHierarchy(t *testing.T) {
+	ctx := framework.NewTestCtx(t)
+	defer ctx.Cleanup()
+
+	namespace, err := ctx.GetNamespace()
+	if err != nil {
+		t.Fatalf("could not get namespace: %v", err)
+	}
+	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
+	if !found {
+		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
+	}
+
+	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
+	if !found {
+		eunomiaRef = "master"
+	}
+
+	gitops := &gitopsv1alpha1.GitOpsConfig{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "GitOpsConfig",
+			APIVersion: "eunomia.kohls.io/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "gitops-hierarchy",
+			Namespace: namespace,
+		},
+		Spec: gitopsv1alpha1.GitOpsConfigSpec{
+			TemplateSource: gitopsv1alpha1.GitConfig{
+				URI:        eunomiaURI,
+				Ref:        eunomiaRef,
+				ContextDir: "test/e2e/testdata/helm/templates",
+			},
+			ParameterSource: gitopsv1alpha1.GitConfig{
+				URI:        eunomiaURI,
+				Ref:        eunomiaRef,
+				ContextDir: "test/e2e/testdata/hierarchy/level4",
+			},
+			Triggers: []gitopsv1alpha1.GitOpsTrigger{
+				{Type: "Change"},
+			},
+			ResourceDeletionMode:   "Delete",
+			TemplateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:dev",
+			ResourceHandlingMode:   "CreateOrMerge",
+			ServiceAccountRef:      "eunomia-operator",
+		},
+	}
+	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
+
+	err = framework.Global.Client.Create(goctx.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-world-hierarchy", "hello-app:1.0", retryInterval, timeout)
+	if err != nil {
+		t.Error(err)
+	}
+}

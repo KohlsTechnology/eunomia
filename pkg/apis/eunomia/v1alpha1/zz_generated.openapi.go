@@ -109,7 +109,7 @@ func schema_pkg_apis_eunomia_v1alpha1_GitOpsConfigSpec(ref common.ReferenceCallb
 					},
 					"resourceHandlingMode": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ResourceHandlingMode represents how resource creation/update should be handled. Supported values are CreateOrMerge,CreateOrUpdate,Patch,None. Default is CreateOrMerge.",
+							Description: "ResourceHandlingMode represents how resource creation/update should be handled. Supported values are CreateOrMerge,Patch,None. Default is CreateOrMerge.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -134,9 +134,38 @@ func schema_pkg_apis_eunomia_v1alpha1_GitOpsConfigStatus(ref common.ReferenceCal
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "GitOpsConfigStatus defines the observed state of GitOpsConfig",
-				Properties:  map[string]spec.Schema{},
+				Properties: map[string]spec.Schema{
+					"state": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"startTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
+						},
+					},
+					"completionTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
+						},
+					},
+					"message": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"lastScheduleTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
+						},
+					},
+				},
 			},
 		},
-		Dependencies: []string{},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
 	}
 }

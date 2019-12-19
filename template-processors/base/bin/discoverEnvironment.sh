@@ -14,8 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o nounset
-set -o errexit
+set -euxo pipefail
 
 function setContext {
   $kubectl config set-context current --namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
@@ -27,14 +26,15 @@ function kube {
 }
 
 function getClusterCAs {
+    if ! kube describe sa default -n default 2>&1 >/dev/null; then
+        echo "FIXME: 'kube describe sa default -n default' is not working"
+        echo export CA_BUNDLE= >> $HOME/envs.sh
+        echo export SERVICE_CA_BUNDLE= >> $HOME/envs.sh
+        return
+    fi
     SECRET=$(kube describe sa default -n default | grep 'Tokens:' | awk '{print $2}')
     echo export CA_BUNDLE=$(kube get secret $SECRET -n default -o "jsonpath={.data['ca\.crt']}") >> $HOME/envs.sh
     echo export SERVICE_CA_BUNDLE=$(kube get secret $SECRET -n default -o "jsonpath={.data['service-ca\.crt']}") >> $HOME/envs.sh
-}
-
-function getDefaultRouteDomain {
-    REGISTRY_ROUTE=$(kube get route docker-registry --no-headers -n default | awk '{print $2}')
-    echo export DEFAULT_ROUTE_DOMAIN=${REGISTRY_ROUTE#*.} >> $HOME/envs.sh
 }
 
 function getNamespace {
@@ -44,5 +44,4 @@ function getNamespace {
 echo Setting cluster-related environment variable
 setContext
 getClusterCAs
-getDefaultRouteDomain
 getNamespace

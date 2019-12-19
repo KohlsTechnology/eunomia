@@ -31,7 +31,7 @@ import (
 var log = logf.Log.WithName("handler")
 
 // WebhookHandler manages the calls from github
-func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopsconfig.ReconcileGitOpsConfig) {
+func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopsconfig.Reconciler) {
 	log.Info("received webhook call")
 	if r.Method != "POST" {
 		w.WriteHeader(405)
@@ -57,7 +57,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopscon
 		{
 			//find the list of CR that have this url.
 			//log.Info("event is of type push")
-			list, err := reconciler.GetAllGitOpsConfig()
+			list, err := reconciler.GetAll()
 			if err != nil {
 				log.Error(err, "unable to get the list of GitOpsCionfig")
 				w.WriteHeader(500)

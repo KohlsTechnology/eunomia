@@ -46,14 +46,16 @@ The most efficient way to develop the operator locally is run the code on your l
 ```
 minikube start
 kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
-export JOB_TEMPLATE=./deploy/helm/operator/eunomia-templates/job.yaml
-export CRONJOB_TEMPLATE=./deploy/helm/operator/eunomia-templates/cronjob.yaml
+export JOB_TEMPLATE=./build/job-templates/job.yaml
+export CRONJOB_TEMPLATE=./build/job-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export GO111MODULE=on
 go mod vendor
-operator-sdk up local
+operator-sdk up local --namespace="${WATCH_NAMESPACE}"
 ```
+
+Setting WATCH_NAMESPACE to empty string, as above, results in Eunomia watching all namespaces. If you want a particular namespace to be watched, set it explicitly in the env variable.
 
 ## Building the Operator Image
 
@@ -65,11 +67,10 @@ See https://golang.org/doc/install to install/setup your Go Programming environm
 
 ```shell
 export GO111MODULE=on
-go mod vendor
-GOOS=linux operator-sdk build eunomia-operator
+GOOS=linux make
 ```
 
-From here you could manually push the image to a registry, or run the image locally (out of scope for this doc).
+From here you can build the eunomia-operator Docker image and manually push it to a registry, or run it in a local cluster (see [Using Minikube](#using-minikube) or [Using Openshift](#using-openshift)).
 
 ### Building the image and pushing to a remote registry
 
@@ -83,31 +84,54 @@ docker login $REGISTRY
 
 ## Testing
 
-### Using Minikube
+If you want to play with eunomia deployed to Minikube or Minishift, here are some preliminary instructions. They still need a lot of TLC so feel free to send in PRs.
 
-Here are some preliminary instructions. This still needs a lot of TLC. Feel free to send in PRs.
+### <a name="using-minikube"></a>Using Minikube
 
 ```shell
 # Start minikube
 minikube start
 
-# Deploy the operator pre-requisites, which require cluster-admin access
-helm template deploy/helm/prereqs/ | kubectl apply -f -
+# Set env variables for docker CLI to use minikube's docker daemon
+eval $(minikube docker-env)
 
-# Deploy the operator
-helm template deploy/helm/operator/ | kubectl apply -f -
+# Build your eunomia-operator image and store it in minikube's docker registry
+GOOS=linux make
+docker build build/ --tag quay.io/kohlstechnology/eunomia-operator:dev
+
+# Deploy the operator, use your locally-built image
+helm template deploy/helm/eunomia-operator/ \
+  --set eunomia.operator.image.tag=dev \
+  --set eunomia.operator.image.pullPolicy=Never | kubectl apply -f -
 ```
 
-### Using Openshift
-
-Here are some preliminary instructions. This still needs a lot of TLC. Feel free to send in PRs.
+### <a name="using-openshift"></a>Using Openshift
 
 ```shell
-# Deploy the operator pre-requisites, which require cluster-admin access
-helm template deploy/helm/prereqs/ | oc apply -f -
+# Start minishift
+minishift start --vm-driver virtualbox
 
-# Deploy the operator
-helm template deploy/helm/operator/ --set eunomia.openshift.route.enabled=true | oc apply -f -
+# Set env variables for docker CLI to use minishift's docker daemon
+eval $(minishift docker-env)
+
+# Build eunomia-operator image and store it in minishift's docker registry
+GOOS=linux make
+docker build build/ --tag quay.io/kohlstechnology/eunomia-operator:dev
+
+# Log in to minishift as admin
+oc login -u system:admin
+
+# Deploy the operator, use your locally-built image
+helm template deploy/helm/eunomia-operator/ \
+  --set eunomia.operator.image.tag=dev \
+  --set eunomia.operator.image.pullPolicy=Never \
+  --set eunomia.openshift.route.enabled=true | oc apply -f -
+```
+
+### After testing configure docker CLI to use local docker daemon again
+After Testing you might want to use your local docker daemon again. To do it just issue
+```
+eval "$(docker-machine env -u)"
 ```
 
 ## Run Tests
@@ -115,15 +139,18 @@ helm template deploy/helm/operator/ --set eunomia.openshift.route.enabled=true |
 For testing and CI purposes, we manage several set of tests. These tests can be run locally by following the below instructions. All test scripts assume that you are already logged into your minikube cluster.
 
 ### Running Unit Tests
-
 ```shell
-./scripts/unit-tests.sh
+make test-unit
 ```
 
 ### Running End-to-End Tests
-
 ```shell
 # Optional: Set the environment variable $EUNOMIA_URI to point to a specific git url for testing
 # Optional: Set the environment variable $EUNOMIA_REF to point to a specific git reference for testing
-./scripts/e2e-test.sh
+make test-e2e
+```
+
+### Running All Tests
+```shell
+make test
 ```

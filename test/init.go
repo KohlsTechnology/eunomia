@@ -14,26 +14,20 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package unittest
+package test
 
 import (
 	"flag"
 	"os"
-	"testing"
 
-	"github.com/KohlsTechnology/eunomia/pkg/apis"
-	v1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	"github.com/KohlsTechnology/eunomia/pkg/util"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"github.com/spf13/pflag"
-	"github.com/stretchr/testify/assert"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp" // Make linter tmp happy
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
-// Initialize initialize the test suite
+// Initialize infrastructure for eunomia unit tests
 func Initialize() {
 
 	logf.Log.Info("Initializing Test")
@@ -67,23 +61,4 @@ func Initialize() {
 		logf.Log.Info("Error: CRONJOB_TEMPLATE must be set")
 	}
 	util.InitializeTemplates(jt, cjt)
-}
-
-// AddToFrameworkSchemeForTests tests AddToFrameworkScheme
-func AddToFrameworkSchemeForTests(t *testing.T, ctx *framework.TestCtx) {
-	namespace, err := ctx.GetNamespace()
-	assert.NoError(t, err)
-	gitops := &v1alpha1.GitOpsConfig{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "GitOpsConfig",
-			APIVersion: "eunomia.kohls.io/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      "gitops-operator",
-			Namespace: namespace,
-		},
-		Spec: v1alpha1.GitOpsConfigSpec{},
-	}
-
-	assert.NoError(t, framework.AddToFrameworkScheme(apis.AddToScheme, gitops))
 }

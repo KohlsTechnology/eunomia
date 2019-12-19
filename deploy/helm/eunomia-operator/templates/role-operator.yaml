@@ -1,0 +1,55 @@
+{{- with .Values.eunomia.operator }}
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: eunomia-operator
+  namespace: "{{ .namespace }}"
+rules:
+# leader election   
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - pods
+  verbs:
+  - "*"  
+#Metrics  
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - "*"
+#Metrics  
+- apiGroups:
+  - "apps"
+  resources:
+  - replicasets
+  - deployments
+  verbs: 
+  - "*"
+# In Kubernetes <1.16, "deployments" also require API group "extensions" (see: https://stackoverflow.com/a/57854939)
+- apiGroups:
+  - "extensions"
+  resources:
+  - deployments
+  verbs:
+  - "*"
+# Metrics  
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - "get"
+  - "create"
+# Metrics  
+- apiGroups:
+  - apps
+  resources:
+  - deployments/finalizers
+  resourceNames:
+  - eunomia-operator
+  verbs:
+  - "update"
+{{- end }}

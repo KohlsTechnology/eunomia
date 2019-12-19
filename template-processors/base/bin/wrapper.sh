@@ -14,12 +14,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -o nounset
-set -o errexit
+set -euxo pipefail
 
 export HOME=/tmp
 /usr/local/bin/gitClone.sh
 /usr/local/bin/discoverEnvironment.sh
 source $HOME/envs.sh
+/usr/local/bin/processParameters.sh
 /usr/local/bin/processTemplates.sh
 /usr/local/bin/resourceManager.sh

@@ -1,0 +1,12 @@
+FROM @REPOSITORY@/eunomia-base:@IMAGE_TAG@
+
+ENV OC_VERSION=4.1.8
+
+USER root
+
+RUN curl -O http://mirror.openshift.com/pub/openshift-v4/clients/ocp/${OC_VERSION}/openshift-client-linux-${OC_VERSION}.tar.gz \
+  && tar --directory /usr/bin -zxvf openshift-client-linux-${OC_VERSION}.tar.gz oc
+
+COPY bin/processTemplates.sh /usr/local/bin/processTemplates.sh
+
+USER ${USER_UID}

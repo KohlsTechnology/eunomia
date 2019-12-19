@@ -18,8 +18,16 @@ package e2e
 
 import (
 	"testing"
+	"time"
 
 	f "github.com/operator-framework/operator-sdk/pkg/test"
+)
+
+const (
+	retryInterval        = time.Second * 5
+	timeout              = time.Second * 60
+	cleanupRetryInterval = time.Second * 1
+	cleanupTimeout       = time.Second * 5
 )
 
 func TestMain(m *testing.M) {

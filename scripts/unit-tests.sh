@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # Copyright 2019 Kohl's Department Stores, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -12,13 +14,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -e
+set -euxo pipefail
 
 export EUNOMIA_PATH=$(cd "${0%/*}/.." ; pwd)
-export JOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/operator/eunomia-templates/job.yaml
-export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/operator/eunomia-templates/cronjob.yaml
+export JOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/job.yaml
+export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export GO111MODULE=on
 
-go test ./pkg/...
+go test -v ./pkg/...
