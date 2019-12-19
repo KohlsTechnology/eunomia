@@ -44,10 +44,13 @@ import (
 	util "github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
-var log = logf.Log.WithName("controller_gitopsconfig")
+var log = logf.Log.WithName(controllerName)
 
-const initLabel string = "gitopsconfig.eunomia.kohls.io/initialized"
-const kubeGitopsFinalizer string = "eunomia-finalizer"
+const (
+	tagInitialized string = "gitopsconfig.eunomia.kohls.io/initialized"
+	tagFinalizer   string = "gitopsconfig.eunomia.kohls.io/finalizer"
+	controllerName string = "gitopsconfig-controller"
+)
 
 // PushEvents channel on which we get the github webhook push events
 var PushEvents = make(chan event.GenericEvent)
@@ -71,7 +74,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
-	c, err := controller.New("gitopsconfig-controller", mgr, controller.Options{Reconciler: r})
+	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
 	if err != nil {
 		return err
 	}
@@ -108,8 +111,19 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	if err != nil {
 		return err
 	}
-	return nil
 
+	// TODO: we should somehow detect when Reconciler is stopped, and run the
+	// stop func returned by addJobWatch, to not leak resources (though if it's
+	// done only once, it's not such a big problem)
+	_, err = addJobWatch(mgr.GetConfig(), &jobCompletionEmitter{
+		client:        mgr.GetClient(),
+		eventRecorder: mgr.GetRecorder(controllerName),
+	})
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 var _ reconcile.Reconciler = &Reconciler{}
@@ -156,9 +170,9 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 		return r.manageDeletion(instance)
 	}
 
-	if _, ok := instance.GetAnnotations()[initLabel]; !ok {
+	if _, ok := instance.GetAnnotations()[tagInitialized]; !ok {
 		reqLogger.Info("Instance needs to be initialized", "instance", instance.GetName())
-		return r.initialize(instance)
+		return reconcile.Result{}, r.initialize(instance)
 	}
 
 	reqLogger.Info("Instance is initialized", "instance", instance.GetName())
@@ -267,7 +281,7 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 		&result)
 
 	if err != nil {
-		log.Info("Error in GetCronJob:", err)
+		log.Error(err, "Error in GetCronJob")
 		return err
 	}
 	go scheduleStatusForCronJobs(jobmonitor{r.client, cronjob.Name, cronjob.Namespace, time.Time{}}, result.Spec.Schedule, instance.Name, instance.Namespace)
@@ -285,56 +299,42 @@ func (r *Reconciler) GetAll() (gitopsv1alpha1.GitOpsConfigList, error) {
 	return *instanceList, nil
 }
 
-func (r *Reconciler) initialize(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
+func (r *Reconciler) initialize(instance *gitopsv1alpha1.GitOpsConfig) error {
 	// verify mandatory field exist and set defaults
-	if instance.Spec.TemplateSource.URI == "" {
+	spec := &instance.Spec
+	if spec.TemplateSource.URI == "" {
 		//TODO set wrong status
-		return reconcile.Result{}, goerrors.New("template source URI cannot be empty")
+		return goerrors.New("template source URI cannot be empty")
 	}
+	replaceEmpty(&spec.TemplateSource.Ref, "master")
+	replaceEmpty(&spec.TemplateSource.ContextDir, ".")
+	replaceEmpty(&spec.ParameterSource.URI, spec.TemplateSource.URI)
+	replaceEmpty(&spec.ParameterSource.Ref, "master")
+	replaceEmpty(&spec.ParameterSource.ContextDir, ".")
+	replaceEmpty(&spec.ServiceAccountRef, "default")
+	replaceEmpty(&spec.ResourceHandlingMode, "CreateOrMerge")
+	replaceEmpty(&spec.ResourceDeletionMode, "Delete")
 
-	if instance.Spec.TemplateSource.Ref == "" {
-		instance.Spec.TemplateSource.Ref = "master"
+	// add finalizer and mark the object as initialized
+	meta := &instance.ObjectMeta
+	if !containsString(meta.Finalizers, tagFinalizer) && spec.ResourceDeletionMode != "Retain" {
+		meta.Finalizers = append(meta.Finalizers, tagFinalizer)
 	}
-
-	if instance.Spec.TemplateSource.ContextDir == "" {
-		instance.Spec.TemplateSource.ContextDir = "."
-	}
-
-	if instance.Spec.ParameterSource.URI == "" {
-		instance.Spec.ParameterSource.URI = instance.Spec.TemplateSource.URI
-	}
-	if instance.Spec.ParameterSource.Ref == "" {
-		instance.Spec.ParameterSource.Ref = "master"
-	}
-
-	if instance.Spec.ParameterSource.ContextDir == "" {
-		instance.Spec.ParameterSource.ContextDir = "."
-	}
-
-	if instance.Spec.ServiceAccountRef == "" {
-		instance.Spec.ServiceAccountRef = "default"
-	}
-
-	if instance.Spec.ResourceHandlingMode == "" {
-		instance.Spec.ResourceHandlingMode = "CreateOrMerge"
-	}
-
-	if instance.Spec.ResourceDeletionMode == "" {
-		instance.Spec.ResourceDeletionMode = "Delete"
-	}
-
-	instance.ObjectMeta.Annotations[initLabel] = "true"
-
-	if !containsString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer) && instance.Spec.ResourceDeletionMode != "Retain" {
-		instance.ObjectMeta.Finalizers = append(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer)
-	}
+	meta.Annotations[tagInitialized] = "true"
 
 	err := r.client.Update(context.TODO(), instance)
 	if err != nil {
-		log.Error(err, "unable to update initialized GitOpsCionfig", "instance", instance)
-		return reconcile.Result{}, err
+		log.Error(err, "unable to update initialized GitOpsConfig", "instance", instance)
+		return err
 	}
-	return reconcile.Result{}, nil
+	return nil
+}
+
+// replaceEmpty sets s to defaultValue if s is empty
+func replaceEmpty(s *string, defaultValue string) {
+	if *s == "" {
+		*s = defaultValue
+	}
 }
 
 func containsString(slice []string, s string) bool {
@@ -358,7 +358,7 @@ func removeString(slice []string, s string) (result []string) {
 
 func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
 	log.Info("Instance is being deleted", "instance", instance.GetName())
-	if !containsString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer) {
+	if !containsString(instance.ObjectMeta.Finalizers, tagFinalizer) {
 		return reconcile.Result{}, nil
 	}
 	// we need to lookup the delete job and if it doesn't exist we launch it, then we see if it is completed successfully if yes we remove the finalizers, if no we return.
@@ -398,7 +398,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		if !ns.ObjectMeta.DeletionTimestamp.IsZero() {
 			//namespace is being deleted
 			// the best we can do in this situation is to let the instance be deleted and hope that this instance was creating objects only in this namespace
-			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer)
+			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, tagFinalizer)
 			if err := r.client.Update(context.TODO(), instance); err != nil {
 				log.Error(err, "unable to create update instace to remove finalizers")
 				return reconcile.Result{}, err
@@ -420,7 +420,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 	//There should be only one pending job
 	job := applicableJobList[0]
 	if job.Status.Succeeded > 0 {
-		instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, kubeGitopsFinalizer)
+		instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, tagFinalizer)
 		if err := r.client.Update(context.TODO(), instance); err != nil {
 			log.Error(err, "unable to create update instace to remove finalizers")
 			return reconcile.Result{}, err
