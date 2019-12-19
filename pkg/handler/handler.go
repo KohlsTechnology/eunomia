@@ -91,7 +91,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopscon
 					//log.Info("validating payload instance")
 					_, err := github.ValidatePayload(r, []byte(secret))
 					if err != nil {
-						log.Error(err, "webhook payload could not be validated with instanec secret, ignoring this instance")
+						log.Error(err, "webhook payload could not be validated with instance secret, ignoring this instance")
 						continue
 					}
 				}
