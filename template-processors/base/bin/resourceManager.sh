@@ -77,7 +77,7 @@ function createUpdateResources {
   local owner="$1"
   local timestamp="$(date +%s)"
   case "$CREATE_MODE" in
-    CreateOrMerge)
+    Apply)
       addLabels "$owner" "$timestamp"
       kube apply -R -f "$MANIFEST_DIR"
       deleteByOldLabels "$owner" "$timestamp"

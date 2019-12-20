@@ -66,7 +66,7 @@ var fullconfig = JobMergeData{
 			ServiceAccountRef:      "mysvcaccount",
 			ResourceDeletionMode:   "Cascade",
 			TemplateProcessorImage: "myimage",
-			ResourceHandlingMode:   "CreateOrMerge",
+			ResourceHandlingMode:   "Apply",
 		},
 	},
 }

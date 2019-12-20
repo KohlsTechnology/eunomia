@@ -63,7 +63,7 @@ func TestIssue24_RemovedResourceGetsDeleted(t *testing.T) {
 				{Type: "Change"},
 			},
 			TemplateProcessorImage: "quay.io/kohlstechnology/eunomia-base:dev",
-			ResourceHandlingMode:   "CreateOrMerge",
+			ResourceHandlingMode:   "Apply",
 			ResourceDeletionMode:   "Delete",
 			ServiceAccountRef:      "eunomia-operator",
 		},
