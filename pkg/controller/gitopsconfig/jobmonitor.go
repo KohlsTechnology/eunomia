@@ -21,14 +21,16 @@ import (
 	"sync"
 	"time"
 
-	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	"gopkg.in/robfig/cron.v2"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 )
 
+// TODO: consider refactoring this file to watch Jobs by using kubernetes Informers (see jobwatch.go)
 type jobmonitor struct {
 	client       client.Client
 	Name         string

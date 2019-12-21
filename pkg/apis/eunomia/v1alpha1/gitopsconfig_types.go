@@ -19,13 +19,13 @@ type GitConfig struct {
 	SecretRef  string `json:"secretRef,omitempty"`
 }
 
-// GitOpsTrigger represents a trigge, possible type values are change, periodic, webhook.
+// GitOpsTrigger represents a trigger, possible type values are change, periodic, webhook.
 // If token is used the object must be labeled with the following label: "gitops_config.eunomia.kohls.io/webhook_token: <token>"
 type GitOpsTrigger struct {
 	// Type supported types are Change, Periodic, Webhook
 	// +kubebuilder:validation:Enum=Change,Periodic,Webhook
 	Type string `json:"type,omitempty"`
-	// creon expression only valid with the Periodic type
+	// cron expression only valid with the Periodic type
 	Cron string `json:"cron,omitempty"`
 	// webhook secret only valid with webhook type
 	Secret string `json:"secret,omitempty"`

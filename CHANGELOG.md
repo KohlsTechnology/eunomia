@@ -1,6 +1,17 @@
-## v0.0.6 (Unreleased)
+## v0.1.0 (Unreleased)
+
+## v0.0.6 (December 19, 2019)
+FEATURES:
+* Create k8s events on Job/CronJob success and failure [GH-212](https://github.com/KohlsTechnology/eunomia/pull/212)
+
+CHANGES:
+* Remove resource handling mode CreateOrUpdate [GH-149](https://github.com/KohlsTechnology/eunomia/pull/149)
+
 BUG FIXES:
-* Allow empty hierarchy directories [GH-184](https://github.com/KohlsTechnology/eunomia/pull/184)
+* Allow empty hierarchy directories [GH-198](https://github.com/KohlsTechnology/eunomia/pull/198)
+* Do not constantly spawn new k8s jobs [GH-209](https://github.com/KohlsTechnology/eunomia/pull/209)
+* Fix issue accessing private git repos [GH-195](https://github.com/KohlsTechnology/eunomia/pull/195)
+* Fix k8s label length limit [GH-207](https://github.com/KohlsTechnology/eunomia/pull/207)
 
 ## v0.0.5 (December 5, 2019)
 BUG FIXES:

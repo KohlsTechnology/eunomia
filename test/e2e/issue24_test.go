@@ -57,7 +57,7 @@ func TestIssue24_RemovedResourceGetsDeleted(t *testing.T) {
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/testdata/issue24/parameters",
+				ContextDir: "test/e2e/testdata/empty-yaml",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
 				{Type: "Change"},
