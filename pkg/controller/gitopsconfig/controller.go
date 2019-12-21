@@ -414,7 +414,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		//we return because we need to wait for the job to stop
 		return reconcile.Result{
 			Requeue:      true,
-			RequeueAfter: time.Minute,
+			RequeueAfter: time.Second * 5,
 		}, nil
 	}
 	//There should be only one pending job
@@ -427,11 +427,12 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		}
 		return reconcile.Result{}, nil
 	}
-	//if it's not succeeded we wait for 1 minute
+	//if it's not succeeded we wait for 5 seconds
 	//TODO add logic to stop at a certain point ... or not ...
+	//TODO add exponential backoff, possibly like in CronJob
 	return reconcile.Result{
 		Requeue:      true,
-		RequeueAfter: time.Minute,
+		RequeueAfter: time.Second * 5,
 	}, nil
 }
 

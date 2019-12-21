@@ -22,7 +22,11 @@ function setContext {
 }
 
 function kube {
-  $kubectl -s https://kubernetes.default.svc:443  --token $(cat /var/run/secrets/kubernetes.io/serviceaccount/token) --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt $@
+  $kubectl \
+    -s https://kubernetes.default.svc:443 \
+    --token "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+    --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+    "$@"
 }
 
 function getClusterCAs {
