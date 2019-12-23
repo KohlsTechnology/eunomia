@@ -1,0 +1,18 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world-modes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      name: hello-world-modes
+  template:
+    metadata:
+      labels:
+        name: hello-world-modes
+    spec:
+      containers:
+        - name: hello-world-modes
+          image: gcr.io/google-samples/hello-app:2.0
+          imagePullPolicy: IfNotPresent
