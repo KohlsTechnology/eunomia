@@ -60,11 +60,14 @@ spec:
               type: string
             resourceHandlingMode:
               description: ResourceHandlingMode represents how resource creation/update
-                should be handled. Supported values are CreateOrMerge,Patch,None.
-                Default is CreateOrMerge.
+                should be handled. Supported values are Apply,Create,Delete,Patch,Replace,None.
+                Default is Apply.
               enum:
-              - CreateOrMerge
+              - Apply
+              - Create
+              - Delete
               - Patch
+              - Replace
               - None
               type: string
             serviceAccountRef:

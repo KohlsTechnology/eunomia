@@ -19,5 +19,5 @@ spec:
     cron: "0 * * * *"
   serviceAccountRef: gitops
   templateProcessorImage: quay.io/kohlstechnology/eunomia-ocp-templates:latest
-  resourceHandlingMode: CreateOrMerge
+  resourceHandlingMode: Apply
   resourceDeletionMode: Delete

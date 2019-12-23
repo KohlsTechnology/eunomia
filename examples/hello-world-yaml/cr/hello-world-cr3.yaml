@@ -16,5 +16,5 @@ spec:
     #cron: '*/1 * * * *'
   serviceAccountRef: eunomia-runner-yaml
   templateProcessorImage: quay.io/kohlstechnology/eunomia-base:latest
-  resourceHandlingMode: CreateOrMerge
+  resourceHandlingMode: Apply
   resourceDeletionMode: Delete

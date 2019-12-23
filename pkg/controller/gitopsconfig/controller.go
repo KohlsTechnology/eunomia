@@ -312,7 +312,7 @@ func (r *Reconciler) initialize(instance *gitopsv1alpha1.GitOpsConfig) error {
 	replaceEmpty(&spec.ParameterSource.Ref, "master")
 	replaceEmpty(&spec.ParameterSource.ContextDir, ".")
 	replaceEmpty(&spec.ServiceAccountRef, "default")
-	replaceEmpty(&spec.ResourceHandlingMode, "CreateOrMerge")
+	replaceEmpty(&spec.ResourceHandlingMode, "Apply")
 	replaceEmpty(&spec.ResourceDeletionMode, "Delete")
 
 	// add finalizer and mark the object as initialized
