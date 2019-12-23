@@ -109,7 +109,7 @@ func schema_pkg_apis_eunomia_v1alpha1_GitOpsConfigSpec(ref common.ReferenceCallb
 					},
 					"resourceHandlingMode": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ResourceHandlingMode represents how resource creation/update should be handled. Supported values are Apply,Patch,None. Default is Apply.",
+							Description: "ResourceHandlingMode represents how resource creation/update should be handled. Supported values are Apply,Create,Delete,Patch,Replace,None. Default is Apply.",
 							Type:        []string{"string"},
 							Format:      "",
 						},

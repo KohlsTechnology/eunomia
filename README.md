@@ -257,7 +257,10 @@ This field specifies how resources should be handled, once the templates are pro
 
 1. `Apply`, which is roughly equivalent to `kubectl apply`. Additionally, auto-detection of resources removed from git is performed, and they're deleted from the cluster. This is done by marking all the resources with a custom label, and removing resources for which the label was not touched by `kubectl apply`.
 2. `Patch`. Patch requires objects to already exists and will patch them. It's useful when customizing objects that are provided through other means.
-3. `None`. In some cases there may be template processors or automation frameworks where the processing of templates and handling of generated resources are a single step. In that case, Eunomia can be configured to skip the built-in resource handling step.
+3. `Create`, equivalent to `kubectl create`. Template processors which take over the resource handling phase are not required to support this mode.
+4. `Replace`, equivalent to `kubectl replace`. Template processors which take over the resource handling phase are not required to support this mode.
+5. `Delete`, equivalent to `kubectl delete`. Template processors which take over the resource handling phase are not required to support this mode.
+6. `None`. In some cases there may be template processors or automation frameworks where the processing of templates and handling of generated resources are a single step. In that case, Eunomia can be configured to skip the built-in resource handling step.
 
 ## Resource Deletion Mode
 

@@ -82,8 +82,17 @@ function createUpdateResources {
       kube apply -R -f "$MANIFEST_DIR"
       deleteByOldLabels "$owner" "$timestamp"
       ;;
+    Create)
+      kube create -R -f "$MANIFEST_DIR"
+      ;;
+    Delete)
+      kube delete -R -f "$MANIFEST_DIR"
+      ;;
     Patch)
       kube patch -R -f "$MANIFEST_DIR"
+      ;;
+    Replace)
+      kube replace -R -f "$MANIFEST_DIR"
       ;;
   esac
 }
