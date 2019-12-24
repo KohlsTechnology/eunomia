@@ -80,7 +80,7 @@ func disabledOCPTemplate(t *testing.T) {
 			},
 			ResourceDeletionMode:   "Delete",
 			TemplateProcessorImage: " quay.io/kohlstechnology/eunomia-ocp-templates:dev",
-			ResourceHandlingMode:   "CreateOrMerge",
+			ResourceHandlingMode:   "Apply",
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}

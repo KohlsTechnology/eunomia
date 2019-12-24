@@ -60,7 +60,7 @@ func TestHelmTemplate(t *testing.T) {
 			},
 			ResourceDeletionMode:   "Delete",
 			TemplateProcessorImage: "quay.io/kohlstechnology/eunomia-helm:dev",
-			ResourceHandlingMode:   "CreateOrMerge",
+			ResourceHandlingMode:   "Apply",
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}

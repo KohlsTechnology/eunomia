@@ -36,7 +36,7 @@ spec:
     cron: {{ .triggers.cron | quote }}
   serviceAccountRef: {{ .serviceAccountRef }}
   templateProcessorImage: {{ .templateProcessorImage }}
-  resourceHandlingMode: CreateOrMerge
+  resourceHandlingMode: Apply
   resourceDeletionMode: Delete
 {{- end }}
 ---

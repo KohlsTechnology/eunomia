@@ -75,7 +75,7 @@ func TestSimple(t *testing.T) {
 				{Type: "Change"},
 			},
 			ResourceDeletionMode: "Delete",
-			ResourceHandlingMode: "CreateOrMerge",
+			ResourceHandlingMode: "Apply",
 			ServiceAccountRef:    "eunomia-operator",
 		},
 	}

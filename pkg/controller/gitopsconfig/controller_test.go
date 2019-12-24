@@ -87,7 +87,7 @@ func TestMain(m *testing.M) {
 			ServiceAccountRef:      "mysvcaccount",
 			ResourceDeletionMode:   "Cascade",
 			TemplateProcessorImage: "myimage",
-			ResourceHandlingMode:   "CreateOrMerge",
+			ResourceHandlingMode:   "Apply",
 		},
 	}
 
