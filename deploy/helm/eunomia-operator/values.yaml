@@ -21,7 +21,11 @@ eunomia:
         # kubernetes.io/tls-acme: "true"
       hosts:
         - host: chart-example.local
-          paths: []
+          paths:
+            - path: /
+              portName: webhook
+            - path: /metrics
+              portName: metrics
 
       tls: []
       #  - secretName: chart-example-tls
