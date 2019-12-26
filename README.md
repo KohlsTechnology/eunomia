@@ -281,6 +281,31 @@ Simply use the helm chart to install it on your flavor of Kubernetes.
 helm template deploy/helm/eunomia-operator/ | kubectl apply -f -
 ```
 
+#### Installing with Kubernetes Ingress
+
+Update [values.yaml](deploy/helm/eunomia-operator/values.yaml) file for ingress configuration. If you doesn't want to change the file we can enabled ingress from command line as well.
+
+For running with default configuration
+
+```shell
+# Enabling eunomia ingress
+helm template deploy/helm/eunomia-operator/ --set eunomia.operator.ingress.enabled=true | kubectl apply -f - -n eunomia-operator
+```
+
+Also, you can pass the ingress configuration in command line itself. For example:-
+
+```shell
+# Updating eunomia ingress configuration
+helm template deploy/helm/eunomia-operator/ --set eunomia.operator.ingress.enabled=true \
+--set eunomia.operator.ingress.hosts[0].host=hello-eunomia.info \
+--set eunomia.operator.ingress.hosts[0].paths[0].path=/ \
+--set eunomia.operator.ingress.hosts[0].paths[0].portName=webhook \
+--set eunomia.operator.ingress.hosts[0].paths[1].path=/metrics \
+--set eunomia.operator.ingress.hosts[0].paths[1].portName=metrics | kubectl apply -f - -n eunomia-operator
+```
+
+Replace the host `hello-eunomia.info` with suitable DNS name.
+
 ### Installing on OpenShift
 
 Use the below command to install Eunomia on OpenShift. This will also give you the route for the ingress webhook.
