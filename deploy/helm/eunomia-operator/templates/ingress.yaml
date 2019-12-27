@@ -27,10 +27,10 @@ spec:
       http:
         paths:
         {{- range .paths }}
-          - path: {{ . }}
+          - path: {{ .path }}
             backend:
               serviceName: eunomia-operator
-              servicePort: http
+              servicePort: {{ .portName }}
         {{- end }}
   {{- end }}
 {{- end }}
