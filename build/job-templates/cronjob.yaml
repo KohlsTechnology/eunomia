@@ -35,7 +35,11 @@ spec:
 {{ if .Config.Spec.TemplateSource.NOProxy }}
             - name: TEMPLATE_GIT_NO_PROXY
               value: {{ .Config.Spec.TemplateSource.NOProxy }}
-{{ end }}              
+{{ end }}
+{{ if .Config.Spec.TemplateProcessorArgs }}
+            - name: TEMPLATE_PROCESSOR_ARGS
+              value: {{ .Config.Spec.TemplateProcessorArgs }}
+{{ end }}
             - name: TEMPLATE_GIT_DIR
               value: "/git/templates"
             - name: PARAMETER_GIT_URI

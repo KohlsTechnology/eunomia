@@ -75,6 +75,10 @@ spec:
                 which the template engine job will run, it must exists in the namespace
                 in which this CR is created
               type: string
+            templateProcessorArgs:
+              description: TemplateProcessorArgs references to the run time parameters,
+                we can pass additional arguments/flags to the template processor.
+              type: string
             templateProcessorImage:
               description: TemplateEngine, the gitops operator config map contains
                 the list of available template engines, the value used here must exist

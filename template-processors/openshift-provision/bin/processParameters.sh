@@ -20,5 +20,5 @@ echo "Processing parameters in ${CLONED_PARAMETER_GIT_DIR}"
 
 # TODO: make cluster_name configurable after GitHub issue #134 is complete
 ansible-playbook /files/processParameters.yml \
-    -e cluster_name=my_cluster_name \
+    ${TEMPLATE_PROCESSOR_ARGS:-} \
     -e parameter_directory="${CLONED_PARAMETER_GIT_DIR}"
