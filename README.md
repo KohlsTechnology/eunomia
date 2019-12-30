@@ -177,7 +177,7 @@ For certificate based authentication, create the following `.gitconfig`:
 
 ```ini
 [core]
-    sshCommand = 'ssh -i /template-gitconfig/mykey.rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+    sshCommand = "ssh -i /template-gitconfig/mykey.rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 ```
 
 and add the `mykey.rsa` file to the secret.
