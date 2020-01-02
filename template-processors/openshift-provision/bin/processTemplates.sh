@@ -17,7 +17,7 @@
 set -euxo pipefail
 
 echo "Applying resources in ${CLONED_TEMPLATE_GIT_DIR}"
-# TODO: make cluster_name configurable after GitHub issue #134 is complete
+
 ANSIBLE_ROLES_PATH=/files/roles ansible-playbook /files/processTemplates.yml \
   ${TEMPLATE_PROCESSOR_ARGS:-} \
   -e template_directory="${CLONED_TEMPLATE_GIT_DIR}" \

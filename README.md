@@ -60,6 +60,7 @@ metadata:
   name: simple-test
 spec:
   # Add fields here
+  templateProcessorArgs: "-e cluster_name=my_cluster_name"
   templateSource:
     uri: https://github.com/KohlsTechnology/eunomia
     ref: master
@@ -79,13 +80,16 @@ spec:
   ResourceHandlingMode:   "Apply",
 ```
 
-## TemplateSource and ParameterSource
+## TemplateSource and ParameterSource and TemplateProcessorArgs
 
 The `TemplateSource` and `ParameterSource` specify where the templates and the parameters are stored. The exact contents of these locations depend on the templating engine that has been selected.
+
+The `TemplateProcessorArgs`  can be used to pass arguments/flags to the template processor. They can be accessed by the template processor in an environment variable named `TEMPLATE_PROCESSOR_ARGS`.
 
 The fields of this section are:
 
 ```yaml
+  templateProcessorArgs: "-e cluster_name=my_cluster_name"
   templateSource:
     uri: https://github.com/KohlsTechnology/eunomia
     ref: master
