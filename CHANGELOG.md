@@ -1,11 +1,26 @@
-## v0.1.0 (Unreleased)
+## v0.1.0 (January 2, 2020)
+Starting with this release the v1alpha1 API is complete. Going forward changes will not be made to the v1alpha1 API. Work on the v1alpha2 API will start soon.
+
+FEATURES:
+* Helm install now supports k8s Ingress for the GitHub webhook [GH-225](https://github.com/KohlsTechnology/eunomia/pull/225)
+* Support passing arguments to template processors [GH-229](https://github.com/KohlsTechnology/eunomia/pull/229)
+
+CHANGES:
+* **BREAKING** Remove resource handling mode CreateOrMerge [GH-223](https://github.com/KohlsTechnology/eunomia/pull/223)
+* Improve local development workflow [GH-228](https://github.com/KohlsTechnology/eunomia/pull/228)
+
+BUG FIXES:
+* Fix documentation for using SSH keys to access private repos [GH-227](https://github.com/KohlsTechnology/eunomia/pull/227)
+* Set CPU and memory requests and limits for operator [GH-224](https://github.com/KohlsTechnology/eunomia/pull/224)
+* Fix issues with resource deletion [GH-52](https://github.com/KohlsTechnology/eunomia/pull/52)
+* Fix typo in CRD description [GH-97](https://github.com/KohlsTechnology/eunomia/pull/97)
 
 ## v0.0.6 (December 19, 2019)
 FEATURES:
 * Create k8s events on Job/CronJob success and failure [GH-212](https://github.com/KohlsTechnology/eunomia/pull/212)
 
 CHANGES:
-* Remove resource handling mode CreateOrUpdate [GH-149](https://github.com/KohlsTechnology/eunomia/pull/149)
+* **BREAKING** Remove resource handling mode CreateOrUpdate [GH-149](https://github.com/KohlsTechnology/eunomia/pull/149)
 
 BUG FIXES:
 * Allow empty hierarchy directories [GH-198](https://github.com/KohlsTechnology/eunomia/pull/198)
