@@ -55,6 +55,10 @@ spec:
         - name: PARAMETER_GIT_NO_PROXY
           value: {{ .Config.Spec.ParameterSource.NOProxy }}
 {{ end }}
+{{ if .Config.Spec.TemplateProcessorArgs }}
+        - name: TEMPLATE_PROCESSOR_ARGS
+          value: {{ .Config.Spec.TemplateProcessorArgs }}
+{{ end }}
         - name: PARAMETER_GIT_DIR
           value: "/git/parameters"         
         - name: CLONED_TEMPLATE_GIT_DIR

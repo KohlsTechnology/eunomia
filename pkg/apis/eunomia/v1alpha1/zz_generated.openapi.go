@@ -121,6 +121,13 @@ func schema_pkg_apis_eunomia_v1alpha1_GitOpsConfigSpec(ref common.ReferenceCallb
 							Format:      "",
 						},
 					},
+					"templateProcessorArgs": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TemplateProcessorArgs references to the run time parameters, we can pass additional arguments/flags to the template processor.",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
 				},
 			},
 		},

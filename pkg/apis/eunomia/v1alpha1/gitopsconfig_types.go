@@ -54,6 +54,8 @@ type GitOpsConfigSpec struct {
 	// ResourceDeletionMode represents how resource deletion should be handled. Supported values are Retain,Delete,None. Default is Delete
 	// +kubebuilder:validation:Enum=Retain,Delete,None
 	ResourceDeletionMode string `json:"resourceDeletionMode,omitempty"`
+	// TemplateProcessorArgs references to the run time parameters, we can pass additional arguments/flags to the template processor.
+	TemplateProcessorArgs string `json:"templateProcessorArgs,omitempty"`
 }
 
 // GitOpsConfigStatus defines the observed state of GitOpsConfig
