@@ -74,7 +74,7 @@ From here you can build the eunomia-operator Docker image and manually push it t
 
 ### Building the image and pushing to a remote registry
 
-Run the following to build and push the images:
+Run the following to build and push the eunomia-operator image as well as template-processors images:
 
 ```shell
 export REGISTRY=<your registry>
@@ -92,12 +92,11 @@ If you want to play with eunomia deployed to Minikube or Minishift, here are som
 # Start minikube
 minikube start
 
-# Set env variables for docker CLI to use minikube's docker daemon
-eval $(minikube docker-env)
-
-# Build your eunomia-operator image and store it in minikube's docker registry
+# Build your eunomia-operator binary
 GOOS=linux make
-docker build build/ --tag quay.io/kohlstechnology/eunomia-operator:dev
+
+# Build eunomia-operator and template-processors images and store them in minikube's docker registry
+scripts/deploy-to-local.sh minikube
 
 # Deploy the operator, use your locally-built image
 helm template deploy/helm/eunomia-operator/ \
@@ -111,15 +110,14 @@ helm template deploy/helm/eunomia-operator/ \
 # Start minishift
 minishift start --vm-driver virtualbox
 
-# Set env variables for docker CLI to use minishift's docker daemon
-eval $(minishift docker-env)
-
-# Build eunomia-operator image and store it in minishift's docker registry
+# Build your eunomia-operator binary
 GOOS=linux make
-docker build build/ --tag quay.io/kohlstechnology/eunomia-operator:dev
 
 # Log in to minishift as admin
 oc login -u system:admin
+
+# Build eunomia-operator and template-processors images and store them in minishift's docker registry
+scripts/deploy-to-local.sh minishift
 
 # Deploy the operator, use your locally-built image
 helm template deploy/helm/eunomia-operator/ \
