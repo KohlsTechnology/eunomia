@@ -109,7 +109,7 @@ func schema_pkg_apis_eunomia_v1alpha1_GitOpsConfigSpec(ref common.ReferenceCallb
 					},
 					"resourceHandlingMode": {
 						SchemaProps: spec.SchemaProps{
-							Description: "ResourceHandlingMode represents how resource creation/update should be handled. Supported values are CreateOrMerge,CreateOrUpdate,Patch,None. Default is CreateOrMerge.",
+							Description: "ResourceHandlingMode represents how resource creation/update should be handled. Supported values are Apply,Create,Delete,Patch,Replace,None. Default is Apply.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -117,6 +117,13 @@ func schema_pkg_apis_eunomia_v1alpha1_GitOpsConfigSpec(ref common.ReferenceCallb
 					"resourceDeletionMode": {
 						SchemaProps: spec.SchemaProps{
 							Description: "ResourceDeletionMode represents how resource deletion should be handled. Supported values are Retain,Delete,None. Default is Delete",
+							Type:        []string{"string"},
+							Format:      "",
+						},
+					},
+					"templateProcessorArgs": {
+						SchemaProps: spec.SchemaProps{
+							Description: "TemplateProcessorArgs references to the run time parameters, we can pass additional arguments/flags to the template processor.",
 							Type:        []string{"string"},
 							Format:      "",
 						},
@@ -134,9 +141,38 @@ func schema_pkg_apis_eunomia_v1alpha1_GitOpsConfigStatus(ref common.ReferenceCal
 		Schema: spec.Schema{
 			SchemaProps: spec.SchemaProps{
 				Description: "GitOpsConfigStatus defines the observed state of GitOpsConfig",
-				Properties:  map[string]spec.Schema{},
+				Properties: map[string]spec.Schema{
+					"state": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"startTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
+						},
+					},
+					"completionTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
+						},
+					},
+					"message": {
+						SchemaProps: spec.SchemaProps{
+							Type:   []string{"string"},
+							Format: "",
+						},
+					},
+					"lastScheduleTime": {
+						SchemaProps: spec.SchemaProps{
+							Ref: ref("k8s.io/apimachinery/pkg/apis/meta/v1.Time"),
+						},
+					},
+				},
 			},
 		},
-		Dependencies: []string{},
+		Dependencies: []string{
+			"k8s.io/apimachinery/pkg/apis/meta/v1.Time"},
 	}
 }

@@ -13,7 +13,7 @@ metadata:
 spec:
   serviceAccountRef: {{ .serviceAccountRef }}
   templateProcessorImage: {{ .templateProcessorImage }}
-  resourceHandlingMode: CreateOrMerge
+  resourceHandlingMode: Apply
   resourceDeletionMode: Delete
   triggers:
   - type: Change

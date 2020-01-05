@@ -17,7 +17,7 @@
 set -euxo pipefail
 
 REPOSITORY=${1}
-if [ -z "${TRAVIS_TAG}" ] ; then
+if [ -z "${TRAVIS_TAG:-}" ] ; then
     IMAGE_TAG="dev"
 else
     IMAGE_TAG=${TRAVIS_TAG}
@@ -84,3 +84,5 @@ build_image template-processors/applier/ eunomia-applier
 # building and pushing jinja template processor images
 build_image template-processors/jinja/ eunomia-jinja
 
+# building and pushing openshift-provision template processor image
+build_image template-processors/openshift-provision/ eunomia-openshift-provision

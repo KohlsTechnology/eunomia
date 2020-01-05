@@ -16,7 +16,10 @@ limitations under the License.
 
 package version
 
+// Application build information.
 var (
-	// Version to make linter happy
-	Version = "v0.0.4-dev"
+	Branch    string
+	BuildDate string
+	GitSHA1   string
+	Version   = "v0.1.0"
 )

@@ -60,6 +60,7 @@ metadata:
   name: simple-test
 spec:
   # Add fields here
+  templateProcessorArgs: "-e cluster_name=my_cluster_name"
   templateSource:
     uri: https://github.com/KohlsTechnology/eunomia
     ref: master
@@ -76,16 +77,19 @@ spec:
   ServiceAccountRef:      "mysvcaccount",
   templateProcessorImage: mydockeregistry.io:5000/gitops/eunomia-base:latest
   ResourceDeletionMode:   "Cascade",
-  ResourceHandlingMode:   "CreateOrMerge",
+  ResourceHandlingMode:   "Apply",
 ```
 
-## TemplateSource and ParameterSource
+## TemplateSource and ParameterSource and TemplateProcessorArgs
 
 The `TemplateSource` and `ParameterSource` specify where the templates and the parameters are stored. The exact contents of these locations depend on the templating engine that has been selected.
+
+The `TemplateProcessorArgs`  can be used to pass arguments/flags to the template processor. They can be accessed by the template processor in an environment variable named `TEMPLATE_PROCESSOR_ARGS`.
 
 The fields of this section are:
 
 ```yaml
+  templateProcessorArgs: "-e cluster_name=my_cluster_name"
   templateSource:
     uri: https://github.com/KohlsTechnology/eunomia
     ref: master
@@ -177,10 +181,19 @@ For certificate based authentication, create the following `.gitconfig`:
 
 ```ini
 [core]
-    sshCommand = 'ssh -i /template-gitconfig/mykey.rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no'
+    sshCommand = "ssh -i /template-gitconfig/mykey.rsa -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no"
 ```
 
 and add the `mykey.rsa` file to the secret.
+
+## Job templates
+
+For Eunomia to work properly there is a need for a specific [`Job`](https://kubernetes.io/docs/concepts/workloads/controllers/jobs-run-to-completion/) or a [`CronJob`](https://kubernetes.io/docs/concepts/workloads/controllers/cron-jobs/).
+
+A [`Job default template`](./build/job-templates/job.yaml) and a [`CronJob default template`](./build/job-templates/cronjob.yaml) are built into the Dockerfile.
+
+If you want to provide your own job templates, set the env variables `JOB_TEMPLATE` and `CRONJOB_TEMPLATE`. Their values should be set to paths, where appropriate yaml files can be found.
+The files themselves have to be accessible in the pod. To achieve this, you can for instance [`add ConfigMap data to a Volume`](https://kubernetes.io/docs/tasks/configure-pod-container/configure-pod-configmap/#add-configmap-data-to-a-volume).
 
 ## Triggers
 
@@ -191,6 +204,15 @@ You can enable one or multiple triggers.
 |`Change` | This triggers every time the CR is changed, including when it is created.|
 |`Periodic` | Periodically apply the configuration. This can be used to either schedule changes for a specific time, use it for drift management to revert any changes, or as a safeguard in case webhooks were missed. It uses a cron-style expression.
 |`Webhook` | This triggers when something on git changes. You have to configure the webhook yourself.
+
+### GitHub webhook configuration
+
+To set up GitHub webhook follow this [GitHub documentation](https://developer.github.com/webhooks/creating/). 
+Create route on port 8080 to eunomia-service and use this route as GitHub webhook `Payload URL` with added webhook/ endpoint at the end.
+
+Content type needs to be set to `application/json`.
+
+Choose `Just the push event` to trigger webhook.
 
 ## Template Engine
 
@@ -237,10 +259,12 @@ This is the service account used by the job pod that will process the resources.
 
 This field specifies how resources should be handled, once the templates are processed. The following modes are currently supported:
 
-1. `CreateOrMerge`, which is roughly equivalent to `kubectl apply`.
-2. `CreateOrUpdate`, which will overwrite any existing configuration.
-3. `Patch`. Patch requires objects to already exists and will patch them. It's useful when customizing objects that are provided through other means.
-4. `None`. In some cases there may be template processors or automation frameworks where the processing of templates and handling of generated resources are a single step. In that case, Eunomia can be configured to skip the built-in resource handling step.
+1. `Apply`, which is roughly equivalent to `kubectl apply`. Additionally, auto-detection of resources removed from git is performed, and they're deleted from the cluster. This is done by marking all the resources with a custom label, and removing resources for which the label was not touched by `kubectl apply`.
+2. `Patch`. Patch requires objects to already exists and will patch them. It's useful when customizing objects that are provided through other means.
+3. `Create`, equivalent to `kubectl create`. Template processors which take over the resource handling phase are not required to support this mode.
+4. `Replace`, equivalent to `kubectl replace`. Template processors which take over the resource handling phase are not required to support this mode.
+5. `Delete`, equivalent to `kubectl delete`. Template processors which take over the resource handling phase are not required to support this mode.
+6. `None`. In some cases there may be template processors or automation frameworks where the processing of templates and handling of generated resources are a single step. In that case, Eunomia can be configured to skip the built-in resource handling step.
 
 ## Resource Deletion Mode
 
@@ -261,20 +285,47 @@ Simply use the helm chart to install it on your flavor of Kubernetes.
 helm template deploy/helm/eunomia-operator/ | kubectl apply -f -
 ```
 
+#### Installing with Kubernetes Ingress
+
+Update [values.yaml](deploy/helm/eunomia-operator/values.yaml) file for ingress configuration. If you doesn't want to change the file we can enabled ingress from command line as well.
+
+For running with default configuration
+
+```shell
+# Enabling eunomia ingress
+helm template deploy/helm/eunomia-operator/ --set eunomia.operator.ingress.enabled=true | kubectl apply -f - -n eunomia-operator
+```
+
+Also, you can pass the ingress configuration in command line itself. For example:-
+
+```shell
+# Updating eunomia ingress configuration
+helm template deploy/helm/eunomia-operator/ --set eunomia.operator.ingress.enabled=true \
+--set eunomia.operator.ingress.hosts[0].host=hello-eunomia.info \
+--set eunomia.operator.ingress.hosts[0].paths[0].path=/ \
+--set eunomia.operator.ingress.hosts[0].paths[0].portName=webhook \
+--set eunomia.operator.ingress.hosts[0].paths[1].path=/metrics \
+--set eunomia.operator.ingress.hosts[0].paths[1].portName=metrics | kubectl apply -f - -n eunomia-operator
+```
+
+Replace the host `hello-eunomia.info` with suitable DNS name.
+
 ### Installing on OpenShift
 
 Use the below command to install Eunomia on OpenShift. This will also give you the route for the ingress webhook.
 
 ```shell
 # Deploy the operator
-helm template deploy/helm/eunomia-operator/ --set openshift.route.enabled=true | oc apply -f -
+helm template deploy/helm/eunomia-operator/ --set eunomia.operator.openshift.route.enabled=true | oc apply -f -
 ```
 
 ## Examples / Demos
 
 We've created several examples for you to test out Eunomia. See [EXAMPLES](examples/README.md) for details.
 
-## Monitoring with Prometheus
+## Monitoring
+
+### Monitoring with Prometheus
 
 [Prometheus](https://prometheus.io/) is an open-source systems monitoring and alerting toolkit.
 
@@ -292,7 +343,7 @@ By default, the metrics in Operator SDK are exposed on `0.0.0.0:8383/metrics`
 
 For more information, see [Metrics in Operator SDK](https://github.com/operator-framework/operator-sdk/blob/v0.8.1/doc/user/metrics/README.md)
 
-### Usage:
+#### Usage:
 
 ```
 scrape_configs:
@@ -306,10 +357,17 @@ scrape_configs:
 ```
 You can find additional examples on their [GitHub page](https://github.com/prometheus/prometheus/blob/master/documentation/examples/prometheus-kubernetes.yml).
 
-### Verify metrics port:
+#### Verify metrics port:
 kubectl exec `POD-NAME` curl localhost:8383/metrics  -n `NAMESPACE`
 
 (e.g. `kubectl exec eunomia-operator-5b9b664cfc-6rdrh curl localhost:8383/metrics  -n test-eunomia-operator`)
+
+### Kubernetes Events
+
+Eunomia emits the following events in the namespace of the GitOpsConfig CR:
+
+  - JobSuccessful - when a Job applying the CR finished successfully
+  - JobFailed - when a Job applying the CR has finished with a failure (after all retries have failed)
 
 ## Development
 

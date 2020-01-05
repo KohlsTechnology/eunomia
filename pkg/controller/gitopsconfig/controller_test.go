@@ -21,8 +21,6 @@ import (
 	"os"
 	"testing"
 
-	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	test "github.com/KohlsTechnology/eunomia/test"
 	"github.com/stretchr/testify/assert"
 	batch "k8s.io/api/batch/v1"
 	batchv1 "k8s.io/api/batch/v1"
@@ -36,6 +34,9 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
+
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/KohlsTechnology/eunomia/test"
 )
 
 var gitops *gitopsv1alpha1.GitOpsConfig
@@ -86,7 +87,7 @@ func TestMain(m *testing.M) {
 			ServiceAccountRef:      "mysvcaccount",
 			ResourceDeletionMode:   "Cascade",
 			TemplateProcessorImage: "myimage",
-			ResourceHandlingMode:   "CreateOrMerge",
+			ResourceHandlingMode:   "Apply",
 		},
 	}
 
@@ -337,7 +338,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	r.Reconcile(req)
 
 	// Add a finalizer to the CRD
-	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "eunomia-finalizer")
+	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
 	err := cl.Update(context.Background(), gitops)
 	if err != nil {
 		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")
@@ -422,7 +423,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	}
 
 	// Add a finalizer to the CRD
-	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "eunomia-finalizer")
+	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
 	err = cl.Update(context.Background(), gitops)
 	if err != nil {
 		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")
@@ -507,7 +508,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	}
 
 	// Add a finalizer to the CRD
-	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "eunomia-finalizer")
+	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
 	err = cl.Update(context.Background(), gitops)
 	if err != nil {
 		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")

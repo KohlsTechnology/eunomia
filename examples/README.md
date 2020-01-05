@@ -6,7 +6,7 @@ Here are some basic examples for you to try out and get a feel for what Eunomia 
 
 ### Install the Operator
 
-Before you can execute any of the hello-world examples, you need to install the operator first.
+Before you can execute any of the hello-world examples, you need to install the operator first. You'll be using the latest eunomia-operator image from [this repo](https://quay.io/repository/kohlstechnology/eunomia-operator?tab=tags).
 
 ```shell
 # Deploy the operator
@@ -20,9 +20,11 @@ kubectl -n eunomia-operator logs deployment/eunomia-operator
 ```
 ## Try it out
 
-[Static yaml file](hello-world-yaml) 
+[Static yaml file](hello-world-yaml)
 
-[Helm chart with parameters](hello-world-helm) 
+[Helm chart with parameters](hello-world-helm)
+
+[Using the openshift-provision ansible role](openshift-provision)
 
 [Helm chart with hierarchical parameters](hello-world-hierarchy) 
 

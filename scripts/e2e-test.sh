@@ -18,12 +18,21 @@ set -euxo pipefail
 
 export EUNOMIA_PATH=$(cd "${0%/*}/.." ; pwd)
 
-export JOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/eunomia-operator/job-templates/job.yaml
-export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/deploy/helm/eunomia-operator/job-templates/cronjob.yaml
+export JOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/job.yaml
+export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export TEST_NAMESPACE=test-eunomia-operator
 export GO111MODULE=on
+
+# If we're called as part of CI build on a PR, make sure we test the resources
+# (templates etc.) from the PR, instead of the master branch of the main repo
+if [ "${TRAVIS_PULL_REQUEST_BRANCH:-}" ]; then
+  export EUNOMIA_URI="https://github.com/${TRAVIS_PULL_REQUEST_SLUG}"
+  export EUNOMIA_REF="${TRAVIS_PULL_REQUEST_BRANCH}"
+fi
+echo "EUNOMIA_URI=${EUNOMIA_URI:-}"
+echo "EUNOMIA_REF=${EUNOMIA_REF:-}"
 
 # Ensure minikube is running
 #minikube start
@@ -36,7 +45,7 @@ fi
 # Pre-populate the Docker registry in minikube with images built from the current commit
 # See also: https://stackoverflow.com/q/42564058
 eval $(minikube docker-env)
-make e2e-test-images
+GOOS=linux make e2e-test-images
 
 helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.deployment.enabled= \
@@ -50,6 +59,7 @@ helm template deploy/helm/eunomia-operator/ \
 
 helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.image.tag=dev \
+  --set eunomia.operator.image.pullPolicy=Never \
   --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
 
 kubectl wait --for=condition=available --timeout=30s deployment/eunomia-operator -n $TEST_NAMESPACE

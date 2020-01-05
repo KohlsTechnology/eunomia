@@ -16,6 +16,9 @@
 
 set -euxo pipefail
 
+TAG_OWNER="gitopsconfig.eunomia.kohls.io/owner"
+TAG_APPLIED="gitopsconfig.eunomia.kohls.io/applied"
+
 # this is needed because we want the current namespace to be set as default if a namespace is not specified.
 function setContext {
   $kubectl config set-context current --namespace="$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)"
@@ -30,25 +33,66 @@ function kube {
     "$@"
 }
 
-function deleteResources {
-  #first we need to delete the GitOpsConfig resources whose finalizer might not get called otherwise
-  for file in $(find "$MANIFEST_DIR" -iregex '.*\.yaml'); do
-    cat "$file" | yq 'select(.kind == "GitOpsConfig")' | kube delete -f - --wait=true
+# addLabels OWNER TIMESTAMP - patches the YAML&JSON files in $MANIFEST_DIR,
+# adding labels tracking the OWNER and TIMESTAMP. The labels are intended to be
+# used later in function deleteByOldLabels.
+function addLabels {
+  local owner="$1"
+  local timestamp="$2"
+  local tmpdir="$(mktemp -d)"
+  for file in $(find "$MANIFEST_DIR" -iregex '.*\.\(ya?ml\|json\)'); do
+    cat "$file" |
+      yq -y -s "map(select(.!=null)|setpath([\"metadata\",\"labels\",\"$TAG_OWNER\"]; \"$owner\"))|.[]" |
+      yq -y -s "map(select(.!=null)|setpath([\"metadata\",\"labels\",\"$TAG_APPLIED\"]; \"$timestamp\"))|.[]" \
+      > "$tmpdir/labeled"
+    # We must use a helper file (can't do this in single step), as the file would be truncated if we read & write from it in one pipeline
+    cat "$tmpdir/labeled" > "$file"
   done
-  kube delete -R -f "$MANIFEST_DIR"
+}
+
+# deleteByOldLabels OWNER [TIMESTAMP] - deletes all kubernetes resources which have
+# the OWNER label as provided [optional: but TIMESTAMP label different than provided].
+function deleteByOldLabels {
+  local owner="$1"
+  local timestamp="${2:-}"
+  # NOTE: removing componentstatus because it shows up unintended in ownedKinds: https://github.com/kubernetes/kubectl/issues/151#issuecomment-562578617
+  local allKinds="$(kube api-resources --verbs=list -o name  | egrep -iv '^componentstatus(es)?$' | paste -sd, -)"
+  local ownedKinds="$(kube get "$allKinds" --ignore-not-found \
+      -l "$TAG_OWNER==$owner" \
+      -o custom-columns=kind:.kind \
+      --no-headers=true |
+    sort -u |
+    paste -sd, -)"
+  if [ -z "$ownedKinds" ]; then
+    return
+  fi
+  local filter="${TAG_OWNER}==${owner}"
+  if [[ "${timestamp}" ]]; then
+    filter="${filter},${TAG_APPLIED}!=${timestamp}"
+  fi
+  kube delete "${ownedKinds}" -l "${filter}"
 }
 
 function createUpdateResources {
+  local owner="$1"
+  local timestamp="$(date +%s)"
   case "$CREATE_MODE" in
-    CreateOrMerge)
+    Apply)
+      addLabels "$owner" "$timestamp"
       kube apply -R -f "$MANIFEST_DIR"
+      deleteByOldLabels "$owner" "$timestamp"
       ;;
-    CreateOrUpdate)
+    Create)
       kube create -R -f "$MANIFEST_DIR"
-      kube update -R -f "$MANIFEST_DIR"
+      ;;
+    Delete)
+      kube delete -R -f "$MANIFEST_DIR"
       ;;
     Patch)
       kube patch -R -f "$MANIFEST_DIR"
+      ;;
+    Replace)
+      kube replace -R -f "$MANIFEST_DIR"
       ;;
   esac
 }
@@ -60,8 +104,13 @@ fi
 
 echo "Managing Resources"
 setContext
+# NOTE: Kubernetes currently requires that first *and last* character of
+# label values are alphanumerical - we're adding the "own" prefix & suffix to
+# ensure that. Also, Kubernetes requires it to be <=63 chars long, so we're
+# taking a MD5 hash of actual name (MD5 hash is 33 chars long).
+# See: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#syntax-and-character-set
+owner="own.$( echo "$NAMESPACE $GITOPSCONFIG_NAME" | md5sum | awk '{print$1}' ).own"
 case "$ACTION" in
-  create) createUpdateResources;;
-  delete) deleteResources;;
+  create) createUpdateResources "$owner";;
+  delete) deleteByOldLabels "$owner";;
 esac
-

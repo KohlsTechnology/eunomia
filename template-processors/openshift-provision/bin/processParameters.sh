@@ -16,4 +16,8 @@
 
 set -euxo pipefail
 
-date -u +"%Y-%m-%dT%H:%M:%SZ"
+echo "Processing parameters in ${CLONED_PARAMETER_GIT_DIR}"
+
+ansible-playbook /files/processParameters.yml \
+    ${TEMPLATE_PROCESSOR_ARGS:-} \
+    -e parameter_directory="${CLONED_PARAMETER_GIT_DIR}"

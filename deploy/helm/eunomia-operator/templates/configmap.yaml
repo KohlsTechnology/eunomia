@@ -1,9 +1,0 @@
-{{- with .Values.eunomia.operator }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: job-templates
-  namespace: {{ .namespace }}
-data:
-  {{- ( $.Files.Glob "job-templates/*.yaml").AsConfig | nindent 2 }}
-{{- end }}

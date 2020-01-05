@@ -60,18 +60,24 @@ spec:
               type: string
             resourceHandlingMode:
               description: ResourceHandlingMode represents how resource creation/update
-                should be handled. Supported values are CreateOrMerge,CreateOrUpdate,Patch,None.
-                Default is CreateOrMerge.
+                should be handled. Supported values are Apply,Create,Delete,Patch,Replace,None.
+                Default is Apply.
               enum:
-              - CreateOrMerge
-              - CreateOrUpdate
+              - Apply
+              - Create
+              - Delete
               - Patch
+              - Replace
               - None
               type: string
             serviceAccountRef:
               description: ServiceAccountRef references to the service account under
                 which the template engine job will run, it must exists in the namespace
                 in which this CR is created
+              type: string
+            templateProcessorArgs:
+              description: TemplateProcessorArgs references to the run time parameters,
+                we can pass additional arguments/flags to the template processor.
               type: string
             templateProcessorImage:
               description: TemplateEngine, the gitops operator config map contains
@@ -103,7 +109,7 @@ spec:
               items:
                 properties:
                   cron:
-                    description: creon expression only valid with the Periodic type
+                    description: cron expression only valid with the Periodic type
                     type: string
                   secret:
                     description: webhook secret only valid with webhook type
@@ -119,6 +125,20 @@ spec:
               type: array
           type: object
         status:
+          properties:
+            completionTime:
+              format: date-time
+              type: string
+            lastScheduleTime:
+              format: date-time
+              type: string
+            message:
+              type: string
+            startTime:
+              format: date-time
+              type: string
+            state:
+              type: string
           type: object
   version: v1alpha1
   versions:

@@ -1,0 +1,18 @@
+apiVersion: eunomia.kohls.io/v1alpha1
+kind: GitOpsConfig
+metadata:
+  name: openshift-provision-args
+spec:
+  templateProcessorArgs: "-e cluster_name=my_cluster_name"
+  templateSource:
+    uri: https://github.com/KohlsTechnology/eunomia
+    ref: master
+    contextDir: examples/openshift-provision/
+  parameterSource:
+    ref: master
+    contextDir: examples/openshift-provision/
+  triggers:
+  - type: Change
+  serviceAccountRef: eunomia-runner
+  templateProcessorImage: quay.io/kohlstechnology/openshift-provision:latest
+  resourceHandlingMode: None

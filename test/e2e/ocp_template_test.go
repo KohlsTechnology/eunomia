@@ -18,14 +18,14 @@ package e2e
 
 import (
 	goctx "context"
-	"fmt"
 	"os"
 	"testing"
 
-	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	test "github.com/KohlsTechnology/eunomia/test"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	"github.com/KohlsTechnology/eunomia/pkg/apis"
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 )
 
 /*
@@ -35,16 +35,14 @@ TODO create a make file and have a specific minihift-e2e-test, the below  test d
 func disabledOCPTemplate(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
-	test.AddToFrameworkSchemeForTests(t, ctx)
-	if err := ocpTemplateTestDeploy(t, framework.Global, ctx); err != nil {
-		t.Fatal(err)
-	}
-}
 
-func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.TestCtx) error {
 	namespace, err := ctx.GetNamespace()
 	if err != nil {
-		return fmt.Errorf("could not get namespace: %v", err)
+		t.Fatalf("could not get namespace: %v", err)
+	}
+	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	if err != nil {
+		t.Fatal(err)
 	}
 
 	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
@@ -70,30 +68,31 @@ func ocpTemplateTestDeploy(t *testing.T, f *framework.Framework, ctx *framework.
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/configs/simple/templates",
+				ContextDir: "test/e2e/testdata/simple/templates",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/configs/simple/parameters",
+				ContextDir: "test/e2e/testdata/simple/parameters",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
-				{
-					Type: "Change",
-				},
+				{Type: "Change"},
 			},
 			ResourceDeletionMode:   "Delete",
 			TemplateProcessorImage: " quay.io/kohlstechnology/eunomia-ocp-templates:dev",
-			ResourceHandlingMode:   "CreateOrMerge",
+			ResourceHandlingMode:   "Apply",
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
-	err = f.Client.Create(goctx.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(goctx.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
-		return err
+		t.Fatal(err)
 	}
 
-	return WaitForPod(t, f, ctx, namespace, "helloworld", retryInterval, timeout)
+	err = WaitForPod(t, framework.Global, namespace, "helloworld", retryInterval, timeout)
+	if err != nil {
+		t.Error(err)
+	}
 }

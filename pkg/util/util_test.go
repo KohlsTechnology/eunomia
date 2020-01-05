@@ -66,12 +66,12 @@ var fullconfig = JobMergeData{
 			ServiceAccountRef:      "mysvcaccount",
 			ResourceDeletionMode:   "Cascade",
 			TemplateProcessorImage: "myimage",
-			ResourceHandlingMode:   "CreateOrMerge",
+			ResourceHandlingMode:   "Apply",
 		},
 	},
 }
 
-const templateFile string = "../../deploy/helm/eunomia-operator/job-templates/job.yaml"
+const templateFile string = "../../build/job-templates/job.yaml"
 
 func TestFullConfig(t *testing.T) {
 	text, err := ioutil.ReadFile(templateFile)

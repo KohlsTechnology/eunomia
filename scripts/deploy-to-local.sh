@@ -16,4 +16,28 @@
 
 set -euxo pipefail
 
-hostname -f
+# This scripts helps with deploying images locally to minikube or minishift docker registry.
+usage() {
+    cat <<EOT
+deploy-to-local.sh minikube|minishift
+
+Build template-processors and eunomia-operator images and deploy them to
+a local minikube or minishift docker registry.
+EOT
+}
+
+if [[ ! "${1:-}" ]]; then
+    usage
+    exit 1
+fi
+
+if [[ "$1" == minikube ]]; then
+    eval $(minikube docker-env)
+elif [[ "$1" == minishift ]]; then
+    eval $(minishift docker-env)
+else
+    usage
+    exit 1
+fi
+
+"$(dirname "$0")/build-images.sh" quay.io/kohlstechnology

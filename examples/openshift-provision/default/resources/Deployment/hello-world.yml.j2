@@ -1,0 +1,20 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: hello-world
+  cluster_name: {{ cluster }}
+spec:
+  replicas: {{ hello_world_replica_count }}
+  selector:
+    matchLabels:
+      name: hello-world
+  template:
+    metadata:
+      labels:
+        name: hello-world
+    spec:
+      containers:
+        - name: hello-world
+          image: gcr.io/google-samples/hello-app:{{ hello_world_image_version }}
+          imagePullPolicy: IfNotPresent
