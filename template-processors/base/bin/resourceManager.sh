@@ -70,7 +70,7 @@ function deleteByOldLabels {
   if [[ "${timestamp}" ]]; then
     filter="${filter},${TAG_APPLIED}!=${timestamp}"
   fi
-  kube delete "${ownedKinds}" -l "${filter}"
+  kube delete --wait=false "${ownedKinds}" -l "${filter}"
 }
 
 function createUpdateResources {
@@ -86,7 +86,7 @@ function createUpdateResources {
       kube create -R -f "$MANIFEST_DIR"
       ;;
     Delete)
-      kube delete -R -f "$MANIFEST_DIR"
+      kube delete --wait=false -R -f "$MANIFEST_DIR"
       ;;
     Patch)
       kube patch -R -f "$MANIFEST_DIR"
