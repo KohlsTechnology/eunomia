@@ -1,0 +1,67 @@
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: eunomia-operator
+  namespace: eunomia-operator
+rules:
+# leader election
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  - pods
+  verbs:
+  - "*"
+#Metrics
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - "*"
+#Metrics
+- apiGroups:
+  - "apps"
+  resources:
+  - replicasets
+  - deployments
+  verbs:
+  - "*"
+# Metrics
+- apiGroups:
+  - monitoring.coreos.com
+  resources:
+  - servicemonitors
+  verbs:
+  - "get"
+  - "create"
+# Metrics
+- apiGroups:
+  - apps
+  resources:
+  - deployments/finalizers
+  resourceNames:
+  - eunomia-operator
+  verbs:
+  - "update"
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: eunomia-operator
+rules:
+# needed by operator logic to manage the runners
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  - cronjobs
+  verbs:
+  - '*'
+# operator's resources
+- apiGroups:
+  - eunomia.kohls.io
+  resources:
+  - '*'
+  verbs:
+  - '*'
