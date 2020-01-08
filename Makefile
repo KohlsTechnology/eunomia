@@ -60,7 +60,7 @@ test-e2e:
 
 .PHONY: test-unit
 test-unit:
-	./scripts/unit-tests.sh
+	go test -v ./pkg/...
 
 # Install CRDs into a cluster
 .PHONY: install
