@@ -19,6 +19,7 @@ package gitopsconfig
 import (
 	"context"
 	goerrors "errors"
+	"sync"
 	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -35,7 +36,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
-	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -45,6 +45,7 @@ import (
 )
 
 var log = logf.Log.WithName(controllerName)
+var instanceMap sync.Map
 
 const (
 	tagInitialized string = "gitopsconfig.eunomia.kohls.io/initialized"
@@ -83,8 +84,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	err = c.Watch(
 		&source.Kind{Type: &gitopsv1alpha1.GitOpsConfig{}},
 		&handler.EnqueueRequestForObject{},
-		// TODO: once we update to sigs.k8s.io/controller-runtime >=0.2.0, use their
-		// .../pkg/predicate.GenerationChangedPredicate instead of rewriting it on our own
+	// TODO: once we update to sigs.k8s.io/controller-runtime >=0.2.0, use their
+	// .../pkg/predicate.GenerationChangedPredicate instead of rewriting it on our own
 		predicate.Funcs{
 			UpdateFunc: func(e event.UpdateEvent) bool {
 				if e.MetaOld == nil {
@@ -213,14 +214,21 @@ func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 		Config: *instance,
 		Action: jobtype,
 	}
+	if _, ok := instanceMap.Load(instance.Name + "_" + instance.Namespace); ok {
+		log.Info("Job is already running for the instance" + instance.Name)
+		return nil
+	}
+	instanceMap.Store(instance.Name+"_"+instance.Namespace, true)
 	job, err := util.CreateJob(mergedata)
 	if err != nil {
 		log.Error(err, "unable to create job manifest from merge data", "mergedata", mergedata)
+		instanceMap.Delete(instance.Name + "_" + instance.Namespace)
 		return err
 	}
 	err = controllerutil.SetControllerReference(instance, &job, r.scheme)
 	if err != nil {
 		log.Error(err, "unable to the owner for job", "job", job)
+		instanceMap.Delete(instance.Name + "_" + instance.Namespace)
 		return err
 	}
 
@@ -228,6 +236,7 @@ func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 	err = r.client.Create(context.TODO(), &job)
 	if err != nil {
 		log.Error(err, "unable to create the job", "job", job)
+		instanceMap.Delete(instance.Name + "_" + instance.Namespace)
 		return err
 	}
 	go watchJobForStatus(r.client, job.Name, job.Namespace, instance.Name, instance.Namespace, time.Time{})
