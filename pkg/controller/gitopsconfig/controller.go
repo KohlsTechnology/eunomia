@@ -36,6 +36,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
@@ -84,8 +85,8 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	err = c.Watch(
 		&source.Kind{Type: &gitopsv1alpha1.GitOpsConfig{}},
 		&handler.EnqueueRequestForObject{},
-	// TODO: once we update to sigs.k8s.io/controller-runtime >=0.2.0, use their
-	// .../pkg/predicate.GenerationChangedPredicate instead of rewriting it on our own
+		// TODO: once we update to sigs.k8s.io/controller-runtime >=0.2.0, use their
+		// .../pkg/predicate.GenerationChangedPredicate instead of rewriting it on our own
 		predicate.Funcs{
 			UpdateFunc: func(e event.UpdateEvent) bool {
 				if e.MetaOld == nil {
