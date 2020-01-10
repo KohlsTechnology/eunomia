@@ -19,7 +19,6 @@ package gitopsconfig
 import (
 	"context"
 	goerrors "errors"
-	"sync"
 	"time"
 
 	batchv1 "k8s.io/api/batch/v1"
@@ -46,7 +45,6 @@ import (
 )
 
 var log = logf.Log.WithName(controllerName)
-var instanceMap sync.Map
 
 const (
 	tagInitialized string = "gitopsconfig.eunomia.kohls.io/initialized"
@@ -189,10 +187,11 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 
 	if ContainsTrigger(instance, "Change") || ContainsTrigger(instance, "Webhook") {
 		reqLogger.Info("Instance has a change or Webhook trigger, creating job", "instance", instance.GetName())
-		err = r.createJob("create", instance)
+		reconcileResult, err := r.createJob("create", instance)
 		if err != nil {
 			reqLogger.Error(err, "error creating the job, continuing...")
 		}
+		return reconcileResult, err
 	}
 
 	return reconcile.Result{}, err
@@ -209,39 +208,51 @@ func ContainsTrigger(instance *gitopsv1alpha1.GitOpsConfig, triggeType string) b
 }
 
 // createJob creates a new gitops job for the passed instance
-func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) error {
+func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
 	//TODO add logic to ignore if another job was created sooner than x (5 minutes?) time and it is still running.
 	mergedata := util.JobMergeData{
 		Config: *instance,
 		Action: jobtype,
 	}
-	if _, ok := instanceMap.Load(instance.Name + "_" + instance.Namespace); ok {
-		log.Info("Job is already running for the instance" + instance.Name)
-		return nil
+	// looking up for running jobs
+	jobList := &batchv1.JobList{}
+	err = r.client.List(context.TODO(), &client.ListOptions{
+		Namespace: instance.Namespace,
+	}, jobList)
+
+	if err != nil {
+		log.Error(err, "unable to list the jobs")
+		return reconcile.Result{}, err
 	}
-	instanceMap.Store(instance.Name+"_"+instance.Namespace, true)
+
+	for _, jobFromList := range jobList.Items {
+		if isOwner(instance, &jobFromList.ObjectMeta) {
+			if jobFromList.Status.Active != 0 {
+				log.Info("Job is runnning for this instance...." + instance.Name)
+				return reconcile.Result{Requeue: true}, nil
+			}
+		}
+
+	}
 	job, err := util.CreateJob(mergedata)
 	if err != nil {
 		log.Error(err, "unable to create job manifest from merge data", "mergedata", mergedata)
-		instanceMap.Delete(instance.Name + "_" + instance.Namespace)
-		return err
+		return reconcile.Result{}, err
 	}
 	err = controllerutil.SetControllerReference(instance, &job, r.scheme)
 	if err != nil {
 		log.Error(err, "unable to the owner for job", "job", job)
-		instanceMap.Delete(instance.Name + "_" + instance.Namespace)
-		return err
+		return reconcile.Result{}, err
 	}
 
 	log.Info("Creating a new Job", "job.Namespace", job.Namespace, "job.Name", job.Name)
 	err = r.client.Create(context.TODO(), &job)
 	if err != nil {
 		log.Error(err, "unable to create the job", "job", job)
-		instanceMap.Delete(instance.Name + "_" + instance.Namespace)
-		return err
+		return reconcile.Result{}, err
 	}
 	go watchJobForStatus(r.client, job.Name, job.Namespace, instance.Name, instance.Namespace, time.Time{})
-	return nil
+	return reconcile.Result{}, nil
 }
 
 func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error {
@@ -416,7 +427,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 			return reconcile.Result{}, nil
 		}
 		log.Info("Launching delete job for instance", "instance", instance.GetName())
-		err = r.createJob("delete", instance)
+		_, err = r.createJob("delete", instance)
 		if err != nil {
 			log.Error(err, "unable to create deletion job")
 			return reconcile.Result{}, err
