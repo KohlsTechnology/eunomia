@@ -144,7 +144,6 @@ func watchJobForStatus(client client.Client, jobName string, namespace string, i
 	}
 	job.watchjob(instanceName, instanceNamespace)
 	runningJobMap.Delete(jobName)
-	instanceMap.Delete(instanceName + "_" + instanceNamespace)
 }
 
 //Watching the job for the get the appropriate status.
