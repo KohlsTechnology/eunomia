@@ -24,6 +24,7 @@ import (
 	"gopkg.in/robfig/cron.v2"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
+	"k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
@@ -159,8 +160,7 @@ func (job *jobmonitor) watchjob(instanceName, instanceNamespace string) {
 		time.Sleep(10 * time.Second)
 		jobState, err := job.checkResult()
 		if err != nil {
-			// FIXME: change below error message detection to something more robust, string matching is super flaky
-			if err.Error() == `Job.batch "`+instanceName+`" not found` {
+			if errors.IsNotFound(err) {
 				log.Info("The job has been deleted")
 				break
 			}
