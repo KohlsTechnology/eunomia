@@ -216,23 +216,21 @@ func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 	}
 	// looking up for running jobs
 	jobList := &batchv1.JobList{}
-	err = r.client.List(context.TODO(), &client.ListOptions{
+	err := r.client.List(context.TODO(), &client.ListOptions{
 		Namespace: instance.Namespace,
 	}, jobList)
-
 	if err != nil {
 		log.Error(err, "unable to list the jobs")
 		return reconcile.Result{}, err
 	}
-
-	for _, jobFromList := range jobList.Items {
-		if isOwner(instance, &jobFromList.ObjectMeta) {
-			if jobFromList.Status.Active != 0 {
-				log.Info("Job is runnning for this instance...." + instance.Name)
-				return reconcile.Result{Requeue: true}, nil
-			}
+	for _, j := range jobList.Items {
+		if isOwner(instance, &j.ObjectMeta) && j.Status.Active != 0 {
+			log.Info("Job is already running for this instance, postponing new job creation", "instance", instance.Name, "job", j.Name)
+			return reconcile.Result{
+				Requeue:      true,
+				RequeueAfter: time.Second * 5,
+			}, nil
 		}
-
 	}
 	job, err := util.CreateJob(mergedata)
 	if err != nil {
