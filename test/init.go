@@ -18,7 +18,8 @@ package test
 
 import (
 	"flag"
-	"os"
+	"path/filepath"
+	"runtime"
 
 	"github.com/KohlsTechnology/eunomia/pkg/util"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
@@ -31,6 +32,7 @@ import (
 func Initialize() {
 
 	logf.Log.Info("Initializing Test")
+
 	// Add the zap logger flag set to the CLI. The flag set must
 	// be added before calling pflag.Parse().
 	pflag.CommandLine.AddFlagSet(zap.FlagSet())
@@ -52,13 +54,10 @@ func Initialize() {
 	logf.SetLogger(zap.Logger())
 
 	// initialize the templates
-	jt, found := os.LookupEnv("JOB_TEMPLATE")
-	if !found {
-		logf.Log.Info("Error: JOB_TEMPLATE must be set")
-	}
-	cjt, found := os.LookupEnv("CRONJOB_TEMPLATE")
-	if !found {
-		logf.Log.Info("Error: CRONJOB_TEMPLATE must be set")
-	}
-	util.InitializeTemplates(jt, cjt)
+	_, initFilename, _, _ := runtime.Caller(0)
+	eunomiaRoot := filepath.Join(filepath.Dir(initFilename), "..")
+	util.InitializeTemplates(
+		filepath.Join(eunomiaRoot, "./build/job-templates/job.yaml"),
+		filepath.Join(eunomiaRoot, "./build/job-templates/cronjob.yaml"),
+	)
 }

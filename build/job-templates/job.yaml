@@ -92,6 +92,13 @@ spec:
         - name: parameter-gitconfig
           mountPath: /parameter-gitconfig
 {{ end }}          
+        resources:
+          requests:
+            cpu: '200m'
+            memory: '256Mi'
+          limits:
+            cpu: '200m'
+            memory: '256Mi'
       volumes:
       - name: workspace
         emptyDir: {}

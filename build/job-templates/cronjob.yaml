@@ -90,7 +90,14 @@ spec:
 {{ if .Config.Spec.ParameterSource.SecretRef }}
             - name: parameter-gitconfig
               mountPath: /parameter-gitconfig
-{{ end }}               
+{{ end }}
+            resources:
+              requests:
+                cpu: '200m'
+                memory: '256Mi'
+              limits:
+                cpu: '200m'
+                memory: '256Mi'
           volumes:
           - name: workspace
             emptyDir: {}
@@ -103,7 +110,7 @@ spec:
           - name: parameter-gitconfig
             secret:
               secretName: {{ .Config.Spec.ParameterSource.SecretRef }}
-{{ end }}             
+{{ end }}
           restartPolicy: Never
           serviceAccountName: {{ .Config.Spec.ServiceAccountRef }}
       backoffLimit: 4
