@@ -12,16 +12,15 @@ export community_fork=<a-fork-of-community-operator>
 An example could be:-
 
 ```shell
-export new_version=0.1.0
-export old_version=0.1.1
+export new_version=0.1.1
+export old_version=0.1.0
 export quay_test_repo=kohls_technology
 export community_fork=KohlsTechnology
 ```
+
 ## Create new CSV
 
-I wasn't able to automate this set of steps, unfortunately.
-
-update the [`deploy/operator.yaml`](../deploy/operator.yaml) with the image tag of the version you are about to release. Also update anything else that might have change in this release in the manifests.
+Update the [`deploy/operator.yaml`](../deploy/operator.yaml) with the image tag of the version you are about to release. Also update anything else that might have change in this release in the manifests.
 
 run the following:
 
@@ -37,8 +36,11 @@ operator-courier --verbose verify deploy/olm-catalog/eunomia
 operator-courier --verbose verify --ui_validate_io deploy/olm-catalog/eunomia
 ```
 
-## Test new CSV
+Reference link:-
 
+https://github.com/operator-framework/operator-sdk/blob/master/doc/user/olm-catalog/generating-a-csv.md#configuration
+
+## Test new CSV
 Test what the operator would look like in OperatorHub, by going to this [site](https://operatorhub.io/preview) and pasting content of the newly-generated csv file
 
 Test the operator deployment process from OperatorHub
@@ -65,7 +67,9 @@ Deploy the operator source
 envsubst < deploy/olm-catalog/operator-source.yaml | oc apply -f -
 ```
 
-Now you should see the operator in the operator catalog, follow the normal installation process from here.
+Reference Link:-
+
+https://github.com/operator-framework/community-operators/blob/master/docs/testing-operators.md
 
 ## Pushing the new CSV to OperatorHub
 
