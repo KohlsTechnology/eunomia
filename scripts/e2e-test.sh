@@ -16,42 +16,9 @@
 
 set -euxo pipefail
 
-export EUNOMIA_PATH=$(cd "${0%/*}/.." ; pwd)
+go test ./test/e2e/... -tags xd -v
 
-export JOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/job.yaml
-export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/cronjob.yaml
-export WATCH_NAMESPACE=""
-export OPERATOR_NAME=eunomia-operator
 export TEST_NAMESPACE=test-eunomia-operator
-export GO111MODULE=on
-
-# If we're called as part of CI build on a PR, make sure we test the resources
-# (templates etc.) from the PR, instead of the master branch of the main repo
-if [ "${TRAVIS_PULL_REQUEST_BRANCH:-}" ]; then
-  export EUNOMIA_URI="https://github.com/${TRAVIS_PULL_REQUEST_SLUG}"
-  export EUNOMIA_REF="${TRAVIS_PULL_REQUEST_BRANCH}"
-fi
-echo "EUNOMIA_URI=${EUNOMIA_URI:-}"
-echo "EUNOMIA_REF=${EUNOMIA_REF:-}"
-
-# Ensure minikube is running
-#minikube start
-
-# Ensure clean workspace
-if [[ $(kubectl get namespace $TEST_NAMESPACE) ]]; then
-    kubectl delete namespace $TEST_NAMESPACE
-fi
-
-# Pre-populate the Docker registry in minikube with images built from the current commit
-# See also: https://stackoverflow.com/q/42564058
-eval $(minikube docker-env)
-GOOS=linux make e2e-test-images
-
-helm template deploy/helm/eunomia-operator/ \
-  --set eunomia.operator.deployment.enabled= \
-  --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
-
-operator-sdk test local ./test/e2e --namespace "$TEST_NAMESPACE" --up-local --no-setup --go-test-flags "-tags e2e"
 
 helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.deployment.enabled= \
