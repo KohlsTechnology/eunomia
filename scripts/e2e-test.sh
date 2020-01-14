@@ -16,7 +16,7 @@
 
 set -euxo pipefail
 
-go test ./test/e2e/... -tags xd -v
+go test ./test/e2e/... -tags e2e -v
 
 export TEST_NAMESPACE=test-eunomia-operator
 
