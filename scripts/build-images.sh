@@ -29,7 +29,11 @@ PUSH_IMAGES=${2:+true}
 # Usage: build_image <context dir> <image name>
 # Example: build_image template-processors/myimage/ myimage
 build_image() {
-  local context_dir=$1
+  local eunomia_root=$(cd $(dirname $0)/..; pwd)
+  case $1 in
+    /*) local context_dir=$1 ;; # already absolute path
+    *)  local context_dir="$eunomia_root/$1" # use absolute path
+  esac
   local image_url=${REPOSITORY}/$2
   local push=${PUSH_IMAGES:-false}
 
