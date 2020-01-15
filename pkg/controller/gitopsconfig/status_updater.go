@@ -62,6 +62,10 @@ func (u *statusUpdater) OnUpdate(oldObj, newObj interface{}) {
 	if newJob == nil {
 		newJob = oldJob
 	}
+	if newJob.Status.StartTime == nil {
+		log.Info("unstarted Job found; cannot properly set GitOpsConfig.Status based on it, ignoring", "job", newJob.Name)
+		return
+	}
 
 	// Check if this is a Job that's owned by GitOpsConfig.
 	gitopsRef, err := findJobOwner(newJob, u.client)
