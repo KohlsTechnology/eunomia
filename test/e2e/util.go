@@ -21,6 +21,7 @@ package e2e
 import (
 	"bytes"
 	goctx "context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"strings"
@@ -179,4 +180,12 @@ func DumpJobsLogsOnError(t *testing.T, f *framework.Framework, namespace string)
 		}
 		t.Logf("================ POD LOGS FOR %s ================\n%s\n\n", p.Name, buf.String())
 	}
+}
+
+// debugJSON returns a possibly partial JSON representation of v, ignoring any
+// errors. Intended to be used only in tests, to quickly display/dump various
+// kinds of data for debugging/error message purposes.
+func debugJSON(v interface{}) string {
+	raw, _ := json.MarshalIndent(v, "", "  ")
+	return string(raw)
 }

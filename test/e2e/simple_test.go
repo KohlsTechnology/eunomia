@@ -18,6 +18,7 @@ limitations under the License.
 
 package e2e
 
+/*
 import (
 	goctx "context"
 	"testing"
@@ -99,3 +100,4 @@ func TestSimple(t *testing.T) {
 		t.Error(err)
 	}
 }
+*/

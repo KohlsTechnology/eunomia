@@ -1,7 +1,7 @@
 // +build e2e
 
 /*
-Copyright 2019 Kohl's Department Stores, Inc.
+Copyright 2020 Kohl's Department Stores, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -25,17 +25,15 @@ import (
 	"time"
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	eventv1beta1 "k8s.io/api/events/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	"github.com/KohlsTechnology/eunomia/test"
 )
 
-// TestJobEvents_JobSuccess verifies that a JobSucceeded event is emitted by
-// eunomia after a simple GitOpsConfig is executed.
-func TestJobEvents_JobSuccess(t *testing.T) {
+func TestStatus_Success(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 
@@ -58,16 +56,7 @@ func TestJobEvents_JobSuccess(t *testing.T) {
 		eunomiaRef = "master"
 	}
 
-	// Step 1: register an event monitor/watcher
-
-	events := make(chan *eventv1beta1.Event, 5)
-	closer, err := test.WatchEvents(framework.Global.KubeClient, events, namespace, "gitops-events-hello-success", 2*time.Minute)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer closer()
-
-	// Step 2: create a simple CR with a single Pod
+	// Step 1: create a simple CR with a single Pod
 
 	gitops := &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
@@ -75,14 +64,14 @@ func TestJobEvents_JobSuccess(t *testing.T) {
 			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "gitops-events-hello-success",
+			Name:      "gitops-status-hello-success",
 			Namespace: namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/testdata/events/test-a",
+				ContextDir: "test/e2e/testdata/status/test-a",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
@@ -100,40 +89,60 @@ func TestJobEvents_JobSuccess(t *testing.T) {
 	}
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
+	start := time.Now().Truncate(time.Second) // Note: kubernetes returns times with only 1s precision, so truncate for comparisons
 	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-events-test-a", "hello-app:1.0", retryInterval, timeout)
+	// Step 2: watch Status till Success & verify Status fields
+
+	err = wait.Poll(retryInterval, 25*time.Second, func() (done bool, err error) {
+		fresh := gitopsv1alpha1.GitOpsConfig{}
+		err = framework.Global.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: gitops.Name}, &fresh)
+		if err != nil {
+			return false, err
+		}
+		switch fresh.Status.State {
+		case "InProgress":
+			now, s := time.Now(), fresh.Status
+			if s.CompletionTime != nil {
+				t.Errorf("want CompletionTime==nil, got: %#v", s)
+			}
+			if s.StartTime == nil || s.StartTime.Time.Before(start) || now.Before(s.StartTime.Time) {
+				t.Errorf("want %v <= StartTime <= %v, got: %v", start, now, debugJSON(s))
+			}
+			return false, nil
+		case "Success":
+			now, s := time.Now(), fresh.Status
+			if s.StartTime == nil || s.CompletionTime == nil ||
+				s.StartTime.Time.Before(start) ||
+				s.CompletionTime.Before(s.StartTime) ||
+				now.Before(s.CompletionTime.Time) {
+				t.Errorf("want %v <= StartTime <= CompletionTime <= %v, got: %v", start, now, debugJSON(s))
+			}
+			return true, nil
+		default:
+			t.Errorf("Unexpected State: %v", debugJSON(fresh.Status))
+			return false, nil
+		}
+	})
 	if err != nil {
 		t.Error(err)
 	}
 
-	// Step 3: Verify events
+	// Step 3: verify that the pod exists
 
-	// Verify there was an event emitted mentioning that Job finished successfully
-	select {
-	case event := <-events:
-		if event.Reason != "JobSuccessful" ||
-			event.DeprecatedSource.Component != "gitopsconfig-controller" {
-			t.Errorf("got bad event: %v", event)
-		}
-	case <-time.After(10 * time.Second):
-		t.Error("timeout waiting for JobSuccessful event")
+	pod, err := GetPod(namespace, "hello-status-test-a", "hello-app:1.0", framework.Global.KubeClient)
+	if err != nil {
+		t.Fatal(err)
 	}
-	// Verify there are no more events
-	select {
-	case event := <-events:
-		t.Errorf("unexpected extra event: %v", event)
-	default:
-		// ok, no events
+	if pod == nil || pod.Status.Phase != "Running" {
+		t.Fatalf("unexpected state of Pod: %v", pod)
 	}
 }
 
-// TestJobEvents_PeriodicJobSuccess verifies that a JobSuccessful event is
-// emitted by eunomia for a Periodic GitOpsConfig.
-func TestJobEvents_PeriodicJobSuccess(t *testing.T) {
+func TestStatus_PeriodicJobSuccess(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 
@@ -156,16 +165,7 @@ func TestJobEvents_PeriodicJobSuccess(t *testing.T) {
 		eunomiaRef = "master"
 	}
 
-	// Step 1: register an event monitor/watcher
-
-	events := make(chan *eventv1beta1.Event, 5)
-	closer, err := test.WatchEvents(framework.Global.KubeClient, events, namespace, "gitops-events-periodic-success", 180*time.Second)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer closer()
-
-	// Step 2: create a simple CR with a single Pod
+	// Step 1: create a simple CR with a single Pod
 
 	gitops := &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
@@ -173,14 +173,14 @@ func TestJobEvents_PeriodicJobSuccess(t *testing.T) {
 			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "gitops-events-periodic-success",
+			Name:      "gitops-status-periodic-success",
 			Namespace: namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/testdata/events/test-b",
+				ContextDir: "test/e2e/testdata/status/test-b",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
@@ -201,34 +201,74 @@ func TestJobEvents_PeriodicJobSuccess(t *testing.T) {
 	}
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
+	start := time.Now().Truncate(time.Second) // Note: kubernetes returns times with only 1s precision, so truncate for comparisons
 	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-events-test-b", "hello-app:1.0", retryInterval, 2*time.Minute)
+	// Step 2: skip initial empty Status, before any Job was started
+
+	err = wait.Poll(retryInterval, 2*time.Minute, func() (done bool, err error) {
+		fresh := gitopsv1alpha1.GitOpsConfig{}
+		err = framework.Global.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: gitops.Name}, &fresh)
+		if err != nil {
+			return false, err
+		}
+		return fresh.Status.State != "", nil
+	})
 	if err != nil {
 		t.Error(err)
 	}
 
-	// Step 3: Verify events
+	// Step 3: watch Status till Success & verify Status fields
 
-	// Verify there was an event emitted mentioning that Job finished successfully
-	select {
-	case event := <-events:
-		if event.Reason != "JobSuccessful" ||
-			event.DeprecatedSource.Component != "gitopsconfig-controller" {
-			t.Errorf("got bad event: %v", event)
+	err = wait.Poll(retryInterval, 2*time.Minute, func() (done bool, err error) {
+		fresh := gitopsv1alpha1.GitOpsConfig{}
+		err = framework.Global.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: gitops.Name}, &fresh)
+		if err != nil {
+			return false, err
 		}
-	case <-time.After(10 * time.Second):
-		t.Error("timeout waiting for JobSuccessful event")
+		switch fresh.Status.State {
+		case "InProgress":
+			now, s := time.Now(), fresh.Status
+			if s.CompletionTime != nil {
+				t.Errorf("want CompletionTime==nil, got: %#v", s)
+			}
+			if s.StartTime == nil || s.StartTime.Time.Before(start) || now.Before(s.StartTime.Time) {
+				t.Errorf("want %v <= StartTime <= %v, got: %v", start, now, debugJSON(s))
+			}
+			return false, nil
+		case "Success":
+			now, s := time.Now(), fresh.Status
+			if s.StartTime == nil || s.CompletionTime == nil ||
+				s.StartTime.Time.Before(start) ||
+				s.CompletionTime.Before(s.StartTime) ||
+				now.Before(s.CompletionTime.Time) {
+				t.Errorf("want %v <= StartTime <= CompletionTime <= %v, got: %v", start, now, debugJSON(s))
+			}
+			return true, nil
+		default:
+			t.Errorf("Unexpected State: %v", debugJSON(fresh.Status))
+			return false, nil
+		}
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	// Step 3: verify that the pod exists
+
+	pod, err := GetPod(namespace, "hello-status-test-b", "hello-app:1.0", framework.Global.KubeClient)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if pod == nil || pod.Status.Phase != "Running" {
+		t.Fatalf("unexpected state of Pod: %v", pod)
 	}
 }
 
-// TestJobEvents_JobFailed verifies that a JobFailed event is emitted by
-// eunomia if a Job implementing GitOpsConfig fails. In particular, a bad URI
-// is provided in the GitOpsConfig, to ensure that the Job will fail.
-func TestJobEvents_JobFailed(t *testing.T) {
+func TestStatus_Failure(t *testing.T) {
 	if testing.Short() {
 		// FIXME: as of writing this test, "backoffLimit" in job.yaml is set to 4,
 		// which means we need to wait until 5 Pod retries fail, eventually
@@ -261,16 +301,7 @@ func TestJobEvents_JobFailed(t *testing.T) {
 		eunomiaRef = "master"
 	}
 
-	// Step 1: register an event monitor/watcher
-
-	events := make(chan *eventv1beta1.Event, 5)
-	closer, err := test.WatchEvents(framework.Global.KubeClient, events, namespace, "gitops-events-hello-failed", 5*time.Minute)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer closer()
-
-	// Step 2: create a CR with an invalid URI
+	// Step 1: create a CR with an invalid URI
 
 	gitops := &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
@@ -278,7 +309,7 @@ func TestJobEvents_JobFailed(t *testing.T) {
 			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "gitops-events-hello-failed",
+			Name:      "gitops-status-hello-failed",
 			Namespace: namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
@@ -303,21 +334,45 @@ func TestJobEvents_JobFailed(t *testing.T) {
 	}
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
+	start := time.Now().Truncate(time.Second) // Note: kubernetes returns times with only 1s precision, so truncate for comparisons
 	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	// Step 3: Verify events
+	// Step 2: watch Status till Failure & verify Status fields
 
-	// Verify there was an event emitted mentioning that Job failed
-	select {
-	case event := <-events:
-		if event.Reason != "JobFailed" ||
-			event.DeprecatedSource.Component != "gitopsconfig-controller" {
-			t.Errorf("got bad event: %v", event)
+	err = wait.Poll(retryInterval, 3*time.Minute, func() (done bool, err error) {
+		fresh := gitopsv1alpha1.GitOpsConfig{}
+		err = framework.Global.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: gitops.Name}, &fresh)
+		if err != nil {
+			return false, err
 		}
-	case <-time.After(3 * time.Minute):
-		t.Error("timeout waiting for JobFailed event")
+		switch fresh.Status.State {
+		case "InProgress":
+			now, s := time.Now(), fresh.Status
+			if s.CompletionTime != nil {
+				t.Errorf("want CompletionTime==nil, got: %#v", s)
+			}
+			if s.StartTime == nil || s.StartTime.Time.Before(start) || now.Before(s.StartTime.Time) {
+				t.Errorf("want %v <= StartTime <= %v, got: %v", start, now, debugJSON(s))
+			}
+			return false, nil
+		case "Failure":
+			now, s := time.Now(), fresh.Status
+			if s.CompletionTime != nil {
+				t.Errorf("want CompletionTime==nil, got: %v", debugJSON(s))
+			}
+			if s.StartTime == nil || s.StartTime.Time.Before(start) || now.Before(s.StartTime.Time) {
+				t.Errorf("want %v <= StartTime <= %v, got: %v", start, now, debugJSON(s))
+			}
+			return true, nil
+		default:
+			t.Errorf("Unexpected State: %#v", debugJSON(fresh.Status))
+			return false, nil
+		}
+	})
+	if err != nil {
+		t.Error(err)
 	}
 }
