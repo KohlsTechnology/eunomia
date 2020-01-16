@@ -249,7 +249,6 @@ func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 		log.Error(err, "unable to create the job", "job", job)
 		return reconcile.Result{}, err
 	}
-	go watchJobForStatus(r.client, job.Name, job.Namespace, instance.Name, instance.Namespace, time.Time{})
 	return reconcile.Result{}, nil
 }
 
