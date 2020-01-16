@@ -60,7 +60,7 @@ test-e2e:
 
 .PHONY: test-unit
 test-unit:
-	go test -v ./pkg/...
+	go test -v -coverprofile=coverage.txt ./pkg/...
 
 # Install CRDs into a cluster
 .PHONY: install
