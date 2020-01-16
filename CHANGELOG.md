@@ -1,3 +1,20 @@
+## v0.1.1 (January 16, 2020)
+FEATURES:
+* N/A
+
+CHANGES:
+* Clean up unit test execution [GH-234](https://github.com/KohlsTechnology/eunomia/pull/234)
+* Add retries for flaky e2e tests [GH-247](https://github.com/KohlsTechnology/eunomia/pull/247)
+* Document operatorhub.io release process [GH-235](https://github.com/KohlsTechnology/eunomia/pull/235)
+* Enable unit test code coverage tracking using codecov.io [GH-245](https://github.com/KohlsTechnology/eunomia/pull/245)
+
+BUG FIXES:
+* Do not wait for finalizers when deleting resources [GH-233](https://github.com/KohlsTechnology/eunomia/pull/233)
+* Set requests and limits on job and cronjob pods [GH-243](https://github.com/KohlsTechnology/eunomia/pull/243)
+* Make GitOpsConfig CR status updates more robust [GH-249](https://github.com/KohlsTechnology/eunomia/pull/249)
+* Fix reconciliation race condition for webhook triggers [GH-237](https://github.com/KohlsTechnology/eunomia/pull/237)
+* Fix example in README [GH-254](https://github.com/KohlsTechnology/eunomia/pull/254)
+
 ## v0.1.0 (January 2, 2020)
 Starting with this release the v1alpha1 API is complete. Going forward changes will not be made to the v1alpha1 API. Work on the v1alpha2 API will start soon.
 
