@@ -224,7 +224,7 @@ func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 		return reconcile.Result{}, err
 	}
 	for _, j := range jobList.Items {
-		if isOwner(instance, &j.ObjectMeta) && j.Status.Active != 0 {
+		if isOwner(instance, &j) && j.Status.Active != 0 {
 			log.Info("Job is already running for this instance, postponing new job creation", "instance", instance.Name, "job", j.Name)
 			return reconcile.Result{
 				Requeue:      true,
