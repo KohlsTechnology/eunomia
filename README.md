@@ -78,10 +78,10 @@ spec:
   - type: Webhook
   - type: Periodic
     cron: "0 * * * *"
-  ServiceAccountRef:      "mysvcaccount",
-  templateProcessorImage: mydockeregistry.io:5000/gitops/eunomia-base:latest
-  ResourceDeletionMode:   "Cascade",
-  ResourceHandlingMode:   "Apply",
+  ServiceAccountRef:      "mysvcaccount"
+  templateProcessorImage: "quay.io/kohlstechnology/eunomia-base:latest"
+  ResourceDeletionMode:   "Delete"
+  ResourceHandlingMode:   "Apply"
 ```
 
 ## TemplateSource and ParameterSource and TemplateProcessorArgs
