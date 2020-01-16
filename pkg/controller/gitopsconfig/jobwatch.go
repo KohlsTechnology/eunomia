@@ -43,11 +43,11 @@ func addJobWatch(kubecfg *rest.Config, handler cache.ResourceEventHandler) (func
 	// based on: http://web.archive.org/web/20161221032701/https://solinea.com/blog/tapping-kubernetes-events
 	clientset, err := kubernetes.NewForConfig(kubecfg)
 	if err != nil {
-		return nil, xerrors.Errorf("cannot create Job watcher from controller manager: %w", err)
+		return nil, xerrors.Errorf("cannot create Job watcher from config: %w", err)
 	}
 	watchlist := cache.NewListWatchFromClient(clientset.Batch().RESTClient(), "jobs", corev1.NamespaceAll, fields.Everything())
 	// https://stackoverflow.com/a/49231503/98528
-	// TODO: what is the difference vs. NewSharedInformer?
+	// TODO: what is the difference vs. NewSharedInformer? -> https://stackoverflow.com/q/59544139
 	_, controller := cache.NewInformer(watchlist, &batchv1.Job{}, 0, handler)
 
 	stopChan := make(chan struct{})
@@ -108,7 +108,7 @@ func (e *jobCompletionEmitter) OnUpdate(oldObj, newObj interface{}) {
 	}
 
 	// Check if this is a Job that's owned by GitOpsConfig.
-	gitopsRef, err := e.findJobOwner(newJob)
+	gitopsRef, err := findJobOwner(newJob, e.client)
 	if err != nil {
 		log.Error(err, "cannot find Job's owner")
 		return
@@ -154,7 +154,7 @@ func (e *jobCompletionEmitter) OnUpdate(oldObj, newObj interface{}) {
 // owners (possibly only where Controller==true), and search if any one of them
 // is a GitOpsConfig - instead of having to special-case a CronJob as a
 // possible intermediary.
-func (e *jobCompletionEmitter) findJobOwner(job *batchv1.Job) (*metav1.OwnerReference, error) {
+func findJobOwner(job *batchv1.Job, client client.Client) (*metav1.OwnerReference, error) {
 	const gitopsKind = "GitOpsConfig"
 
 	// Is the job owned directly by GitOpsConfig?
@@ -169,7 +169,7 @@ func (e *jobCompletionEmitter) findJobOwner(job *batchv1.Job) (*metav1.OwnerRefe
 		return nil, nil
 	}
 	cronjob := &batchv1beta1.CronJob{}
-	err := e.client.Get(context.TODO(),
+	err := client.Get(context.TODO(),
 		types.NamespacedName{Name: cronjobRef.Name, Namespace: job.GetNamespace()},
 		cronjob)
 	if err != nil {

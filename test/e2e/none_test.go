@@ -1,3 +1,5 @@
+// +build e2e
+
 /*
 Copyright 2019 Kohl's Department Stores, Inc.
 
@@ -16,6 +18,7 @@ limitations under the License.
 
 package e2e
 
+/*
 import (
 	goctx "context"
 	"testing"
@@ -97,3 +100,4 @@ func TestNone(t *testing.T) {
 		t.Error(err)
 	}
 }
+*/

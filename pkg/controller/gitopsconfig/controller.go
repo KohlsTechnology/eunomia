@@ -123,6 +123,15 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return err
 	}
 
+	// TODO: detect when Reconciler stops and run stop func returned by addJobWatch
+	// TODO: make this and above addJobWatch share a single cache.SharedInformer
+	_, err = addJobWatch(mgr.GetConfig(), &statusUpdater{
+		client: mgr.GetClient(),
+	})
+	if err != nil {
+		return err
+	}
+
 	return nil
 }
 
@@ -302,7 +311,6 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 		log.Error(err, "Error in GetCronJob")
 		return err
 	}
-	go scheduleStatusForCronJobs(jobmonitor{r.client, cronjob.Name, cronjob.Namespace, time.Time{}}, result.Spec.Schedule, instance.Name, instance.Namespace)
 	return nil
 }
 

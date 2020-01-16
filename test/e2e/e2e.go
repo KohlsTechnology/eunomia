@@ -1,7 +1,5 @@
-// +build e2e
-
 /*
-Copyright 2019 Kohl's Department Stores, Inc.
+Copyright 2020 Kohl's Department Stores, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,22 +14,10 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+// Package e2e contains end-to-end eunomia tests
 package e2e
 
-import (
-	"testing"
-	"time"
-
-	f "github.com/operator-framework/operator-sdk/pkg/test"
-)
-
-const (
-	retryInterval        = time.Second * 5
-	timeout              = time.Second * 60
-	cleanupRetryInterval = time.Second * 1
-	cleanupTimeout       = time.Second * 5
-)
-
-func TestMain(m *testing.M) {
-	f.MainEntry(m)
-}
+// The file is left as a placeholder - other files of package e2e are
+// excluded from default tests by a build tag; at least one file from
+// a package has to be without a tag for an error not to be thrown.
+// See: https://stackoverflow.com/a/47538114
