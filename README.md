@@ -2,7 +2,11 @@
 
 # Eunomia - a GitOps Operator for Kubernetes
 
-[![Join the chat at https://gitter.im/KohlsTechnology/eunomia](https://badges.gitter.im/KohlsTechnology/eunomia.svg)](https://gitter.im/KohlsTechnology/eunomia?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge) [![Build Status](https://travis-ci.com/KohlsTechnology/eunomia.svg?branch=master)](https://travis-ci.com/KohlsTechnology/eunomia) [![Docker Repository on Quay](https://quay.io/repository/kohlstechnology/eunomia-operator/status "Docker Repository on Quay")](https://quay.io/repository/kohlstechnology/eunomia-operator) [![Go Report Card](https://goreportcard.com/badge/github.com/KohlsTechnology/eunomia)](https://goreportcard.com/report/github.com/KohlsTechnology/eunomia)
+[![Join the chat at https://gitter.im/KohlsTechnology/eunomia](https://badges.gitter.im/KohlsTechnology/eunomia.svg)](https://gitter.im/KohlsTechnology/eunomia?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.com/KohlsTechnology/eunomia.svg?branch=master)](https://travis-ci.com/KohlsTechnology/eunomia)
+[![Docker Repository on Quay](https://quay.io/repository/kohlstechnology/eunomia-operator/status "Docker Repository on Quay")](https://quay.io/repository/kohlstechnology/eunomia-operator)
+[![Go Report Card](https://goreportcard.com/badge/github.com/KohlsTechnology/eunomia)](https://goreportcard.com/report/github.com/KohlsTechnology/eunomia)
+[![codecov](https://codecov.io/gh/KohlsTechnology/eunomia/branch/master/graph/badge.svg)](https://codecov.io/gh/KohlsTechnology/eunomia)
 
 ## Who is Eunomia
 

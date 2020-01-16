@@ -85,3 +85,4 @@ template-processors/jinja/Dockerfile
 template-processors/ocp-template/Dockerfile
 template-processors/openshift-provision/Dockerfile
 .idea
+coverage.txt
