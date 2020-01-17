@@ -4,7 +4,8 @@ metadata:
   name: gitopsconfig-{{ .Config.ObjectMeta.Name }}-{{ getID }}
   namespace: {{ .Config.ObjectMeta.Namespace }}
   labels:
-    action: {{ .Action }} 
+    action: {{ .Action }}
+    "gitopsconfig.eunomia.kohls.io/jobOwner": "{{ .Config.ObjectMeta.Name }}"
 spec:
   template:
     spec:                                                    

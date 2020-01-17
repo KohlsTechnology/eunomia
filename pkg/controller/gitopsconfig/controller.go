@@ -50,6 +50,7 @@ var log = logf.Log.WithName(controllerName)
 const (
 	tagInitialized string = "gitopsconfig.eunomia.kohls.io/initialized"
 	tagFinalizer   string = "gitopsconfig.eunomia.kohls.io/finalizer"
+	tagJobOwner    string = "gitopsconfig.eunomia.kohls.io/jobOwner"
 	controllerName string = "gitopsconfig-controller"
 )
 
