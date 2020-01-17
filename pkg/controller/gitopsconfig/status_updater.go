@@ -115,6 +115,7 @@ func (u *statusUpdater) OnUpdate(oldObj, newObj interface{}) {
 		log.Info("Status is already set, with newer StartTime - skipping; reordered events?", "GitOpsConfig", gitops.Name)
 		return
 	}
+	// TODO: don't update if status didn't change
 	gitops.Status = status
 	err = u.client.Status().Update(context.TODO(), gitops)
 	if err != nil {

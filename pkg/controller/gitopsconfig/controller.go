@@ -29,6 +29,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/selection"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
@@ -195,6 +196,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 			reqLogger.Error(err, "error creating the cronjob, continuing...")
 		}
 	}
+	// TODO: if Periodic trigger is removed from CR, remove corresponding CronJob
 
 	if ContainsTrigger(instance, "Change") || ContainsTrigger(instance, "Webhook") {
 		reqLogger.Info("Instance has a change or Webhook trigger, creating job", "instance", instance.GetName())
@@ -390,79 +392,110 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 	if !containsString(instance.ObjectMeta.Finalizers, tagFinalizer) {
 		return reconcile.Result{}, nil
 	}
-	// we need to lookup the delete job and if it doesn't exist we launch it, then we see if it is completed successfully if yes we remove the finalizers, if no we return.
-	jobList := &batchv1.JobList{}
-	selector, err := labels.Parse("action=delete")
+
+	// To avoid a deadlock situation let's check if the namespace in which we are is maybe being deleted?
+	ns := &corev1.Namespace{}
+	err := r.client.Get(context.TODO(), types.NamespacedName{
+		Name: instance.GetNamespace(),
+	}, ns)
 	if err != nil {
-		log.Error(err, "unable to parse label selector 'action=delete'")
-		return reconcile.Result{}, xerrors.Errorf("unable to parse label selector 'action=delete': %w", err)
+		log.Error(err, "GitOpsConfig finalizer unable to lookup instance's namespace", "instance", instance.Name)
+		return reconcile.Result{}, xerrors.Errorf("GitOpsConfig finalizer unable to lookup instance's namespace for %q: %w", instance.Name, err)
 	}
-	// looking up all delete jobs
-	err = r.client.List(context.TODO(), &client.ListOptions{
-		Namespace:     instance.GetNamespace(),
-		LabelSelector: selector,
-	}, jobList)
+	if !ns.DeletionTimestamp.IsZero() {
+		//namespace is being deleted
+		// the best we can do in this situation is to let the instance be deleted and hope that this instance was creating objects only in this namespace
+		log.Info("Namespace is being deleted, removing finalizer", "namespace", instance.Namespace, "instance", instance.Name)
+		return r.removeFinalizer(context.TODO(), instance)
+	}
+
+	// TODO: also search and delete a CronJob
+
+	// We list all jobs that were created because of this GitOpsConfig. Then,
+	// further down, we will take one of a few different actions depending on
+	// the contents of this list.
+	jobs, err := ownedJobs(context.TODO(), r.client, instance)
 	if err != nil {
-		log.Error(err, "unable to list all delete jobs", "namespace", instance.GetNamespace())
-		return reconcile.Result{}, xerrors.Errorf("unable to list all delete jobs in namespace %q: %w", instance.GetNamespace(), err)
+		log.Error(err, "GitOpsConfig finalizer unable to list owned jobs", "instance", instance.Name)
+		return reconcile.Result{}, xerrors.Errorf("GitOpsConfig finalizer unable to list owned jobs for %q: %w", instance.Name, err)
 	}
-	applicableJobList := []batchv1.Job{}
-	//filtering by those that are might have been created by this gitopsconfig
-	// TODO better filter by owner reference
-	for _, job := range jobList.Items {
-		if isOwner(instance, &job) && job.GetLabels()["action"] == "delete" {
-			applicableJobList = append(applicableJobList, job)
-		}
-	}
-	if len(applicableJobList) == 0 {
-		// to avoid a deadlock situation let's check that the namespace in which we are is not being deleted
-		ns := &corev1.Namespace{}
-		err := r.client.Get(context.TODO(), types.NamespacedName{
-			Name: instance.GetNamespace(),
-		}, ns)
+
+	// If exactly 1 job exists, but it's blocked because of bad image, we
+	// assume the GitOpsConfig never managed to successfully deploy, so we can
+	// just delete the job, remove the finalizer, and be done (#216). It may be
+	// either action=create or action=delete job.
+	if len(jobs) == 1 {
+		status, err := jobContainerStatus(context.TODO(), r.client, &jobs[0])
 		if err != nil {
-			log.Error(err, "unable to lookup instance's namespace", "instanceName", instance.Name)
-			return reconcile.Result{}, xerrors.Errorf("unable to lookup instance %q namespace: %w", instance.Name, err)
+			log.Error(err, "GitOpsConfig finalizer unable to get job pod's status", "instance", instance.Name)
+			return reconcile.Result{}, xerrors.Errorf("GitOpsConfig finalizer unable to get job pod's status for %q: %w", instance.Name, err)
 		}
-		if !ns.ObjectMeta.DeletionTimestamp.IsZero() {
-			//namespace is being deleted
-			// the best we can do in this situation is to let the instance be deleted and hope that this instance was creating objects only in this namespace
-			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, tagFinalizer)
-			if err := r.client.Update(context.TODO(), instance); err != nil {
-				log.Error(err, "unable to create update instance to remove finalizers", "instanceName", instance.Name)
-				return reconcile.Result{}, xerrors.Errorf("unable to create update instance %q to remove finalizers: %w", instance.Name, err)
+		log.Info("GitOpsConfig finalizer found one job", "instance", instance.Name, "podStatus", status)
+		safeReasons := []string{"ErrImagePull", "ImagePullBackOff", "InvalidImageName"}
+		if status != nil && status.Waiting != nil && containsString(safeReasons, status.Waiting.Reason) {
+			err = r.client.Delete(context.TODO(), &jobs[0], client.PropagationPolicy(metav1.DeletePropagationBackground))
+			if err != nil {
+				log.Error(err, "GitOpsConfig finalizer unable to delete job", "instance", instance.Name, "job", jobs[0].Name)
+				return reconcile.Result{}, xerrors.Errorf("GitOpsConfig finalizer unable to delete job %q for %q: %w", jobs[0].Name, instance.Name, err)
 			}
-			return reconcile.Result{}, nil
+			log.Info("GitOpsConfig finalizer deleted stuck job", "instance", instance.Name, "job", jobs[0].Name)
+			return r.removeFinalizer(context.TODO(), instance)
 		}
-		log.Info("Launching delete job for instance", "instance", instance.GetName())
-		_, err = r.createJob("delete", instance)
-		if err != nil {
-			log.Error(err, "unable to create deletion job for instance", "instanceName", instance.Name)
-			return reconcile.Result{}, xerrors.Errorf("unable to create deletion job for instance %q: %w", instance.Name, err)
-		}
-		//we return because we need to wait for the job to stop
-		return reconcile.Result{
-			Requeue:      true,
-			RequeueAfter: time.Second * 5,
-		}, nil
 	}
-	//There should be only one pending job
-	job := applicableJobList[0]
-	if job.Status.Succeeded > 0 {
-		instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, tagFinalizer)
-		if err := r.client.Update(context.TODO(), instance); err != nil {
-			log.Error(err, "unable to create update instance to remove finalizers", "instanceName", instance.Name)
-			return reconcile.Result{}, xerrors.Errorf("unable to create update instance %q to remove finalizers: %w", instance.Name, err)
+
+	// If a delete job exists, we wait (Requeue) until we can see that it
+	// completed successfully, then we remove the finalizer and we're done.
+	deleters := []batchv1.Job{}
+	for _, j := range jobs {
+		if j.Labels != nil && j.Labels["action"] == "delete" {
+			deleters = append(deleters, j)
 		}
-		return reconcile.Result{}, nil
 	}
-	//if it's not succeeded we wait for 5 seconds
-	//TODO add logic to stop at a certain point ... or not ...
-	//TODO add exponential backoff, possibly like in CronJob
+	if len(deleters) > 0 {
+		if len(deleters) > 1 {
+			log.Error(nil, "too many delete jobs found (expected 1)", "n", len(deleters), "instance", instance.Name)
+			// TODO: should we return here, or try to still do something sensible for user?
+		}
+		done := deleters[0].Status.Succeeded > 0
+		if !done {
+			//if it's not succeeded we wait for 5 seconds
+			//TODO add logic to stop at a certain point ... or not ...
+			//TODO add exponential backoff, possibly like in CronJob
+			return reconcile.Result{RequeueAfter: 5 * time.Second}, nil
+		}
+		return r.removeFinalizer(context.TODO(), instance)
+	}
+
+	log.Info("Launching delete job for instance", "instance", instance.Name)
+	_, err = r.createJob("delete", instance)
+	if err != nil {
+		log.Error(err, "unable to create deletion job", "instance", instance.Name)
+		return reconcile.Result{}, err
+	}
+	//we return because we need to wait for the job to stop
 	return reconcile.Result{
 		Requeue:      true,
 		RequeueAfter: time.Second * 5,
 	}, nil
+
+}
+
+func (r *Reconciler) removeFinalizer(ctx context.Context, instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
+	instance.Finalizers = removeString(instance.Finalizers, tagFinalizer)
+	err := r.client.Update(ctx, instance)
+	if err != nil {
+		// if errors.IsConflict, then requeue
+		var errAPI errors.APIStatus
+		if xerrors.As(err, &errAPI) && errAPI.Status().Reason == metav1.StatusReasonConflict {
+			log.Error(err, "GitOpsConfig finalizer unable to remove itself; will retry", "instance", instance.Name)
+			return reconcile.Result{
+				RequeueAfter: 5 * time.Second,
+			}, xerrors.Errorf("GitOpsConfig finalizer unable to remove itself from %q, will retry: %w", instance.Name, err)
+		}
+		log.Error(err, "GitOpsConfig finalizer unable to remove itself", "instance", instance.Name)
+		return reconcile.Result{}, xerrors.Errorf("GitOpsConfig finalizer unable to remove itself from %q: %w", instance.Name, err)
+	}
+	return reconcile.Result{}, nil
 }
 
 func isOwner(owner, owned metav1.Object) bool {
@@ -476,4 +509,49 @@ func isOwner(owner, owned metav1.Object) bool {
 		}
 	}
 	return false
+}
+
+// ownedJobs retrieves all jobs in namespace owner.Namespace with value of label tagJobOwner equal to owner.Name.
+func ownedJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha1.GitOpsConfig) ([]batchv1.Job, error) {
+	jobs := batchv1.JobList{}
+	// FIXME: Equals or DoubleEquals?
+	filter, err := labels.NewRequirement(tagJobOwner, selection.DoubleEquals, []string{owner.Name})
+	if err != nil {
+		return nil, xerrors.Errorf("cannot create job filter for jobOwner==%q (ns: %s): %w", owner.Name, owner.Namespace, err)
+	}
+	err = kube.List(ctx, &client.ListOptions{
+		LabelSelector: labels.NewSelector().Add(*filter),
+		Namespace:     owner.Namespace,
+	}, &jobs)
+	if err != nil {
+		return nil, xerrors.Errorf("failed to list jobs for jobOwner==%q (ns: %s): %w", owner.Name, owner.Namespace, err)
+	}
+	return jobs.Items, nil
+}
+
+func jobContainerStatus(ctx context.Context, kube client.Client, job *batchv1.Job) (*corev1.ContainerState, error) {
+	// Find pod(s) of the job
+	pods := corev1.PodList{}
+	filter, err := labels.NewRequirement("job-name", selection.DoubleEquals, []string{job.Name})
+	if err != nil {
+		return nil, xerrors.Errorf("unable to create pod filter for job %q: %w", job.Name, err)
+	}
+	err = kube.List(ctx, &client.ListOptions{
+		LabelSelector: labels.NewSelector().Add(*filter),
+		Namespace:     job.Namespace,
+	}, &pods)
+	if err != nil {
+		return nil, xerrors.Errorf("unable to list pods for job %q: %w", job.Name, err)
+	}
+	if len(pods.Items) == 0 {
+		return nil, nil
+	} else if len(pods.Items) > 1 {
+		return nil, xerrors.Errorf("in Job %q expected 1 pod, got %d", job.Name, len(pods.Items))
+	}
+	// Get status of container(s) of pod
+	stats := pods.Items[0].Status.ContainerStatuses
+	if len(stats) != 1 {
+		return nil, xerrors.Errorf("in Pod %q expected 1 container, got %d", pods.Items[0].Name, len(stats))
+	}
+	return &stats[0].State, nil
 }

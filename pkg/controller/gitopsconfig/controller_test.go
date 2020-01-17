@@ -326,6 +326,12 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	cl := fake.NewFakeClient(objs...)
 	r := &Reconciler{client: cl, scheme: s}
 
+	// Create a namespace
+	err := cl.Create(context.TODO(), ns)
+	if err != nil {
+		log.Error(err, "Namespace", "Failed to create namespace")
+	}
+
 	nsn := types.NamespacedName{
 		Name:      name,
 		Namespace: namespace,
@@ -339,7 +345,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 
 	// Add a finalizer to the CRD
 	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
-	err := cl.Update(context.Background(), gitops)
+	err = cl.Update(context.Background(), gitops)
 	if err != nil {
 		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")
 	}
