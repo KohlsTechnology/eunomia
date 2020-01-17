@@ -23,6 +23,7 @@ import (
 	goctx "context"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/xerrors"
 	"io"
 	"strings"
 	"testing"
@@ -42,7 +43,7 @@ import (
 func GetPod(namespace, namePrefix, containsImage string, kubeclient kubernetes.Interface) (*v1.Pod, error) {
 	pods, err := kubeclient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		return nil, err
+		return nil, xerrors.Errorf("cannot retrieve pods in namespace %q: %w", namespace, err)
 	}
 	for _, pod := range pods.Items {
 		if strings.HasPrefix(pod.Name, namePrefix) {
@@ -68,7 +69,7 @@ func WaitForPod(t *testing.T, f *framework.Framework, namespace, name string, re
 			t.Logf("Waiting for availability of %s pod", name)
 			return false, nil
 		case err != nil:
-			return false, err
+			return false, xerrors.Errorf("cannot read kubernetes object: %w", err)
 		case pod.Status.Phase == "Running":
 			return true, nil
 		default:
@@ -77,7 +78,7 @@ func WaitForPod(t *testing.T, f *framework.Framework, namespace, name string, re
 		}
 	})
 	if err != nil {
-		return err
+		return xerrors.Errorf("pod %q in namespace %q cannot be retrieved or is not yet available: %w", name, namespace, err)
 	}
 	t.Logf("pod %s in namespace %s is available", name, namespace)
 	return nil
@@ -93,7 +94,7 @@ func WaitForPodWithImage(t *testing.T, f *framework.Framework, namespace, name, 
 			t.Logf("Waiting for availability of %s pod", name)
 			return false, nil
 		case err != nil:
-			return false, err
+			return false, xerrors.Errorf("cannot read kubernetes object: %w", err)
 		case pod != nil && pod.Status.Phase == "Running":
 			return true, nil
 		default:
@@ -112,7 +113,7 @@ func WaitForPodWithImage(t *testing.T, f *framework.Framework, namespace, name, 
 			pods = append(pods, fmt.Sprintf(`"%s" (%s)`, p.Name, strings.Join(images, " ")))
 		}
 		t.Logf("the following pods were found: %s", strings.Join(pods, ", "))
-		return err
+		return xerrors.Errorf("pod %q in namespace %q with image %q cannot be retrieved or is not yet available: %w", name, namespace, image, err)
 	}
 	t.Logf("pod %s in namespace %s is available", name, namespace)
 	return nil
@@ -127,7 +128,7 @@ func WaitForPodAbsence(t *testing.T, f *framework.Framework, namespace, name, im
 		case apierrors.IsNotFound(err):
 			return true, nil
 		case err != nil:
-			return false, err
+			return false, xerrors.Errorf("cannot read kubernetes object: %w", err)
 		case pod == nil || pod.Status.Phase == "Terminated":
 			return true, nil
 		default:
@@ -136,7 +137,7 @@ func WaitForPodAbsence(t *testing.T, f *framework.Framework, namespace, name, im
 		}
 	})
 	if err != nil {
-		return err
+		return xerrors.Errorf("pod %q in namespace %q with image %q is still present: %w", name, namespace, image, err)
 	}
 	t.Logf("pod %s in namespace %s is absent", name, namespace)
 	return nil
