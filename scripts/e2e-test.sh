@@ -78,3 +78,27 @@ helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.image.tag=dev \
   --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl delete -f -
 
+# Below block is to ensure hello-world-yaml example is working
+helm template deploy/helm/eunomia-operator/ \
+  --set eunomia.operator.image.tag=dev \
+  --set eunomia.operator.image.pullPolicy=Never \
+  --set eunomia.openshift.route.enabled=true | kubectl apply -f -
+
+kubectl config set-context --current --namespace=eunomia-hello-world-yaml-demo
+
+kubectl apply -f examples/hello-world-yaml/test.yaml
+
+sleep 30s
+
+RESULT=`kubectl get pods -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}"`
+
+if [[ $RESULT == "Running" ]]
+then
+  echo "Example Passed"
+else
+  echo "Example Failed"
+        exit 1
+fi
+
+kubectl delete -f examples/hello-world-yaml/test.yaml
+
