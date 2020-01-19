@@ -84,13 +84,15 @@ helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.image.pullPolicy=Never \
   --set eunomia.openshift.route.enabled=true | kubectl apply -f -
 
-kubectl config set-context --current --namespace=eunomia-hello-world-yaml-demo
+kubectl create namespace eunomia-hello-world-yaml-demo
 
-kubectl apply -f examples/hello-world-yaml/test.yaml
+kubectl apply -f examples/hello-world-yaml/eunomia-runner-sa.yaml -n eunomia-hello-world-yaml-demo
+
+kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-hello-world-yaml-demo
 
 sleep 30s
 
-RESULT=`kubectl get pods -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}"`
+RESULT=`kubectl get po -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}"`
 
 if [[ $RESULT == "Running" ]]
 then
@@ -100,5 +102,5 @@ else
         exit 1
 fi
 
-kubectl delete -f examples/hello-world-yaml/test.yaml
+kubectl delete namespace eunomia-hello-world-yaml-demo
 
