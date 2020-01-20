@@ -28,7 +28,7 @@ var AddToManagerFuncs []func(manager.Manager) error
 func AddToManager(m manager.Manager) error {
 	for _, f := range AddToManagerFuncs {
 		if err := f(m); err != nil {
-			return xerrors.Errorf("cannot add controllers to the manager %q: %w", m, err)
+			return xerrors.Errorf("cannot add controllers to the manager: %w", err)
 		}
 	}
 	return nil

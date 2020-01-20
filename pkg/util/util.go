@@ -18,13 +18,13 @@ package util
 
 import (
 	"bytes"
-	"golang.org/x/xerrors"
 	"io/ioutil"
 	"text/template"
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	"github.com/dchest/uniuri"
 	"github.com/ghodss/yaml"
+	"golang.org/x/xerrors"
 	batch "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -58,7 +58,7 @@ func InitializeTemplates(jobTemplateFileName string, cronJobTemplateFileName str
 	jobTemplate, err = jobTemplate.Parse(string(text))
 	if err != nil {
 		log.Error(err, "error parsing template", "template", text)
-		return xerrors.Errorf("error parsing template %q: %w", text, err)
+		return xerrors.Errorf("error parsing template: %w", err)
 	}
 
 	text, err = ioutil.ReadFile(cronJobTemplateFileName)
@@ -96,8 +96,8 @@ func CreateJob(jobmergedata JobMergeData) (batch.Job, error) {
 	}
 	err = yaml.Unmarshal(b.Bytes(), &job)
 	if err != nil {
-		log.Error(err, "error unmashalling the job manifest", "manifest", string(b.Bytes()))
-		return job, xerrors.Errorf("error unmashalling the job manifest %q: %w", string(b.Bytes()), err)
+		log.Error(err, "error unmarshalling the job manifest", "manifest", string(b.Bytes()))
+		return job, xerrors.Errorf("error unmarshalling the job manifest: %w", err)
 	}
 	return job, nil
 }
@@ -113,8 +113,8 @@ func CreateCronJob(jobmergedata JobMergeData) (batchv1beta1.CronJob, error) {
 	}
 	err = yaml.Unmarshal(b.Bytes(), &cronjob)
 	if err != nil {
-		log.Error(err, "error unmashalling the job manifest", "manifest", string(b.Bytes()))
-		return cronjob, xerrors.Errorf("error unmashalling the job manifest %q: %w", string(b.Bytes()), err)
+		log.Error(err, "error unmarshalling the job manifest", "manifest", string(b.Bytes()))
+		return cronjob, xerrors.Errorf("error unmarshalling the job manifest: %w", err)
 	}
 	return cronjob, nil
 }
