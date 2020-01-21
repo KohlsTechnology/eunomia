@@ -21,6 +21,7 @@ import (
 	goerrors "errors"
 	"time"
 
+	"golang.org/x/xerrors"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -41,7 +42,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	util "github.com/KohlsTechnology/eunomia/pkg/util"
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 var log = logf.Log.WithName(controllerName)
@@ -76,7 +77,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
 	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
 	if err != nil {
-		return err
+		return xerrors.Errorf("failed creation of controller %q: %w", controllerName, err)
 	}
 
 	// Watch for changes to primary resource GitOpsConfig
@@ -101,7 +102,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		},
 	)
 	if err != nil {
-		return err
+		return xerrors.Errorf("controller watch for changes to primary resource GitOpsConfig failed: %w", err)
 	}
 
 	err = c.Watch(
@@ -109,7 +110,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		&handler.EnqueueRequestForObject{},
 	)
 	if err != nil {
-		return err
+		return xerrors.Errorf("controller watch for PushEvents failed: %w", err)
 	}
 
 	// TODO: we should somehow detect when Reconciler is stopped, and run the
@@ -120,7 +121,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		eventRecorder: mgr.GetRecorder(controllerName),
 	})
 	if err != nil {
-		return err
+		return xerrors.Errorf("cannot create watch job for jobCompletionEmitter handler: %w", err)
 	}
 
 	// TODO: detect when Reconciler stops and run stop func returned by addJobWatch
@@ -129,7 +130,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		client: mgr.GetClient(),
 	})
 	if err != nil {
-		return err
+		return xerrors.Errorf("cannot create watch job for statusUpdater handler: %w", err)
 	}
 
 	return nil
@@ -170,7 +171,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 			return reconcile.Result{}, nil
 		}
 		// Error reading the object - requeue the request.
-		return reconcile.Result{}, err
+		return reconcile.Result{}, xerrors.Errorf("reconciler failed to read GitOpsConfig from kubernetes: %w", err)
 	}
 	reqLogger.Info("found instance", "instance", instance.GetName())
 
@@ -198,9 +199,10 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 		reqLogger.Info("Instance has a change or Webhook trigger, creating job", "instance", instance.GetName())
 		reconcileResult, err := r.createJob("create", instance)
 		if err != nil {
-			reqLogger.Error(err, "error creating the job, continuing...")
+			reqLogger.Error(err, "reconciler failed to create a job, continuing...", "instance", instance.GetName())
+			return reconcileResult, xerrors.Errorf("reconciler failed to create a job for GitOpsConfig instance %q: %w", instance.GetName(), err)
 		}
-		return reconcileResult, err
+		return reconcileResult, nil
 	}
 
 	return reconcile.Result{}, err
@@ -229,8 +231,8 @@ func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 		Namespace: instance.Namespace,
 	}, jobList)
 	if err != nil {
-		log.Error(err, "unable to list the jobs")
-		return reconcile.Result{}, err
+		log.Error(err, "unable to list the jobs", "namespace", instance.Namespace)
+		return reconcile.Result{}, xerrors.Errorf("unable to list the jobs in namespace %q: %w", instance.Namespace, err)
 	}
 	for _, j := range jobList.Items {
 		if isOwner(instance, &j) && j.Status.Active != 0 {
@@ -244,19 +246,19 @@ func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 	job, err := util.CreateJob(mergedata)
 	if err != nil {
 		log.Error(err, "unable to create job manifest from merge data", "mergedata", mergedata)
-		return reconcile.Result{}, err
+		return reconcile.Result{}, xerrors.Errorf("unable to create job manifest from merge data: %w", err)
 	}
 	err = controllerutil.SetControllerReference(instance, &job, r.scheme)
 	if err != nil {
-		log.Error(err, "unable to the owner for job", "job", job)
-		return reconcile.Result{}, err
+		log.Error(err, "unable to set GitOpsConfig instance as Controller OwnerReference on owned job", "instanceName", instance.Name, "job", job)
+		return reconcile.Result{}, xerrors.Errorf("unable to set GitOpsConfig instance %q as Controller OwnerReference on owned job %q: %w", instance.Name, job.Name, err)
 	}
 
 	log.Info("Creating a new Job", "job.Namespace", job.Namespace, "job.Name", job.Name)
 	err = r.client.Create(context.TODO(), &job)
 	if err != nil {
-		log.Error(err, "unable to create the job", "job", job)
-		return reconcile.Result{}, err
+		log.Error(err, "unable to create the job", "job", job, "namespace", job.Namespace)
+		return reconcile.Result{}, xerrors.Errorf("unable to create the job %q in namespace %q: %w", job.Name, job.Namespace, err)
 	}
 	return reconcile.Result{}, nil
 }
@@ -270,7 +272,7 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 	cronjob, err := util.CreateCronJob(mergedata)
 	if err != nil {
 		log.Error(err, "unable to create cronjob manifest from merge data", "mergedata", mergedata)
-		return err
+		return xerrors.Errorf("unable to create cronjob manifest from merge data: %w", err)
 	}
 
 	err = r.client.Get(context.TODO(),
@@ -282,14 +284,14 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 			update = false
 		} else {
 			// Error reading the object - requeue the request.
-			return err
+			return xerrors.Errorf("client failed to retrieve CronJob %q from namespace %q: %w", cronjob.GetName(), cronjob.GetNamespace(), err)
 		}
 	}
 
 	err = controllerutil.SetControllerReference(instance, &cronjob, r.scheme)
 	if err != nil {
-		log.Error(err, "unable to the owner for cronjob", "cronjob", cronjob)
-		return err
+		log.Error(err, "unable to set GitOpsConfig instance as Controller OwnerReference on owned cronjob", "instanceName", instance.Name, "cronjob", cronjob)
+		return xerrors.Errorf("unable to set GitOpsConfig instance %q as Controller OwnerReference on owned cronjob %q: %w", instance.Name, cronjob.Name, err)
 	}
 	log.Info("Creating/updating CronJob", "cronjob.Namespace", cronjob.Namespace, "cronjob.Name", cronjob.Name)
 	if update {
@@ -300,7 +302,7 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 
 	if err != nil {
 		log.Error(err, "unable to create/update the cronjob", "cronjob", cronjob)
-		return err
+		return xerrors.Errorf("unable to create/update the cronjob %q: %w", cronjob.Name, err)
 	}
 	var result batchv1beta1.CronJob
 	err = r.client.Get(context.TODO(),
@@ -308,8 +310,8 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 		&result)
 
 	if err != nil {
-		log.Error(err, "Error in GetCronJob")
-		return err
+		log.Error(err, "client failed to retrieve CronJob", "cronjob", cronjob.Name, "namespace", cronjob.Namespace)
+		return xerrors.Errorf("client failed to retrieve CronJob %q from namespace %q: %w", cronjob.Name, cronjob.Namespace, err)
 	}
 	return nil
 }
@@ -319,8 +321,8 @@ func (r *Reconciler) GetAll() (gitopsv1alpha1.GitOpsConfigList, error) {
 	instanceList := &gitopsv1alpha1.GitOpsConfigList{}
 	err := r.client.List(context.TODO(), &client.ListOptions{}, instanceList)
 	if err != nil {
-		log.Error(err, "unable to get the list of GitOpsCionfig")
-		return *instanceList, err
+		log.Error(err, "unable to retrieve list of all GitOpsConfig in the cluster")
+		return *instanceList, xerrors.Errorf("unable to retrieve list of all GitOpsConfig in the cluster: %w", err)
 	}
 	return *instanceList, nil
 }
@@ -351,7 +353,7 @@ func (r *Reconciler) initialize(instance *gitopsv1alpha1.GitOpsConfig) error {
 	err := r.client.Update(context.TODO(), instance)
 	if err != nil {
 		log.Error(err, "unable to update initialized GitOpsConfig", "instance", instance)
-		return err
+		return xerrors.Errorf("unable to update initialized GitOpsConfig %q: %w", instance.Name, err)
 	}
 	return nil
 }
@@ -391,8 +393,8 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 	jobList := &batchv1.JobList{}
 	selector, err := labels.Parse("action=delete")
 	if err != nil {
-		log.Error(err, "unable to parse label selector 'action=delete' ")
-		return reconcile.Result{}, err
+		log.Error(err, "unable to parse label selector 'action=delete'")
+		return reconcile.Result{}, xerrors.Errorf("unable to parse label selector 'action=delete': %w", err)
 	}
 	// looking up all delete jobs
 	err = r.client.List(context.TODO(), &client.ListOptions{
@@ -400,8 +402,8 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		LabelSelector: selector,
 	}, jobList)
 	if err != nil {
-		log.Error(err, "unable to list jobs ")
-		return reconcile.Result{}, err
+		log.Error(err, "unable to list all delete jobs", "namespace", instance.GetNamespace())
+		return reconcile.Result{}, xerrors.Errorf("unable to list all delete jobs in namespace %q: %w", instance.GetNamespace(), err)
 	}
 	applicableJobList := []batchv1.Job{}
 	//filtering by those that are might have been created by this gitopsconfig
@@ -418,24 +420,24 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 			Name: instance.GetNamespace(),
 		}, ns)
 		if err != nil {
-			log.Error(err, "unable to lookup instance's namespace")
-			return reconcile.Result{}, err
+			log.Error(err, "unable to lookup instance's namespace", "instanceName", instance.Name)
+			return reconcile.Result{}, xerrors.Errorf("unable to lookup instance %q namespace: %w", instance.Name, err)
 		}
 		if !ns.ObjectMeta.DeletionTimestamp.IsZero() {
 			//namespace is being deleted
 			// the best we can do in this situation is to let the instance be deleted and hope that this instance was creating objects only in this namespace
 			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, tagFinalizer)
 			if err := r.client.Update(context.TODO(), instance); err != nil {
-				log.Error(err, "unable to create update instace to remove finalizers")
-				return reconcile.Result{}, err
+				log.Error(err, "unable to create update instance to remove finalizers", "instanceName", instance.Name)
+				return reconcile.Result{}, xerrors.Errorf("unable to create update instance %q to remove finalizers: %w", instance.Name, err)
 			}
 			return reconcile.Result{}, nil
 		}
 		log.Info("Launching delete job for instance", "instance", instance.GetName())
 		_, err = r.createJob("delete", instance)
 		if err != nil {
-			log.Error(err, "unable to create deletion job")
-			return reconcile.Result{}, err
+			log.Error(err, "unable to create deletion job for instance", "instanceName", instance.Name)
+			return reconcile.Result{}, xerrors.Errorf("unable to create deletion job for instance %q: %w", instance.Name, err)
 		}
 		//we return because we need to wait for the job to stop
 		return reconcile.Result{
@@ -448,8 +450,8 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 	if job.Status.Succeeded > 0 {
 		instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, tagFinalizer)
 		if err := r.client.Update(context.TODO(), instance); err != nil {
-			log.Error(err, "unable to create update instace to remove finalizers")
-			return reconcile.Result{}, err
+			log.Error(err, "unable to create update instance to remove finalizers", "instanceName", instance.Name)
+			return reconcile.Result{}, xerrors.Errorf("unable to create update instance %q to remove finalizers: %w", instance.Name, err)
 		}
 		return reconcile.Result{}, nil
 	}
