@@ -77,7 +77,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// Create a new controller
 	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
 	if err != nil {
-		return xerrors.Errorf("failed creation of controller: %w", err)
+		return xerrors.Errorf("failed creation of controller %q: %w", controllerName, err)
 	}
 
 	// Watch for changes to primary resource GitOpsConfig
@@ -199,8 +199,8 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 		reqLogger.Info("Instance has a change or Webhook trigger, creating job", "instance", instance.GetName())
 		reconcileResult, err := r.createJob("create", instance)
 		if err != nil {
-			reqLogger.Error(err, "reconciler failed to create a job, continuing...")
-			return reconcileResult, xerrors.Errorf("reconciler failed to create a job: %w", err)
+			reqLogger.Error(err, "reconciler failed to create a job, continuing...", "instance", instance.GetName())
+			return reconcileResult, xerrors.Errorf("reconciler failed to create a job for GitOpsConfig instance %q: %w", instance.GetName(), err)
 		}
 		return reconcileResult, nil
 	}
@@ -231,8 +231,8 @@ func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 		Namespace: instance.Namespace,
 	}, jobList)
 	if err != nil {
-		log.Error(err, "unable to list the jobs")
-		return reconcile.Result{}, xerrors.Errorf("unable to list the jobs: %w", err)
+		log.Error(err, "unable to list the jobs", "namespace", instance.Namespace)
+		return reconcile.Result{}, xerrors.Errorf("unable to list the jobs in namespace %q: %w", instance.Namespace, err)
 	}
 	for _, j := range jobList.Items {
 		if isOwner(instance, &j) && j.Status.Active != 0 {
@@ -250,8 +250,8 @@ func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsCo
 	}
 	err = controllerutil.SetControllerReference(instance, &job, r.scheme)
 	if err != nil {
-		log.Error(err, "unable to set GitOpsConfig instance as Controller OwnerReference on owned job", "job", job)
-		return reconcile.Result{}, xerrors.Errorf("unable to set GitOpsConfig instance as Controller OwnerReference on owned job: %w", err)
+		log.Error(err, "unable to set GitOpsConfig instance as Controller OwnerReference on owned job", "instanceName", instance.Name, "job", job)
+		return reconcile.Result{}, xerrors.Errorf("unable to set GitOpsConfig instance %q as Controller OwnerReference on owned job %q: %w", instance.Name, job.Name, err)
 	}
 
 	log.Info("Creating a new Job", "job.Namespace", job.Namespace, "job.Name", job.Name)
@@ -290,8 +290,8 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 
 	err = controllerutil.SetControllerReference(instance, &cronjob, r.scheme)
 	if err != nil {
-		log.Error(err, "unable to set GitOpsConfig instance as Controller OwnerReference on owned cronjob", "cronjob", cronjob)
-		return xerrors.Errorf("unable to set GitOpsConfig instance as Controller OwnerReference on owned cronjob: %w", err)
+		log.Error(err, "unable to set GitOpsConfig instance as Controller OwnerReference on owned cronjob", "instanceName", instance.Name, "cronjob", cronjob)
+		return xerrors.Errorf("unable to set GitOpsConfig instance %q as Controller OwnerReference on owned cronjob %q: %w", instance.Name, cronjob.Name, err)
 	}
 	log.Info("Creating/updating CronJob", "cronjob.Namespace", cronjob.Namespace, "cronjob.Name", cronjob.Name)
 	if update {
@@ -302,7 +302,7 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 
 	if err != nil {
 		log.Error(err, "unable to create/update the cronjob", "cronjob", cronjob)
-		return xerrors.Errorf("unable to create/update the cronjob: %w", err)
+		return xerrors.Errorf("unable to create/update the cronjob %q: %w", cronjob.Name, err)
 	}
 	var result batchv1beta1.CronJob
 	err = r.client.Get(context.TODO(),
@@ -321,8 +321,8 @@ func (r *Reconciler) GetAll() (gitopsv1alpha1.GitOpsConfigList, error) {
 	instanceList := &gitopsv1alpha1.GitOpsConfigList{}
 	err := r.client.List(context.TODO(), &client.ListOptions{}, instanceList)
 	if err != nil {
-		log.Error(err, "unable to get the list of GitOpsConfig")
-		return *instanceList, xerrors.Errorf("unable to get the list of GitOpsConfig: %w", err)
+		log.Error(err, "unable to retrieve list of all GitOpsConfig in the cluster")
+		return *instanceList, xerrors.Errorf("unable to retrieve list of all GitOpsConfig in the cluster: %w", err)
 	}
 	return *instanceList, nil
 }
@@ -353,7 +353,7 @@ func (r *Reconciler) initialize(instance *gitopsv1alpha1.GitOpsConfig) error {
 	err := r.client.Update(context.TODO(), instance)
 	if err != nil {
 		log.Error(err, "unable to update initialized GitOpsConfig", "instance", instance)
-		return xerrors.Errorf("unable to update initialized GitOpsConfig: %w", err)
+		return xerrors.Errorf("unable to update initialized GitOpsConfig %q: %w", instance.Name, err)
 	}
 	return nil
 }
@@ -402,8 +402,8 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		LabelSelector: selector,
 	}, jobList)
 	if err != nil {
-		log.Error(err, "unable to list jobs")
-		return reconcile.Result{}, xerrors.Errorf("unable to list jobs: %w", err)
+		log.Error(err, "unable to list all delete jobs")
+		return reconcile.Result{}, xerrors.Errorf("unable to list all delete jobs: %w", err)
 	}
 	applicableJobList := []batchv1.Job{}
 	//filtering by those that are might have been created by this gitopsconfig
@@ -420,24 +420,24 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 			Name: instance.GetNamespace(),
 		}, ns)
 		if err != nil {
-			log.Error(err, "unable to lookup instance's namespace")
-			return reconcile.Result{}, xerrors.Errorf("unable to lookup instance's namespace: %w", err)
+			log.Error(err, "unable to lookup instance's namespace", "instanceName", instance.Name)
+			return reconcile.Result{}, xerrors.Errorf("unable to lookup instance %q namespace: %w", instance.Name, err)
 		}
 		if !ns.ObjectMeta.DeletionTimestamp.IsZero() {
 			//namespace is being deleted
 			// the best we can do in this situation is to let the instance be deleted and hope that this instance was creating objects only in this namespace
 			instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, tagFinalizer)
 			if err := r.client.Update(context.TODO(), instance); err != nil {
-				log.Error(err, "unable to create update instance to remove finalizers")
-				return reconcile.Result{}, xerrors.Errorf("unable to create update instance to remove finalizers: %w", err)
+				log.Error(err, "unable to create update instance to remove finalizers", "instanceName", instance.Name)
+				return reconcile.Result{}, xerrors.Errorf("unable to create update instance %q to remove finalizers: %w", instance.Name, err)
 			}
 			return reconcile.Result{}, nil
 		}
 		log.Info("Launching delete job for instance", "instance", instance.GetName())
 		_, err = r.createJob("delete", instance)
 		if err != nil {
-			log.Error(err, "unable to create deletion job")
-			return reconcile.Result{}, xerrors.Errorf("unable to create deletion job: %w", err)
+			log.Error(err, "unable to create deletion job for instance", "instanceName", instance.Name)
+			return reconcile.Result{}, xerrors.Errorf("unable to create deletion job for instance %q: %w", instance.Name, err)
 		}
 		//we return because we need to wait for the job to stop
 		return reconcile.Result{
@@ -450,8 +450,8 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 	if job.Status.Succeeded > 0 {
 		instance.ObjectMeta.Finalizers = removeString(instance.ObjectMeta.Finalizers, tagFinalizer)
 		if err := r.client.Update(context.TODO(), instance); err != nil {
-			log.Error(err, "unable to create update instance to remove finalizers")
-			return reconcile.Result{}, xerrors.Errorf("unable to create update instance to remove finalizers: %w", err)
+			log.Error(err, "unable to create update instance to remove finalizers", "instanceName", instance.Name)
+			return reconcile.Result{}, xerrors.Errorf("unable to create update instance %q to remove finalizers: %w", instance.Name, err)
 		}
 		return reconcile.Result{}, nil
 	}

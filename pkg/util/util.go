@@ -63,8 +63,8 @@ func InitializeTemplates(jobTemplateFileName string, cronJobTemplateFileName str
 
 	text, err = ioutil.ReadFile(cronJobTemplateFileName)
 	if err != nil {
-		log.Error(err, "error reading job template file", "filename", cronJobTemplateFileName)
-		return xerrors.Errorf("error reading job template file %q: %w", cronJobTemplateFileName, err)
+		log.Error(err, "error reading cron job template file", "filename", cronJobTemplateFileName)
+		return xerrors.Errorf("error reading cron job template file %q: %w", cronJobTemplateFileName, err)
 	}
 	cronJobTemplate = template.New("Job").Funcs(template.FuncMap{
 		"getCron": func(config v1alpha1.GitOpsConfig) string {
@@ -79,8 +79,8 @@ func InitializeTemplates(jobTemplateFileName string, cronJobTemplateFileName str
 
 	cronJobTemplate, err = cronJobTemplate.Parse(string(text))
 	if err != nil {
-		log.Error(err, "error parsing template", "template", text)
-		return xerrors.Errorf("error parsing template %q: %w", text, err)
+		log.Error(err, "error parsing cron job template", "template", text)
+		return xerrors.Errorf("error parsing cron job template: %w", err)
 	}
 	return nil
 }
@@ -91,13 +91,13 @@ func CreateJob(jobmergedata JobMergeData) (batch.Job, error) {
 	var b bytes.Buffer
 	err := jobTemplate.Execute(&b, &jobmergedata)
 	if err != nil {
-		log.Error(err, "error executing template")
-		return job, xerrors.Errorf("error executing template: %w", err)
+		log.Error(err, "error executing job template from a template merge data")
+		return job, xerrors.Errorf("error executing job template from a template merge data: %w", err)
 	}
 	err = yaml.Unmarshal(b.Bytes(), &job)
 	if err != nil {
-		log.Error(err, "error unmarshalling the job manifest", "manifest", string(b.Bytes()))
-		return job, xerrors.Errorf("error unmarshalling the job manifest: %w", err)
+		log.Error(err, "error unmarshalling a job manifest", "manifest", string(b.Bytes()))
+		return job, xerrors.Errorf("error unmarshalling a job manifest: %w", err)
 	}
 	return job, nil
 }
@@ -108,13 +108,13 @@ func CreateCronJob(jobmergedata JobMergeData) (batchv1beta1.CronJob, error) {
 	var b bytes.Buffer
 	err := cronJobTemplate.Execute(&b, &jobmergedata)
 	if err != nil {
-		log.Error(err, "error executing template")
-		return cronjob, xerrors.Errorf("error executing template: %w", err)
+		log.Error(err, "error executing cron job template from a template merge data")
+		return cronjob, xerrors.Errorf("error executing cron job template from a template merge data: %w", err)
 	}
 	err = yaml.Unmarshal(b.Bytes(), &cronjob)
 	if err != nil {
-		log.Error(err, "error unmarshalling the job manifest", "manifest", string(b.Bytes()))
-		return cronjob, xerrors.Errorf("error unmarshalling the job manifest: %w", err)
+		log.Error(err, "error unmarshalling a cron job manifest", "manifest", string(b.Bytes()))
+		return cronjob, xerrors.Errorf("error unmarshalling a cron job manifest: %w", err)
 	}
 	return cronjob, nil
 }
