@@ -87,19 +87,53 @@ kubectl create namespace eunomia-hello-world-yaml-demo
 
 kubectl apply -f examples/hello-world-yaml/eunomia-runner-sa.yaml -n eunomia-hello-world-yaml-demo
 
-kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-hello-world-yaml-demo
+timeout=90
 
-timeout=30
+#Testing hello-workld-yaml-cr1
+hello_world_yaml_cr_1() {
+  kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-hello-world-yaml-demo
+  while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running" ]];do
+    echo "waiting for hello-world-yaml-cr1 deployment: remaining $timeout sec..."
+    sleep 1
+  done
+  if [[ $timeout == 0 ]]; then
+    echo "Example hello-world-yaml-cr1 Test FAILED"
+    exit 1
+  fi
+  echo "Example hello-world-yaml-cr1 Test Passed"
+}
 
-while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running"  ]];do
-  echo "waiting for hello-world deployment: remaining $timeout sec..."
-  sleep 1
-done
-if [[ $timeout == 0 ]]; then
-  echo "Example CR1 Test FAILED"
-  exit 1
-fi
-echo "Example CR1 Test Passed"
+#Testing hello_world_yaml_cr_2
+hello_world_yaml_cr_2() {
+  kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr2.yaml -n eunomia-hello-world-yaml-demo
+  while ((--timeout)) && [[ "$(kubectl get replicaset -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.readyReplicas}{'\n'}{end}")" != "3" ]];do
+    echo "waiting for hello-world-yaml-cr2 deployment: remaining $timeout sec..."
+    sleep 1
+  done
+  if [[ $timeout == 0 ]]; then
+    echo "Example hello-world-yaml-cr2 Test FAILED"
+    exit 1
+  fi
+  echo "Example hello-world-yaml-cr2 Test Passed"
+}
 
+#Testing hello_world_yaml_cr_3
+hello_world_yaml_cr_3() {
+  kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr3.yaml -n eunomia-hello-world-yaml-demo
+  while ((--timeout)) && [[ "$(kubectl get deployment -n eunomia-hello-world-yaml-demo -o=jsonpath="{range .items[*]}{.status.observedGeneration}{'\n'}{end}")" != "3" ]];do
+    echo "waiting for hello-world-yaml-cr3 deployment: remaining $timeout sec..."
+    sleep 1
+  done
+  if [[ $timeout == 0 ]]; then
+    echo "Example hello-world-yaml-cr3 Test FAILED"
+    exit 1
+  fi
+}
+
+hello_world_yaml_cr_1
+hello_world_yaml_cr_2
+hello_world_yaml_cr_3
+
+# Delete namespaces after Testing hello-world-yaml example
 kubectl delete namespace eunomia-hello-world-yaml-demo
 
