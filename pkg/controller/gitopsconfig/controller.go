@@ -402,8 +402,8 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		LabelSelector: selector,
 	}, jobList)
 	if err != nil {
-		log.Error(err, "unable to list all delete jobs")
-		return reconcile.Result{}, xerrors.Errorf("unable to list all delete jobs: %w", err)
+		log.Error(err, "unable to list all delete jobs", "namespace", instance.GetNamespace())
+		return reconcile.Result{}, xerrors.Errorf("unable to list all delete jobs in namespace %q: %w", instance.GetNamespace(), err)
 	}
 	applicableJobList := []batchv1.Job{}
 	//filtering by those that are might have been created by this gitopsconfig
