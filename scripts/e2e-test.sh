@@ -81,8 +81,7 @@ helm template deploy/helm/eunomia-operator/ \
 # Below block is to ensure hello-world-yaml example is working
 helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.image.tag=dev \
-  --set eunomia.operator.image.pullPolicy=Never \
-  --set eunomia.openshift.route.enabled=true | kubectl apply -f -
+  --set eunomia.operator.image.pullPolicy=Never | kubectl apply -f -
 
 kubectl create namespace eunomia-hello-world-yaml-demo
 
@@ -90,17 +89,17 @@ kubectl apply -f examples/hello-world-yaml/eunomia-runner-sa.yaml -n eunomia-hel
 
 kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-hello-world-yaml-demo
 
-sleep 30s
+timeout=30
 
-RESULT=`kubectl get po -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}"`
-
-if [[ $RESULT == "Running" ]]
-then
-  echo "Example Passed"
-else
-  echo "Example Failed"
-        exit 1
+while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running"  ]];do
+  echo "waiting for hello-world deployment: remaining $timeout sec..."
+  sleep 1
+done
+if [[ $timeout == 0 ]]; then
+  echo "Example CR1 Test FAILED"
+  exit 1
 fi
+echo "Example CR1 Test Passed"
 
 kubectl delete namespace eunomia-hello-world-yaml-demo
 
