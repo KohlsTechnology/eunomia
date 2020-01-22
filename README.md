@@ -72,7 +72,7 @@ spec:
     secretRef: template-gitconfig
   parameterSource:
     contextDir: simple/parameters
-    secretRef: parameter-gitconfig  
+    secretRef: parameter-gitconfig
   triggers:
   - type: Change
   - type: Webhook
@@ -130,7 +130,7 @@ If a secret is provided, then it is assumed that the connection to Git requires 
 If the `uri` is not specified in the `parameterSource` section, then it will default to the `uri` specified under `templateSource`.
 
 ### parameterSource processing
-Eunomia uses the [yq command](http://mikefarah.github.io/yq/) to merge all yaml files in the specified folder. You have to be careful, if you have the same variable name in multiple files. Dictionaries will merge, lists will get overwritten. 
+Eunomia uses the [yq command](http://mikefarah.github.io/yq/) to merge all yaml files in the specified folder. You have to be careful, if you have the same variable name in multiple files. Dictionaries will merge, lists will get overwritten.
 
 #### Variable Hierarchy
 You can provide a file `hierarchy.lst`, to allow a variable hierarchy. This will allow you to specify a default value and overwrite it on an environment level if necessary. This will greatly simplify your configuration and allows for deduplication of data, making your operational life a lot easier.
@@ -211,7 +211,7 @@ You can enable one or multiple triggers.
 
 ### GitHub webhook configuration
 
-To set up GitHub webhook follow this [GitHub documentation](https://developer.github.com/webhooks/creating/). 
+To set up GitHub webhook follow this [GitHub documentation](https://developer.github.com/webhooks/creating/).
 Create route on port 8080 to eunomia-service and use this route as GitHub webhook `Payload URL` with added webhook/ endpoint at the end.
 
 Content type needs to be set to `application/json`.
@@ -230,11 +230,12 @@ The base image provides the following workflow:
 
     | Name  | Description  |
     |:---|:---|
-    | `CA_BUNDLE`  | Platform-level CA bundle  |
-    | `SERVICE_CA_BUNDLE`  | Service-level CA bundle  |
+    | `CA_BUNDLE`  | Path to the platform-level CA bundle  |
+    | `SERVICE_CA_BUNDLE`  | Path to the service-level CA bundle  |
     | `NAMESPACE`  | Current namespace  |
+
 3. `processParameters.sh` : This script processes all the parameter files and generates `/tmp/eunomia_values_processed.yaml`. This script currently supports the following features:
-    - Merging of all existing yaml files in the `CLONED_PARAMETER_GIT_DIR` location, into a single file for processing by the templating engine. 
+    - Merging of all existing yaml files in the `CLONED_PARAMETER_GIT_DIR` location, into a single file for processing by the templating engine.
     - Substitution of variables with environment variables.
 
     This script can be further enhanced to e.g. support secrets injection.

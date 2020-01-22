@@ -30,15 +30,12 @@ function kube {
 }
 
 function getClusterCAs {
-    if ! kube describe sa default -n default 2>&1 >/dev/null; then
-        echo "FIXME: 'kube describe sa default -n default' is not working"
-        echo export CA_BUNDLE= >> $HOME/envs.sh
-        echo export SERVICE_CA_BUNDLE= >> $HOME/envs.sh
-        return
+    echo export CA_BUNDLE="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt" >> "$HOME"/envs.sh
+
+    # service-ca.crt is only included by default in OpenShift
+    if [ -e /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt ]; then
+        echo export SERVICE_CA_BUNDLE="/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt" >> "$HOME"/envs.sh
     fi
-    SECRET=$(kube describe sa default -n default | grep 'Tokens:' | awk '{print $2}')
-    echo export CA_BUNDLE=$(kube get secret $SECRET -n default -o "jsonpath={.data['ca\.crt']}") >> $HOME/envs.sh
-    echo export SERVICE_CA_BUNDLE=$(kube get secret $SECRET -n default -o "jsonpath={.data['service-ca\.crt']}") >> $HOME/envs.sh
 }
 
 function getNamespace {
