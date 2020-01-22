@@ -34,8 +34,8 @@ fi
 echo "EUNOMIA_URI=${EUNOMIA_URI:-}"
 echo "EUNOMIA_REF=${EUNOMIA_REF:-}"
 
-# Ensure minikube is running
-#minikube start
+# Check if minikube is running
+minikube status || { echo "Minikube is not running, aborting tests"; exit 1; }
 
 # Ensure clean workspace
 if [[ $(kubectl get namespace $TEST_NAMESPACE) ]]; then
@@ -47,41 +47,29 @@ fi
 eval $(minikube docker-env)
 GOOS=linux make e2e-test-images
 
-helm template deploy/helm/eunomia-operator/ \
-  --set eunomia.operator.deployment.enabled= \
-  --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
-
-operator-sdk test local ./test/e2e --namespace "$TEST_NAMESPACE" --up-local --no-setup --verbose --go-test-flags "-tags e2e -timeout 20m"
-
-helm template deploy/helm/eunomia-operator/ \
-  --set eunomia.operator.deployment.enabled= \
-  --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl delete -f -
-
+# Eunomia setup
 helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.image.tag=dev \
   --set eunomia.operator.image.pullPolicy=Never \
   --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
 
+# Deployment test
 kubectl wait --for=condition=available --timeout=30s deployment/eunomia-operator -n $TEST_NAMESPACE
-
 podname=$(kubectl get pods  -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' -n $TEST_NAMESPACE)
-
 if kubectl exec "${podname}" date -n $TEST_NAMESPACE
 then
-  echo "Pod is Healthy"
+  echo "Eunomia deployment successful"
 else
-  echo "Pod is not Healthy"
+  echo "Eunomia deployment failed"
   exit 1
 fi
 
-helm template deploy/helm/eunomia-operator/ \
-  --set eunomia.operator.image.tag=dev \
-  --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl delete -f -
-
-## Below block is to ensure all example are working
-helm template deploy/helm/eunomia-operator/ \
-  --set eunomia.operator.image.tag=dev \
-  --set eunomia.operator.image.pullPolicy=Never | kubectl apply -f -
+# End-to-end tests
+operator-sdk test local ./test/e2e \
+  --namespaced-manifest /dev/null \
+  --global-manifest /dev/null \
+  --verbose \
+  --go-test-flags "-tags e2e -timeout 20m"
 
 ## Testing hello-world-yaml example
 # Create new namespace
@@ -226,3 +214,8 @@ hello_world_hierarchy_cr1
 # Delete namespaces after Testing hello-world-hierarchy example
 kubectl delete namespace eunomia-hello-world-demo eunomia-hello-world-demo-hierarchy
 
+# Eunomia teardown
+helm template deploy/helm/eunomia-operator/ \
+  --set eunomia.operator.image.tag=dev \
+  --set eunomia.operator.image.pullPolicy=Never \
+  --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl delete -f -
