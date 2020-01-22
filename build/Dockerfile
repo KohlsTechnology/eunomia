@@ -22,4 +22,8 @@ COPY job-templates/* /default-job-templates/
 # install operator binary
 COPY _output/bin/eunomia ${OPERATOR}
 
+RUN groupadd -r eunomia && useradd --no-log-init -r -g eunomia eunomia
+
+USER eunomia
+
 ENTRYPOINT ["/usr/local/bin/eunomia-operator"]
