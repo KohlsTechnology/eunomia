@@ -451,6 +451,19 @@ func TestCreatingDeleteJob(t *testing.T) {
 		log.Error(err, "Update CRD", "Failed Updating CRD type of GitOpsConfig")
 	}
 
+	// Fakeclient is not updating the job status , inorder to create the new job we are
+	// Updating the job status manually for the existing job created by Reconcile.
+	job = findRunningJob(cl)
+	job.Status.Active = 0
+	job.Status.Succeeded = 1
+	job.Status.Failed = 0
+	job.Status.StartTime = &deleteTime
+	// Update the job with the status
+	err = cl.Update(context.TODO(), &job)
+	if err != nil {
+		log.Error(err, "Update job", "Failed to Updating the job status")
+	}
+
 	// There shouldn't be a delete job at this point, the reconciler should create one
 	r.Reconcile(req)
 
@@ -559,6 +572,92 @@ func findDeleteJob(cl client.Client) batch.Job {
 		if job.GetLabels()["action"] == "delete" {
 			return job
 		}
+	}
+	return batch.Job{}
+}
+
+func TestCreateJob(t *testing.T) {
+	// This flag is needed to let the reconciler know that the CRD has been initialized
+	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
+	// Set trigger type to Change
+	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
+		{
+			Type: "Change",
+		},
+	}
+	// Objects to track in the fake client.
+	objs := []runtime.Object{
+		gitops,
+	}
+	// Register operator types with the runtime scheme.
+	s := scheme.Scheme
+	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
+	// Initialize fake client
+	cl := fake.NewFakeClient(objs...)
+	r := &Reconciler{client: cl, scheme: s}
+
+	nsn := types.NamespacedName{
+		Name:      name,
+		Namespace: namespace,
+	}
+
+	req := reconcile.Request{
+		NamespacedName: nsn,
+	}
+
+	r.Reconcile(req)
+
+	// Fakeclient is not updating the job status , inorder to test race condition between the jobs we are
+	// Updating the job status manually for the existing job created by Reconcile.
+	startTime := metav1.Now()
+	job := findRunningJob(cl)
+	job.Status.Active = 1
+	job.Status.Succeeded = 0
+	job.Status.Failed = 0
+	job.Status.StartTime = &startTime
+
+	err := cl.Update(context.TODO(), &job)
+	if err != nil {
+		log.Error(err, "Update job", "Failed to Updating the job status")
+	}
+	r.Reconcile(req)
+	jobCount, err := findJobList(cl)
+	if err != nil {
+		log.Error(err, "Job list", "Failed to fetch job list")
+	}
+	if jobCount > 1 {
+		t.Error("Job was not postponed")
+	}
+}
+
+func findJobList(cl client.Client) (int, error) {
+	// At times other jobs can exist
+	jobList := &batchv1.JobList{}
+	// Looking up all jobs
+	err := cl.List(context.TODO(), &client.ListOptions{
+		Namespace: namespace,
+	}, jobList)
+	if err != nil {
+		log.Error(err, "unable to list the running jobs")
+		return 0, err
+	}
+	return len(jobList.Items), nil
+}
+
+func findRunningJob(cl client.Client) batch.Job {
+	// At times other jobs can exist
+	jobList := &batchv1.JobList{}
+	// Looking up all jobs
+	err := cl.List(context.TODO(), &client.ListOptions{
+		Namespace: namespace,
+	}, jobList)
+	if err != nil {
+		log.Error(err, "unable to list jobs")
+		return batch.Job{}
+	}
+	// Returning the jobs
+	if len(jobList.Items) > 0 {
+		return jobList.Items[0]
 	}
 	return batch.Job{}
 }
