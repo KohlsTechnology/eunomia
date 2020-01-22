@@ -22,6 +22,7 @@ case "$ACTION" in
   create)
     /usr/local/bin/gitClone.sh
     /usr/local/bin/discoverEnvironment.sh
+    # shellcheck disable=SC1090
     source $HOME/envs.sh
     /usr/local/bin/processParameters.sh
     /usr/local/bin/processTemplates.sh

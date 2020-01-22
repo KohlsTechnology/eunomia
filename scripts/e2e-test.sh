@@ -16,7 +16,7 @@
 
 set -euxo pipefail
 
-export EUNOMIA_PATH=$(cd "${0%/*}/.." ; pwd)
+EUNOMIA_PATH=$(cd "${0%/*}/.." ; pwd)
 
 export JOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/job.yaml
 export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/cronjob.yaml
@@ -44,7 +44,7 @@ fi
 
 # Pre-populate the Docker registry in minikube with images built from the current commit
 # See also: https://stackoverflow.com/q/42564058
-eval $(minikube docker-env)
+eval "$(minikube docker-env)"
 GOOS=linux make e2e-test-images
 
 # Eunomia setup
