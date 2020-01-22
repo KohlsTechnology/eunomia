@@ -26,18 +26,13 @@ a local minikube or minishift docker registry.
 EOT
 }
 
-if [[ ! "${1:-}" ]]; then
+case "${1:-}" in
+  minikube) eval $(minikube docker-env);;
+  minishift) eval $(minishift docker-env);;
+  *)
     usage
     exit 1
-fi
-
-if [[ "$1" == minikube ]]; then
-    eval $(minikube docker-env)
-elif [[ "$1" == minishift ]]; then
-    eval $(minishift docker-env)
-else
-    usage
-    exit 1
-fi
+    ;;
+esac
 
 "$(dirname "$0")/build-images.sh" quay.io/kohlstechnology
