@@ -42,6 +42,10 @@ func disabledOCPTemplate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get namespace: %v", err)
 	}
+	if err = SetupRbacInNamespace(namespace); err != nil {
+		t.Error(err)
+	}
+
 	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
 	if err != nil {
 		t.Fatal(err)
