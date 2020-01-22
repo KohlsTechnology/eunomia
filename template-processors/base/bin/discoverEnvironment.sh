@@ -16,13 +16,8 @@
 
 set -euxo pipefail
 
-function setContext {
-  $kubectl config set-context current --namespace=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)
-  $kubectl config use-context current
-}
-
 function kube {
-  $kubectl \
+  kubectl \
     -s https://kubernetes.default.svc:443 \
     --token "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
     --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
@@ -39,10 +34,15 @@ function getClusterCAs {
 }
 
 function getNamespace {
-    echo export NAMESPACE=$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace) >> $HOME/envs.sh
+    echo export NAMESPACE="$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)" >> "$HOME"/envs.sh
+}
+
+function setContext {
+  kube config set-context current --namespace="$NAMESPACE"
+  kube config use-context current
 }
 
 echo Setting cluster-related environment variable
-setContext
 getClusterCAs
 getNamespace
+setContext
