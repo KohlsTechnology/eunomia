@@ -1,4 +1,5 @@
 {{- with .Values.eunomia.operator }}
+{{- if not .deployment.nsRbacOnly -}}
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -6,4 +7,5 @@ metadata:
     openshift.io/node-selector: ''
   name: {{ .namespace }}
 spec:
+{{- end }}
 {{- end }}

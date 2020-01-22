@@ -24,6 +24,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"os/exec"
+	"path/filepath"
+	"runtime"
 	"strings"
 	"testing"
 	"time"
@@ -189,4 +192,45 @@ func DumpJobsLogsOnError(t *testing.T, f *framework.Framework, namespace string)
 func debugJSON(v interface{}) string {
 	raw, _ := json.MarshalIndent(v, "", "  ")
 	return string(raw)
+}
+
+// SetupRbacInNamespace deploys appropriate role and its binding to service
+// account in given namespace for the test to be able to run seccessfuly.
+//
+// This function is needed because the function which normally handles
+// per-namespace recource creation in operator-sdk framework
+// https://github.com/operator-framework/operator-sdk/blob/v0.8.1/pkg/test/resource_creator.go#L108
+// does not do the job in eunomia's case. It returns a call to a function
+// CreateFromYAML (defined just above it) which uses SetNamespace method which
+// sets a namespace in the yaml provided with "operator-sdk test local
+// --namespaced-manifest" flag. However, this function
+// https://github.com/kubernetes/apimachinery/blob/master/pkg/apis/meta/v1/unstructured/unstructured.go#L237-L243
+// sets the namespace only in the metadata section of the resource. It is not
+// enough in eunomia's case because the namespace needs to be also set in
+// RoleBinding's subjects section:
+// https://github.com/KohlsTechnology/eunomia/blob/v0.1.1/deploy/helm/eunomia-operator/templates/service-account-operator.yaml#L17
+func SetupRbacInNamespace(namespace string) error {
+	// get eunomia root dir
+	_, utilTestFilename, _, _ := runtime.Caller(0)
+	eunomiaRoot := filepath.Join(filepath.Dir(utilTestFilename), "../..")
+
+	// create kubectl input
+	out, err := exec.Command(
+		"helm", "template",
+		filepath.Join(eunomiaRoot, "deploy/helm/eunomia-operator/"),
+		"--set", "eunomia.operator.namespace="+namespace,
+		"--set", "eunomia.operator.deployment.nsRbacOnly=true",
+	).Output()
+	if err != nil {
+		return xerrors.Errorf("Failed to generate manifest files: %w", err)
+	}
+
+	// create role, role binding and service account
+	cmd := exec.Command("kubectl", "apply", "-f", "-")
+	cmd.Stdin = bytes.NewReader(out)
+	if err := cmd.Run(); err != nil {
+		return xerrors.Errorf("Failed to create RBAC in %s namespace: %w", namespace, err)
+	}
+
+	return nil
 }

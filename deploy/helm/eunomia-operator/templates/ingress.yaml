@@ -1,5 +1,5 @@
 {{- with .Values.eunomia.operator }}
-{{- if .ingress.enabled -}}
+{{- if and .ingress.enabled (not .deployment.nsRbacOnly) -}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:

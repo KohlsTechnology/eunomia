@@ -1,5 +1,5 @@
 {{- with .Values.eunomia.operator }}
-{{- if .openshift.route.enabled -}}
+{{- if and .openshift.route.enabled (not .deployment.nsRbacOnly) -}}
 apiVersion: v1
 kind: Route
 metadata:
