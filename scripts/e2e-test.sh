@@ -78,3 +78,151 @@ helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.image.tag=dev \
   --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl delete -f -
 
+## Below block is to ensure all example are working
+helm template deploy/helm/eunomia-operator/ \
+  --set eunomia.operator.image.tag=dev \
+  --set eunomia.operator.image.pullPolicy=Never | kubectl apply -f -
+
+## Testing hello-world-yaml example
+# Create new namespace
+kubectl create namespace eunomia-hello-world-yaml-demo
+# Create new service account for the runners
+kubectl apply -f examples/hello-world-yaml/eunomia-runner-sa.yaml -n eunomia-hello-world-yaml-demo
+
+#Test hello-world-yaml-cr1
+hello_world_yaml_cr_1() {
+  timeout=30
+  kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-hello-world-yaml-demo
+  while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running" ]];do
+    echo "waiting for hello-world-yaml-cr1 deployment: remaining $timeout sec..."
+    sleep 1
+  done
+  if [[ $timeout == 0 ]]; then
+    echo "Example hello-world-yaml-cr1 Test FAILED"
+    exit 1
+  fi
+  echo "Example hello-world-yaml-cr1 Test Passed"
+}
+
+#Test hello_world_yaml_cr_2
+hello_world_yaml_cr_2() {
+  timeout=30
+  kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr2.yaml -n eunomia-hello-world-yaml-demo
+  while ((--timeout)) && [[ "$(kubectl get replicaset -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.readyReplicas}{'\n'}{end}")" != "3" ]];do
+    echo "waiting for hello-world-yaml-cr2 deployment: remaining $timeout sec..."
+    sleep 1
+  done
+  if [[ $timeout == 0 ]]; then
+    echo "Example hello-world-yaml-cr2 Test FAILED"
+    exit 1
+  fi
+  echo "Example hello-world-yaml-cr2 Test Passed"
+}
+
+#Test hello_world_yaml_cr_3
+hello_world_yaml_cr_3() {
+  timeout=30
+  kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr3.yaml -n eunomia-hello-world-yaml-demo
+  while ((--timeout)) && [[ "$(kubectl get deployment -n eunomia-hello-world-yaml-demo -o=jsonpath="{range .items[*]}{.status.observedGeneration}{'\n'}{end}")" != "3" ]];do
+    echo "waiting for hello-world-yaml-cr3 deployment: remaining $timeout sec..."
+    sleep 1
+  done
+  if [[ $timeout == 0 ]]; then
+    echo "Example hello-world-yaml-cr3 Test FAILED"
+    exit 1
+  fi
+  echo "Example hello-world-yaml-cr3 Test Passed"
+}
+
+hello_world_yaml_cr_1
+hello_world_yaml_cr_2
+hello_world_yaml_cr_3
+
+# Delete namespaces after Testing hello-world-yaml example
+kubectl delete namespace eunomia-hello-world-yaml-demo
+
+## Testing hello-world-helm example
+# Create new namespace
+kubectl create namespace eunomia-hello-world-demo
+
+# Create the service account for the runners
+kubectl apply -f examples/hello-world-helm/service_account_runner.yaml -n eunomia-hello-world-demo
+
+#Test hello_world_helm_cr1
+hello_world_helm_cr1() {
+  timeout=60
+  kubectl apply -f examples/hello-world-helm/cr/hello-world-cr1.yaml -n eunomia-hello-world-demo
+  while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running" ]];do
+    echo "waiting for hello-world-helm-cr1 deployment: remaining $timeout sec..."
+    sleep 1
+  done
+  if [[ $timeout == 0 ]]; then
+    echo "Example hello-world-helm-cr1 Test FAILED"
+    exit 1
+  fi
+  echo "Example hello-world-helm-cr1 Test Passed"
+}
+
+#Test hello_world_helm_cr2
+hello_world_helm_cr2() {
+  timeout=60
+  kubectl apply -f examples/hello-world-helm/cr/hello-world-cr2.yaml -n eunomia-hello-world-demo
+  while ((--timeout)) && [[ "$(kubectl get replicaset -n eunomia-hello-world-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.readyReplicas}{'\n'}{end}")" != "3" ]];do
+    echo "waiting for hello-world-helm-cr2 deployment: remaining $timeout sec..."
+    sleep 1
+  done
+  if [[ $timeout == 0 ]]; then
+    echo "Example hello-world-helm-cr2 Test FAILED"
+    exit 1
+  fi
+  echo "Example hello-world-helm-cr2 Test Passed"
+}
+
+#Test hello_world_helm_cr3
+hello_world_helm_cr3() {
+  timeout=60
+  kubectl apply -f examples/hello-world-helm/cr/hello-world-cr3.yaml -n eunomia-hello-world-demo
+  while ((--timeout)) && [[ "$(kubectl get deployment -n eunomia-hello-world-demo -o=jsonpath="{range .items[*]}{.status.observedGeneration}{'\n'}{end}")" != "3" ]];do
+    echo "waiting for hello-world-helm-cr3 deployment: remaining $timeout sec..."
+    sleep 1
+  done
+  if [[ $timeout == 0 ]]; then
+    echo "Example hello-world-helm-cr3 Test FAILED"
+    exit 1
+  fi
+  echo "Example hello-world-helm-cr3 Test Passed"
+}
+
+hello_world_helm_cr1
+hello_world_helm_cr2
+hello_world_helm_cr3
+
+# Delete namespaces after Testing hello-world-helm example
+kubectl delete namespace eunomia-hello-world-demo
+
+## Testing hello-world-hierarchy example
+# Create new namespace
+kubectl create namespace eunomia-hello-world-demo
+# Create new service account for the runners
+kubectl apply -f examples/hello-world-helm/service_account_runner.yaml -n eunomia-hello-world-demo
+
+#Test hello_world_hierarchy_cr1
+hello_world_hierarchy_cr1() {
+  timeout=90
+  kubectl apply -f examples/hello-world-hierarchy/cr/hello-world-cr.yaml -n eunomia-hello-world-demo
+  while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-demo-hierarchy  -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running" ]];do
+    echo "waiting for hello-world-hierarchy-cr1 deployment: remaining $timeout sec..."
+    sleep 1
+  done
+  if [[ $timeout == 0 ]]; then
+    echo "Example hello-world-hierarchy-cr1 Test FAILED"
+    exit 1
+  fi
+  echo "Example hello-world-hierarchy-cr1 Test Passed"
+}
+
+hello_world_hierarchy_cr1
+
+# Delete namespaces after Testing hello-world-hierarchy example
+kubectl delete namespace eunomia-hello-world-demo eunomia-hello-world-demo-hierarchy
+
