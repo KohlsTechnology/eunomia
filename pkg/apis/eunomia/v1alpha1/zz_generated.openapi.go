@@ -82,7 +82,7 @@ func schema_pkg_apis_eunomia_v1alpha1_GitOpsConfigSpec(ref common.ReferenceCallb
 					},
 					"triggers": {
 						SchemaProps: spec.SchemaProps{
-							Description: "Triggers is an array of triggers that will lanuch this configuration",
+							Description: "Triggers is an array of triggers that will launch this configuration",
 							Type:        []string{"array"},
 							Items: &spec.SchemaOrArray{
 								Schema: &spec.Schema{

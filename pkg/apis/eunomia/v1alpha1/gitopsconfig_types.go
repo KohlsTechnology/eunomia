@@ -42,7 +42,7 @@ type GitOpsConfigSpec struct {
 	TemplateSource GitConfig `json:"templateSource,omitempty"`
 	// ParameterSource is the location of the parameters, only contextDir is mandatory, if other filed are left blank they are assumed to be the same as ParameterSource
 	ParameterSource GitConfig `json:"parameterSource,omitempty"`
-	// Triggers is an array of triggers that will lanuch this configuration
+	// Triggers is an array of triggers that will launch this configuration
 	Triggers []GitOpsTrigger `json:"triggers,omitempty"`
 	// ServiceAccountRef references to the service account under which the template engine job will run, it must exists in the namespace in which this CR is created
 	ServiceAccountRef string `json:"serviceAccountRef,omitempty"`

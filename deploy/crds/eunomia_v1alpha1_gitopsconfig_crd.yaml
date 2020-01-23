@@ -104,7 +104,7 @@ spec:
                   type: string
               type: object
             triggers:
-              description: Triggers is an array of triggers that will lanuch this
+              description: Triggers is an array of triggers that will launch this
                 configuration
               items:
                 properties:
