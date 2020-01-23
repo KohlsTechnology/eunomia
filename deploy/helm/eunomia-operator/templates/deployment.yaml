@@ -31,6 +31,12 @@ spec:
               value: "eunomia-operator"
           resources:
             {{- toYaml .resources | nindent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 5
       {{- with .nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

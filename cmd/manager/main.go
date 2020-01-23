@@ -145,11 +145,16 @@ func main() {
 	// 	log.Info(err.Error())
 	// }
 
-	// Set up WebHook listener
+	// Set up WebHook listener and healthz endpoint
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("/webhook/", func(w http.ResponseWriter, r *http.Request) {
 		handler.WebhookHandler(w, r, gitopsconfig.NewReconciler(mgr))
+	})
+
+	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok\n"))
 	})
 
 	log.Info("Starting the Web Server")
