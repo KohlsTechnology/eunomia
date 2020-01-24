@@ -1,5 +1,5 @@
 {{- with .Values.eunomia.operator }}
-{{- if .deployment.enabled -}}
+{{- if and .deployment.enabled (not .deployment.nsRbacOnly) -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

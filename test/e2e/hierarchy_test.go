@@ -38,6 +38,10 @@ func TestHierarchy(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get namespace: %v", err)
 	}
+	if err = SetupRbacInNamespace(namespace); err != nil {
+		t.Error(err)
+	}
+
 	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
 	if err != nil {
 		t.Fatal(err)
@@ -63,6 +67,7 @@ func TestHierarchy(t *testing.T) {
 			Namespace: namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
+			TemplateProcessorArgs: "--set namespace=" + namespace,
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,

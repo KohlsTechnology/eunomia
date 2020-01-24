@@ -35,7 +35,7 @@ import (
 
 // TestJobEvents_JobSuccess verifies that a JobSucceeded event is emitted by
 // eunomia after a simple GitOpsConfig is executed.
-func TestJobEvents_JobSuccess(t *testing.T) {
+func TestJobEventsJobSuccess(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 
@@ -43,6 +43,10 @@ func TestJobEvents_JobSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get namespace: %v", err)
 	}
+	if err = SetupRbacInNamespace(namespace); err != nil {
+		t.Error(err)
+	}
+
 	defer DumpJobsLogsOnError(t, framework.Global, namespace)
 	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
 	if err != nil {
@@ -133,7 +137,7 @@ func TestJobEvents_JobSuccess(t *testing.T) {
 
 // TestJobEvents_PeriodicJobSuccess verifies that a JobSuccessful event is
 // emitted by eunomia for a Periodic GitOpsConfig.
-func TestJobEvents_PeriodicJobSuccess(t *testing.T) {
+func TestJobEventsPeriodicJobSuccess(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 
@@ -141,6 +145,10 @@ func TestJobEvents_PeriodicJobSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get namespace: %v", err)
 	}
+	if err = SetupRbacInNamespace(namespace); err != nil {
+		t.Error(err)
+	}
+
 	defer DumpJobsLogsOnError(t, framework.Global, namespace)
 	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
 	if err != nil {
@@ -228,7 +236,7 @@ func TestJobEvents_PeriodicJobSuccess(t *testing.T) {
 // TestJobEvents_JobFailed verifies that a JobFailed event is emitted by
 // eunomia if a Job implementing GitOpsConfig fails. In particular, a bad URI
 // is provided in the GitOpsConfig, to ensure that the Job will fail.
-func TestJobEvents_JobFailed(t *testing.T) {
+func TestJobEventsJobFailed(t *testing.T) {
 	if testing.Short() {
 		// FIXME: as of writing this test, "backoffLimit" in job.yaml is set to 4,
 		// which means we need to wait until 5 Pod retries fail, eventually
@@ -246,6 +254,10 @@ func TestJobEvents_JobFailed(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get namespace: %v", err)
 	}
+	if err = SetupRbacInNamespace(namespace); err != nil {
+		t.Error(err)
+	}
+
 	defer DumpJobsLogsOnError(t, framework.Global, namespace)
 	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
 	if err != nil {

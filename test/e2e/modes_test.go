@@ -32,7 +32,7 @@ import (
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 )
 
-func TestModes_CreateReplaceDelete(t *testing.T) {
+func TestModesCreateReplaceDelete(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 
@@ -40,6 +40,10 @@ func TestModes_CreateReplaceDelete(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get namespace: %v", err)
 	}
+	if err = SetupRbacInNamespace(namespace); err != nil {
+		t.Error(err)
+	}
+
 	defer DumpJobsLogsOnError(t, framework.Global, namespace)
 	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
 	if err != nil {

@@ -33,7 +33,7 @@ import (
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 )
 
-func TestStatus_Success(t *testing.T) {
+func TestStatusSuccess(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 
@@ -41,6 +41,10 @@ func TestStatus_Success(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get namespace: %v", err)
 	}
+	if err = SetupRbacInNamespace(namespace); err != nil {
+		t.Error(err)
+	}
+
 	defer DumpJobsLogsOnError(t, framework.Global, namespace)
 	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
 	if err != nil {
@@ -142,7 +146,7 @@ func TestStatus_Success(t *testing.T) {
 	}
 }
 
-func TestStatus_PeriodicJobSuccess(t *testing.T) {
+func TestStatusPeriodicJobSuccess(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 
@@ -150,6 +154,10 @@ func TestStatus_PeriodicJobSuccess(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get namespace: %v", err)
 	}
+	if err = SetupRbacInNamespace(namespace); err != nil {
+		t.Error(err)
+	}
+
 	defer DumpJobsLogsOnError(t, framework.Global, namespace)
 	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
 	if err != nil {
@@ -268,7 +276,7 @@ func TestStatus_PeriodicJobSuccess(t *testing.T) {
 	}
 }
 
-func TestStatus_Failure(t *testing.T) {
+func TestStatusFailure(t *testing.T) {
 	if testing.Short() {
 		// FIXME: as of writing this test, "backoffLimit" in job.yaml is set to 4,
 		// which means we need to wait until 5 Pod retries fail, eventually
@@ -286,6 +294,10 @@ func TestStatus_Failure(t *testing.T) {
 	if err != nil {
 		t.Fatalf("could not get namespace: %v", err)
 	}
+	if err = SetupRbacInNamespace(namespace); err != nil {
+		t.Error(err)
+	}
+
 	defer DumpJobsLogsOnError(t, framework.Global, namespace)
 	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
 	if err != nil {

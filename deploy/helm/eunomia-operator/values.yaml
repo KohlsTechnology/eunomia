@@ -3,6 +3,7 @@ eunomia:
     namespace: "eunomia-operator"
     deployment: 
       enabled: true
+      nsRbacOnly: false
     replicas: 1
     serviceAccount: "eunomia-operator"
 

@@ -1,4 +1,5 @@
 {{- with .Values.eunomia.operator }}
+{{- if not .deployment.nsRbacOnly -}}
 # cluster role binding for the operator
 kind: ClusterRoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
@@ -12,4 +13,5 @@ roleRef:
   kind: ClusterRole
   name: eunomia-operator
   apiGroup: rbac.authorization.k8s.io
+{{- end }}
 {{- end }}
