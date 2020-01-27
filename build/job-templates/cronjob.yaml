@@ -8,7 +8,7 @@ spec:
   jobTemplate:
     metadata:
       labels:
-        "gitopsconfig.eunomia.kohls.io/jobOwner": "{{ .Config.ObjectMeta.Name }}"
+        gitopsconfig.eunomia.kohls.io/jobOwner: "{{ .Config.ObjectMeta.Name }}"
     spec:
       template:
         spec:

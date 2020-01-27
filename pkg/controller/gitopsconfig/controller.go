@@ -393,7 +393,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		return reconcile.Result{}, nil
 	}
 
-	// To avoid a deadlock situation let's check if the namespace in which we are is maybe being deleted?
+	// To avoid a deadlock situation let's check if the namespace in which we are is maybe being deleted
 	ns := &corev1.Namespace{}
 	err := r.client.Get(context.TODO(), types.NamespacedName{
 		Name: instance.GetNamespace(),
@@ -403,8 +403,9 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		return reconcile.Result{}, xerrors.Errorf("GitOpsConfig finalizer unable to lookup instance's namespace for %q: %w", instance.Name, err)
 	}
 	if !ns.DeletionTimestamp.IsZero() {
-		//namespace is being deleted
-		// the best we can do in this situation is to let the instance be deleted and hope that this instance was creating objects only in this namespace
+		// Namespace is being deleted. The best we can do in this situation is
+		// to let the instance be deleted and hope that this instance was
+		// creating objects only in this namespace
 		log.Info("Namespace is being deleted, removing finalizer", "namespace", instance.Namespace, "instance", instance.Name)
 		return r.removeFinalizer(context.TODO(), instance)
 	}
@@ -458,9 +459,9 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		}
 		done := deleters[0].Status.Succeeded > 0
 		if !done {
-			//if it's not succeeded we wait for 5 seconds
-			//TODO add logic to stop at a certain point ... or not ...
-			//TODO add exponential backoff, possibly like in CronJob
+			// if it's not succeeded we wait for 5 seconds
+			// TODO add logic to stop at a certain point ... or not ...
+			// TODO add exponential backoff, possibly like in CronJob
 			return reconcile.Result{RequeueAfter: 5 * time.Second}, nil
 		}
 		return r.removeFinalizer(context.TODO(), instance)

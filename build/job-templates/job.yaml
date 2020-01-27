@@ -5,7 +5,7 @@ metadata:
   namespace: {{ .Config.ObjectMeta.Namespace }}
   labels:
     action: {{ .Action }}
-    "gitopsconfig.eunomia.kohls.io/jobOwner": "{{ .Config.ObjectMeta.Name }}"
+    gitopsconfig.eunomia.kohls.io/jobOwner: "{{ .Config.ObjectMeta.Name }}"
 spec:
   template:
     spec:                                                    
