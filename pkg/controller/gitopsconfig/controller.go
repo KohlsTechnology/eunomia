@@ -473,7 +473,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		log.Error(err, "unable to create deletion job", "instance", instance.Name)
 		return reconcile.Result{}, err
 	}
-	//we return because we need to wait for the job to stop
+	// we return because we need to wait for the job to stop
 	return reconcile.Result{
 		Requeue:      true,
 		RequeueAfter: time.Second * 5,
@@ -496,6 +496,7 @@ func (r *Reconciler) removeFinalizer(ctx context.Context, instance *gitopsv1alph
 		log.Error(err, "GitOpsConfig finalizer unable to remove itself", "instance", instance.Name)
 		return reconcile.Result{}, xerrors.Errorf("GitOpsConfig finalizer unable to remove itself from %q: %w", instance.Name, err)
 	}
+	log.Info("GitOpsConfig finalizer successfully removed itself from CR", "instance", instance.Name)
 	return reconcile.Result{}, nil
 }
 
@@ -530,6 +531,10 @@ func ownedJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha1.Gi
 	return jobs.Items, nil
 }
 
+// jobContainerStatus retrieves the job's pod from kube cluster, and returns
+// the status of its container. If the job controls more than one pod, or the
+// pod contains more than one container, an error is returned. If the job
+// controls no pods, nil is returned.
 func jobContainerStatus(ctx context.Context, kube client.Client, job *batchv1.Job) (*corev1.ContainerState, error) {
 	// Find pod(s) of the job
 	pods := corev1.PodList{}
