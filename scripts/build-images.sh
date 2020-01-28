@@ -74,6 +74,9 @@ build_image template-processors/base/ eunomia-base
 # building and pushing helm template processor images
 build_image template-processors/helm/ eunomia-helm
 
+# building and pushing helm template processor images for openshift
+build_image template-processors/helm-oc/ eunomia-helm-oc
+
 # building and pushing OCP template processor images
 build_image template-processors/ocp-template/ eunomia-ocp-templates
 
