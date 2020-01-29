@@ -6,6 +6,9 @@ metadata:
 spec:
   schedule: "{{ getCron .Config }}"
   jobTemplate:
+    metadata:
+      labels:
+        gitopsconfig.eunomia.kohls.io/jobOwner: "{{ .Config.ObjectMeta.Name }}"
     spec:
       template:
         spec:
