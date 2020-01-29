@@ -33,7 +33,7 @@ function pullFromTemplatesRepo {
     export GIT_SSL_NO_VERIFY=true
   fi
   set -u
-  mkdir -p $TEMPLATE_GIT_DIR
+  mkdir -p "$TEMPLATE_GIT_DIR"
   (
     export http_proxy
     export https_proxy
@@ -59,7 +59,7 @@ function pullFromParametersRepo {
     export GIT_SSL_NO_VERIFY=true
   fi
   set -u
-  mkdir -p $PARAMETER_GIT_DIR
+  mkdir -p "$PARAMETER_GIT_DIR"
   (
     export http_proxy
     export https_proxy
@@ -71,4 +71,4 @@ function pullFromParametersRepo {
 echo Cloning Repositories
 pullFromTemplatesRepo
 pullFromParametersRepo
-mkdir -p $MANIFEST_DIR
+mkdir -p "$MANIFEST_DIR"

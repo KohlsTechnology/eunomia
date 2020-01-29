@@ -18,6 +18,7 @@ set -euxo pipefail
 
 echo "Applying resources in ${CLONED_TEMPLATE_GIT_DIR}"
 
+# shellcheck disable=SC2086
 ANSIBLE_ROLES_PATH=/files/roles ansible-playbook /files/processTemplates.yml \
   ${TEMPLATE_PROCESSOR_ARGS:-} \
   -e template_directory="${CLONED_TEMPLATE_GIT_DIR}" \

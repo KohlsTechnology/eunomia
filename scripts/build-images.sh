@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2002,SC2155
+
 # Copyright 2019 Kohl's Department Stores, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");

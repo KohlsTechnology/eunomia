@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2002,SC2155
+
 # Copyright 2019 Kohl's Department Stores, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -21,6 +23,7 @@ TAG_APPLIED="gitopsconfig.eunomia.kohls.io/applied"
 
 # this is needed because we want the current namespace to be set as default if a namespace is not specified.
 function setContext {
+  # shellcheck disable=SC2154
   $kubectl config set-context current --namespace="$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)"
   $kubectl config use-context current
 }
@@ -40,6 +43,7 @@ function addLabels {
   local owner="$1"
   local timestamp="$2"
   local tmpdir="$(mktemp -d)"
+  # shellcheck disable=SC2044
   for file in $(find "$MANIFEST_DIR" -iregex '.*\.\(ya?ml\|json\)'); do
     cat "$file" |
       yq -y -s "map(select(.!=null)|setpath([\"metadata\",\"labels\",\"$TAG_OWNER\"]; \"$owner\"))|.[]" |
@@ -56,7 +60,7 @@ function deleteByOldLabels {
   local owner="$1"
   local timestamp="${2:-}"
   # NOTE: removing componentstatus because it shows up unintended in ownedKinds: https://github.com/kubernetes/kubectl/issues/151#issuecomment-562578617
-  local allKinds="$(kube api-resources --verbs=list -o name  | egrep -iv '^componentstatus(es)?$' | paste -sd, -)"
+  local allKinds="$(kube api-resources --verbs=list -o name  | grep -ivE '^componentstatus(es)?$' | paste -sd, -)"
   local ownedKinds="$(kube get "$allKinds" --ignore-not-found \
       -l "$TAG_OWNER==$owner" \
       -o custom-columns=kind:.kind \

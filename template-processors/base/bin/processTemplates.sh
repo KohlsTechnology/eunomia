@@ -18,4 +18,5 @@ set -euxo pipefail
 
 echo Processing Templates
 
-cp -R $CLONED_TEMPLATE_GIT_DIR/* $MANIFEST_DIR/
+# shellcheck disable=SC2086
+cp -R "$CLONED_TEMPLATE_GIT_DIR/"* "$MANIFEST_DIR"/

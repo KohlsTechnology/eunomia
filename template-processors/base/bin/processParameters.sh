@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2001
+
 # Copyright 2019 Kohl's Department Stores, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -51,7 +53,8 @@ if [ -n "${FOLDERS}" ]; then
     YAML_FILES="$(find "${DIR}" -maxdepth 1 -name \*.json -o -name \*.yaml -o -name \*.yml)"
 
     # merge the files
-    if [ ! -z "${YAML_FILES}" ]; then
+    if [ "${YAML_FILES}" ]; then
+      # shellcheck disable=SC2086
       goyq merge -i -x "${VALUES_FILE}" ${YAML_FILES}
     fi
   done

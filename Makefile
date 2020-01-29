@@ -52,7 +52,7 @@ test-dirty: generate
 	# TODO: also check that there are no untracked files, e.g. extra .go and .yaml ones
 
 .PHONY: test
-test: check-fmt lint vet test-unit test-e2e
+test: check-fmt lint vet shellcheck test-unit test-e2e
 
 .PHONY: test-e2e
 test-e2e:
@@ -80,6 +80,12 @@ lint:
 .PHONY: vet
 vet:
 	VET_INPUT="$(shell go list ./... | grep -v /vendor/)"; GO111MODULE=on go vet $$VET_INPUT
+
+# TODO: improve the command to also check scripts without .sh extension
+# get_helm.sh is ignored because it is getting download from internet
+.PHONY: shellcheck
+shellcheck:
+	for file in $(shell find . -not -path "./vendor/*" -not -path "./get_helm.sh" -name "*.sh") ; do shellcheck $$file ; done
 
 .PHONY: e2e-test-images
 e2e-test-images: build
