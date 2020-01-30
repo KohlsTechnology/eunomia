@@ -84,8 +84,8 @@ vet:
 # TODO: improve the command to also check scripts outside the scripts and template-processors dirs
 .PHONY: check-shfmt
 check-shfmt:
-	test -z "$(shell shfmt -i 4 -l ./scripts)"
-	test -z "$(shell shfmt -i 4 -l ./template-processors)"
+	shfmt -i 4 -d ./scripts
+	shfmt -i 4 -d ./template-processors
 
 # TODO: improve the command to also check scripts without .sh extension
 # get_helm.sh is ignored because it is getting download from internet
