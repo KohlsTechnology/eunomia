@@ -253,6 +253,7 @@ Currently the following templating engines are supported (follow the link to see
 - [Raw Manifests](./template-processors/base)
 - [OpenShift Templates](./template-processors/ocp-template)
 - [Helm Charts](./template-processors/helm)
+- [Helm Charts OpenShift](./template-processors/helm-oc)
 - [Jinja Templates](./template-processors/jinja)
 - [OpenShift Applier](./template-processors/applier)
 
