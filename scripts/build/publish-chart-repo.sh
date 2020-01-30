@@ -24,7 +24,7 @@ git -C "$GITHUB_PAGES_DIR" clone -b "$GITHUB_PAGES_BRANCH" "git@github.com:$GITH
 # build
 
 helm init --client-only
-version=${TRAVIS_TAG} envsubst < "$HELM_CHARTS_SOURCE"/Chart.yaml.tpl  > "$HELM_CHARTS_SOURCE"/Chart.yaml
+version=${TRAVIS_TAG} envsubst <"$HELM_CHARTS_SOURCE"/Chart.yaml.tpl >"$HELM_CHARTS_SOURCE"/Chart.yaml
 helm lint "$HELM_CHARTS_SOURCE"
 chart_dest=$HELM_CHART_DEST/"$(basename "$HELM_CHARTS_SOURCE")"
 mkdir -p "$chart_dest"

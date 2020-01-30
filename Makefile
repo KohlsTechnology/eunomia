@@ -52,7 +52,7 @@ test-dirty: generate
 	# TODO: also check that there are no untracked files, e.g. extra .go and .yaml ones
 
 .PHONY: test
-test: check-fmt lint vet shellcheck test-unit test-e2e
+test: check-fmt lint vet check-shfmt shellcheck test-unit test-e2e
 
 .PHONY: test-e2e
 test-e2e:
@@ -80,6 +80,12 @@ lint:
 .PHONY: vet
 vet:
 	VET_INPUT="$(shell go list ./... | grep -v /vendor/)"; GO111MODULE=on go vet $$VET_INPUT
+
+# TODO: improve the command to also check scripts outside the scripts and template-processors dirs
+.PHONY: check-shfmt
+check-shfmt:
+	shfmt -i 4 -d ./scripts
+	shfmt -i 4 -d ./template-processors
 
 # TODO: improve the command to also check scripts without .sh extension
 # get_helm.sh is ignored because it is getting download from internet
