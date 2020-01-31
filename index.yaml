@@ -1,0 +1,14 @@
+apiVersion: v1
+entries:
+  eunomia-operator:
+  - apiVersion: v1
+    created: "2020-01-31T16:27:45.377306604Z"
+    description: The Eunomia Operator
+    digest: ca747ea93ad3f246104686772414dccd22985d77e347bb1ef2b1d0190c26d9e1
+    engine: gotpl
+    home: https://github.com/KohlsTechnology/eunomia
+    name: eunomia-operator
+    urls:
+    - https://KohlsTechnology.github.io/eunomia/eunomia-operator/eunomia-operator-v0.1.2.tgz
+    version: v0.1.2
+generated: "2020-01-31T16:27:45.375836641Z"
