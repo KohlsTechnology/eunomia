@@ -223,28 +223,25 @@ func ContainsTrigger(instance *gitopsv1alpha1.GitOpsConfig, triggeType string) b
 
 // createJob creates a new gitops job for the passed instance
 func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
-	//TODO add logic to ignore if another job was created sooner than x (5 minutes?) time and it is still running.
-	mergedata := util.JobMergeData{
-		Config: *instance,
-		Action: jobtype,
-	}
-	// looking up for running jobs
-	jobList := &batchv1.JobList{}
-	err := r.client.List(context.TODO(), &client.ListOptions{
-		Namespace: instance.Namespace,
-	}, jobList)
+	// looking up for running jobs, to avoid creating duplicate one
+	jobs, err := ownedJobs(context.TODO(), r.client, instance)
 	if err != nil {
 		log.Error(err, "unable to list the jobs", "namespace", instance.Namespace)
-		return reconcile.Result{}, xerrors.Errorf("unable to list the jobs in namespace %q: %w", instance.Namespace, err)
+		return reconcile.Result{}, xerrors.Errorf("unable to list owned jobs when trying to create new one: %w", err)
 	}
-	for _, j := range jobList.Items {
-		if isOwner(instance, &j) && (j.Status.Active != 0 || j.Status.StartTime.IsZero()) {
+	for _, j := range jobs {
+		if j.Status.Active != 0 || j.Status.StartTime.IsZero() {
 			log.Info("Job is already running for this instance, postponing new job creation", "instance", instance.Name, "job", j.Name)
 			return reconcile.Result{
 				Requeue:      true,
 				RequeueAfter: time.Second * 5,
 			}, nil
 		}
+	}
+
+	mergedata := util.JobMergeData{
+		Config: *instance,
+		Action: jobtype,
 	}
 	job, err := util.CreateJob(mergedata)
 	if err != nil {
@@ -498,19 +495,6 @@ func (r *Reconciler) removeFinalizer(ctx context.Context, instance *gitopsv1alph
 	}
 	log.Info("GitOpsConfig finalizer successfully removed itself from CR", "instance", instance.Name)
 	return reconcile.Result{}, nil
-}
-
-func isOwner(owner, owned metav1.Object) bool {
-	runtimeObj, ok := (owner).(runtime.Object)
-	if !ok {
-		return false
-	}
-	for _, ownerRef := range owned.GetOwnerReferences() {
-		if ownerRef.Name == owner.GetName() && ownerRef.UID == owner.GetUID() && ownerRef.Kind == runtimeObj.GetObjectKind().GroupVersionKind().Kind {
-			return true
-		}
-	}
-	return false
 }
 
 // ownedJobs retrieves all jobs in namespace owner.Namespace with value of label tagJobOwner equal to owner.Name.
