@@ -1,3 +1,18 @@
+## v0.1.2 (January 31, 2020)
+FEATURES:
+* N/A
+
+CHANGES:
+* Refactor Go errors to improve troubleshooting [GH-257](https://github.com/KohlsTechnology/eunomia/pull/257)
+* Run operator container as non-root user [GH-263](https://github.com/KohlsTechnology/eunomia/pull/263)
+* Add liveness probe [GH-268](https://github.com/KohlsTechnology/eunomia/pull/268)
+
+BUG FIXES:
+* Fix helm chart release automation [GH-259](https://github.com/KohlsTechnology/eunomia/pull/259)
+* Fix CA_BUNDLE and SERVICE_CA_BUNDLE environment variable usage in base template processor [GH-266](https://github.com/KohlsTechnology/eunomia/pull/266)
+* Fix spelling in CRD [GH-267](https://github.com/KohlsTechnology/eunomia/pull/267)
+* Delete stuck jobs when finalizing [GH-269](https://github.com/KohlsTechnology/eunomia/pull/269)
+
 ## v0.1.1 (January 16, 2020)
 FEATURES:
 * N/A
