@@ -24,22 +24,25 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
+	"github.com/operator-framework/operator-sdk/pkg/leader"
+	"github.com/operator-framework/operator-sdk/pkg/log/zap"
+	sdkVersion "github.com/operator-framework/operator-sdk/version"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/spf13/pflag"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
+
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	"github.com/KohlsTechnology/eunomia/pkg/controller"
 	"github.com/KohlsTechnology/eunomia/pkg/controller/gitopsconfig"
 	"github.com/KohlsTechnology/eunomia/pkg/handler"
 	"github.com/KohlsTechnology/eunomia/pkg/util"
-
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	"github.com/operator-framework/operator-sdk/pkg/leader"
-	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	sdkVersion "github.com/operator-framework/operator-sdk/version"
-	"github.com/spf13/pflag"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
+	"github.com/KohlsTechnology/eunomia/version"
 )
 
 // Change below variables to serve metrics on different host or port.
@@ -77,6 +80,18 @@ func main() {
 	logf.SetLogger(zap.Logger())
 
 	printVersion()
+
+	// Register a Prometheus-formatted metric displaying app version & other useful build info.
+	buildInfo := prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "eunomia",
+			Name:      "build_info",
+			Help:      "A metric with a constant '1' value labeled by version from which eunomia was built, and other useful build information.",
+		},
+		[]string{"version", "goversion", "operatorsdk"},
+	)
+	buildInfo.WithLabelValues(version.Version, runtime.Version(), sdkVersion.Version).Set(1)
+	metrics.Registry.MustRegister(buildInfo)
 
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
