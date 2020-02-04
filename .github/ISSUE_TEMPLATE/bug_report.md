@@ -11,6 +11,11 @@ assignees: ''
 
 **What version of eunomia are you using?**
 
+<details><summary><code>kubectl exec $EUNOMIA_POD curl localhost:8383/metrics</code> Output</summary><br><pre>
+$ kubectl get -n eunomia-operator endpoints/eunomia-operator -o jsonpath='{.subsets[*].addresses[*].targetRef.name}' | xargs -I% kubectl exec -n eunomia-operator % -- curl -sS localhost:8383/metrics | grep eunomia_build_info
+
+</pre></details>
+
 eunomia version:
 
 **Does this issue reproduce with the latest release?**
