@@ -53,6 +53,7 @@ var (
 var log = logf.Log.WithName("cmd")
 
 func printVersion() {
+	log.Info(fmt.Sprintf("Eunomia version: %s", version.Version))
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 	log.Info(fmt.Sprintf("Version of operator-sdk: %v", sdkVersion.Version))
@@ -67,6 +68,8 @@ func main() {
 	// controller-runtime)
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 
+	versionFlag := pflag.Bool("version", false, "print version information and exit")
+
 	pflag.Parse()
 
 	// Use a zap logr.Logger implementation. If none of the zap
@@ -80,6 +83,9 @@ func main() {
 	logf.SetLogger(zap.Logger())
 
 	printVersion()
+	if *versionFlag {
+		os.Exit(0)
+	}
 
 	// Register a Prometheus-formatted metric displaying app version & other useful build info.
 	buildInfo := prometheus.NewGaugeVec(
