@@ -25,7 +25,7 @@ export JOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/job.yaml
 export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
-export TEST_NAMESPACE=test-eunomia-operator
+export OPERATOR_NAMESPACE=test-eunomia-operator
 export GO111MODULE=on
 
 # If we're called as part of CI build on a PR, make sure we test the resources
@@ -44,8 +44,8 @@ minikube status || {
 }
 
 # Ensure clean workspace
-if [[ $(kubectl get namespace $TEST_NAMESPACE) ]]; then
-    kubectl delete namespace $TEST_NAMESPACE
+if [[ $(kubectl get namespace $OPERATOR_NAMESPACE) ]]; then
+    kubectl delete namespace $OPERATOR_NAMESPACE
 fi
 
 # Pre-populate the Docker registry in minikube with images built from the current commit
@@ -53,16 +53,23 @@ fi
 eval "$(minikube docker-env)"
 GOOS=linux make e2e-test-images
 
+# Get minikube IP address
+# shellcheck disable=SC2155
+export MINIKUBE_IP=$(minikube ip)
+
+# Define webhook port
+export WEBHOOK_PORT=8080
+
 # Eunomia setup
 helm template deploy/helm/eunomia-operator/ \
     --set eunomia.operator.image.tag=dev \
     --set eunomia.operator.image.pullPolicy=Never \
-    --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl apply -f -
+    --set eunomia.operator.namespace=$OPERATOR_NAMESPACE | kubectl apply -f -
 
 # Deployment test
-kubectl wait --for=condition=available --timeout=30s deployment/eunomia-operator -n $TEST_NAMESPACE
-podname=$(kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' -n $TEST_NAMESPACE)
-if kubectl exec "${podname}" date -n $TEST_NAMESPACE; then
+kubectl wait --for=condition=available --timeout=30s deployment/eunomia-operator -n $OPERATOR_NAMESPACE
+podname=$(kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' -n $OPERATOR_NAMESPACE)
+if kubectl exec "${podname}" date -n $OPERATOR_NAMESPACE; then
     echo "Eunomia deployment successful"
 else
     echo "Eunomia deployment failed"
@@ -223,4 +230,4 @@ kubectl delete namespace eunomia-hello-world-demo eunomia-hello-world-demo-hiera
 helm template deploy/helm/eunomia-operator/ \
     --set eunomia.operator.image.tag=dev \
     --set eunomia.operator.image.pullPolicy=Never \
-    --set eunomia.operator.namespace=$TEST_NAMESPACE | kubectl delete -f -
+    --set eunomia.operator.namespace=$OPERATOR_NAMESPACE | kubectl delete -f -

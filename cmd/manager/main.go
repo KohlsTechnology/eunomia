@@ -23,6 +23,7 @@ import (
 	"net/http"
 	"os"
 	"runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	"github.com/KohlsTechnology/eunomia/pkg/controller"
@@ -35,6 +36,7 @@ import (
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/spf13/pflag"
+	corev1 "k8s.io/api/core/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
@@ -154,7 +156,19 @@ func main() {
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok\n"))
+		w.Write([]byte("ok"))
+	})
+
+	mux.HandleFunc("/readyz", func(w http.ResponseWriter, _ *http.Request) {
+		namespaces := corev1.NamespaceList{}
+		err = mgr.GetClient().List(ctx, &client.ListOptions{}, &namespaces)
+		if err != nil {
+			log.Error(err, "namespaces listing for /readyz endpoint failed")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
 	})
 
 	log.Info("Starting the Web Server")
