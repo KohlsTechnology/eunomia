@@ -12,6 +12,9 @@ env:
   - GO111MODULE=on
   - CHANGE_MINIKUBE_NONE_USER=true
   matrix:
+  # NOTE: We can add 200 items to the build matrix, but only 3 run in parallel. So having more than three
+  # items in the build matrix will cause the tests to wait in a queue. We will need to select the k8s versions
+  # that we want to test carefully, or we risk having the tests run for a very long time.
   - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.14.2 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1
   - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.13.2 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1
 
