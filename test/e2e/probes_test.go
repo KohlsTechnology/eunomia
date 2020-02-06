@@ -104,6 +104,32 @@ func TestReadinessAndLivelinessProbes(t *testing.T) {
 
 	t.Logf("minikube exposing service Node Port: %d", nodePort)
 
+	//Waiting for service to get connection to operator pod
+	serviceReady := false
+	retries := 50
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%d/%s", minikubeIP, nodePort, "readyz"), strings.NewReader(""))
+	if err != nil {
+		t.Log(err)
+	}
+	for {
+		retries--
+		t.Logf("retrying %d", retries)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Log(err)
+			continue
+		}
+		defer resp.Body.Close()
+		if resp.StatusCode == http.StatusOK {
+			serviceReady = true
+			break
+		}
+		if retries < 1 {
+			break
+		}
+	}
+	t.Logf("Service Accessible: %t", serviceReady)
+
 	tests := []struct {
 		endpoint      string
 		requestBody   string
@@ -135,17 +161,19 @@ func TestReadinessAndLivelinessProbes(t *testing.T) {
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Error(err)
+			continue
 		}
-		if resp.StatusCode != tt.wantCode {
+		defer resp.Body.Close()
+		if tt.wantCode != resp.StatusCode {
 			t.Errorf("Returned status: %d, wanted: %d", resp.StatusCode, tt.wantCode)
 		}
 		bodyBytes, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			t.Error(err)
+			continue
 		}
 		if tt.wantBody != string(bodyBytes) {
 			t.Errorf("Returned body: %s, wanted: %s", string(bodyBytes), tt.wantBody)
 		}
-		resp.Body.Close()
 	}
 }
