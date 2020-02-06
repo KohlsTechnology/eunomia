@@ -24,22 +24,25 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
+	"github.com/operator-framework/operator-sdk/pkg/leader"
+	"github.com/operator-framework/operator-sdk/pkg/log/zap"
+	sdkVersion "github.com/operator-framework/operator-sdk/version"
+	"github.com/prometheus/client_golang/prometheus"
+	"github.com/spf13/pflag"
+	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
+
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	"github.com/KohlsTechnology/eunomia/pkg/controller"
 	"github.com/KohlsTechnology/eunomia/pkg/controller/gitopsconfig"
 	"github.com/KohlsTechnology/eunomia/pkg/handler"
 	"github.com/KohlsTechnology/eunomia/pkg/util"
-
-	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
-	"github.com/operator-framework/operator-sdk/pkg/leader"
-	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	sdkVersion "github.com/operator-framework/operator-sdk/version"
-	"github.com/spf13/pflag"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
-	"sigs.k8s.io/controller-runtime/pkg/client/config"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
+	"github.com/KohlsTechnology/eunomia/version"
 )
 
 // Change below variables to serve metrics on different host or port.
@@ -50,6 +53,7 @@ var (
 var log = logf.Log.WithName("cmd")
 
 func printVersion() {
+	log.Info(fmt.Sprintf("Eunomia version: %s (build date: %s, branch: %s, git SHA1: %s)", version.Version, version.BuildDate, version.Branch, version.GitSHA1))
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 	log.Info(fmt.Sprintf("Version of operator-sdk: %v", sdkVersion.Version))
@@ -64,6 +68,8 @@ func main() {
 	// controller-runtime)
 	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
 
+	versionFlag := pflag.Bool("version", false, "print version information and exit")
+
 	pflag.Parse()
 
 	// Use a zap logr.Logger implementation. If none of the zap
@@ -77,6 +83,27 @@ func main() {
 	logf.SetLogger(zap.Logger())
 
 	printVersion()
+	if *versionFlag {
+		os.Exit(0)
+	}
+
+	// Register a Prometheus-formatted metric displaying app version & other useful build info.
+	buildInfo := prometheus.NewGaugeVec(
+		prometheus.GaugeOpts{
+			Namespace: "eunomia",
+			Name:      "build_info",
+			Help: "A metric with a constant '1' value labeled by version from " +
+				"which eunomia was built, and other useful build information.",
+		},
+		[]string{
+			"version", "builddate", "branch", "gitsha1",
+			"goversion", "operatorsdk",
+		},
+	)
+	buildInfo.WithLabelValues(
+		version.Version, version.BuildDate, version.Branch, version.GitSHA1,
+		runtime.Version(), sdkVersion.Version).Set(1)
+	metrics.Registry.MustRegister(buildInfo)
 
 	namespace, err := k8sutil.GetWatchNamespace()
 	if err != nil {
