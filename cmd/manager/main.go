@@ -53,7 +53,7 @@ var (
 var log = logf.Log.WithName("cmd")
 
 func printVersion() {
-	log.Info(fmt.Sprintf("Eunomia version: %s", version.Version))
+	log.Info(fmt.Sprintf("Eunomia version: %s (build date: %s, branch: %s, git SHA1: %s)", version.Version, version.BuildDate, version.Branch, version.GitSHA1))
 	log.Info(fmt.Sprintf("Go Version: %s", runtime.Version()))
 	log.Info(fmt.Sprintf("Go OS/Arch: %s/%s", runtime.GOOS, runtime.GOARCH))
 	log.Info(fmt.Sprintf("Version of operator-sdk: %v", sdkVersion.Version))
@@ -92,11 +92,17 @@ func main() {
 		prometheus.GaugeOpts{
 			Namespace: "eunomia",
 			Name:      "build_info",
-			Help:      "A metric with a constant '1' value labeled by version from which eunomia was built, and other useful build information.",
+			Help: "A metric with a constant '1' value labeled by version from " +
+				"which eunomia was built, and other useful build information.",
 		},
-		[]string{"version", "goversion", "operatorsdk"},
+		[]string{
+			"version", "builddate", "branch", "gitsha1",
+			"goversion", "operatorsdk",
+		},
 	)
-	buildInfo.WithLabelValues(version.Version, runtime.Version(), sdkVersion.Version).Set(1)
+	buildInfo.WithLabelValues(
+		version.Version, version.BuildDate, version.Branch, version.GitSHA1,
+		runtime.Version(), sdkVersion.Version).Set(1)
 	metrics.Registry.MustRegister(buildInfo)
 
 	namespace, err := k8sutil.GetWatchNamespace()
