@@ -21,17 +21,17 @@ package e2e
 import (
 	"context"
 	"fmt"
-	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	util "github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
 	"io/ioutil"
-	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/util/intstr"
 	"net/http"
 	"os"
 	"strconv"
-	"strings"
 	"testing"
+
+	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	util "github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
+	corev1 "k8s.io/api/core/v1"
+	v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/util/intstr"
 )
 
 func TestReadinessAndLivelinessProbes(t *testing.T) {
@@ -40,27 +40,31 @@ func TestReadinessAndLivelinessProbes(t *testing.T) {
 
 	operatorName, found := os.LookupEnv("OPERATOR_NAME")
 	if !found {
-		operatorName = "eunomia-operator"
+		t.Fatal("OPERATOR_NAME environment value missing")
 	}
 	operatorNamespace, found := os.LookupEnv("OPERATOR_NAMESPACE")
 	if !found {
-		operatorNamespace = "test-eunomia-operator"
+		t.Fatal("OPERATOR_NAMESPACE environment value missing")
 	}
 	minikubeIP, found := os.LookupEnv("MINIKUBE_IP")
 	if !found {
-		minikubeIP = "localhost"
+		t.Fatal("MINIKUBE_IP environment value missing")
 	}
-	webHookPort, found := os.LookupEnv("WEBHOOK_PORT")
+	webHookPort, found := os.LookupEnv("OPERATOR_WEBHOOK_PORT")
 	if !found {
-		webHookPort = "8080"
+		t.Fatal("OPERATOR_WEBHOOK_PORT environment value missing")
 	}
 	webHookPortInt, err := strconv.Atoi(webHookPort)
 	if err != nil {
-		t.Error(err)
+		t.Fatal(err)
 	}
 
 	t.Logf("minikube IP: %s", minikubeIP)
 
+	// Aim of this test is to validate that required endpoints are there and are accessible. To achieve this,
+	// we need to expose deployment externally outside of minikube as this test runs outside of it. To ensure
+	// that this is done correctly Service with Type: "NodePort" is created here, to expose operator webhook
+	// via high, random port.
 	service := &corev1.Service{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "Service",
@@ -105,16 +109,9 @@ func TestReadinessAndLivelinessProbes(t *testing.T) {
 	}
 
 	//Waiting for service to get connection to operator pod
-	maxRetries := 50
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%d/%s", minikubeIP, nodePort, "readyz"), strings.NewReader(""))
-	if err != nil {
-		t.Log(err)
-	}
-	retryCount := 0
-	for {
-		retryCount++
+	for retryCount := 0; retryCount < 50; retryCount++ {
 		t.Logf("retrying %d", retryCount)
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := http.Get(fmt.Sprintf("http://%s:%d/readyz", minikubeIP, nodePort))
 		if err != nil {
 			t.Log(err)
 			continue
@@ -122,55 +119,42 @@ func TestReadinessAndLivelinessProbes(t *testing.T) {
 		if resp.StatusCode == http.StatusOK {
 			break
 		}
-		if retryCount > maxRetries {
-			break
-		}
 	}
 
 	tests := []struct {
-		endpoint      string
-		requestBody   string
-		requestMethod string
-		wantCode      int
-		wantBody      string
+		endpoint string
+		wantCode int
+		wantBody string
 	}{
 		{
-			endpoint:      "readyz",
-			requestBody:   "",
-			requestMethod: http.MethodGet,
-			wantCode:      http.StatusOK,
-			wantBody:      "ok",
+			endpoint: "readyz",
+			wantCode: http.StatusOK,
+			wantBody: "ok",
 		},
 		{
-			endpoint:      "healthz",
-			requestBody:   "",
-			requestMethod: http.MethodGet,
-			wantCode:      http.StatusOK,
-			wantBody:      "ok",
+			endpoint: "healthz",
+			wantCode: http.StatusOK,
+			wantBody: "ok",
 		},
 	}
 
 	for _, tt := range tests {
-		req, err := http.NewRequest(tt.requestMethod, fmt.Sprintf("http://%s:%d/%s", minikubeIP, nodePort, tt.endpoint), strings.NewReader(tt.requestBody))
-		if err != nil {
-			t.Error(err)
-		}
-		resp, err := http.DefaultClient.Do(req)
+		resp, err := http.Get(fmt.Sprintf("http://%s:%d/%s", minikubeIP, nodePort, tt.endpoint))
 		if err != nil {
 			t.Error(err)
 			continue
 		}
 		defer resp.Body.Close()
 		if tt.wantCode != resp.StatusCode {
-			t.Errorf("Returned status: %d, wanted: %d", resp.StatusCode, tt.wantCode)
+			t.Errorf("%q: returned status: %d, wanted: %d", tt.endpoint, resp.StatusCode, tt.wantCode)
 		}
-		bodyBytes, err := ioutil.ReadAll(resp.Body)
+		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
 			t.Error(err)
 			continue
 		}
-		if tt.wantBody != string(bodyBytes) {
-			t.Errorf("Returned body: %s, wanted: %s", string(bodyBytes), tt.wantBody)
+		if tt.wantBody != string(body) {
+			t.Errorf("%q: returned body: %s, wanted: %s", tt.endpoint, string(body), tt.wantBody)
 		}
 	}
 }

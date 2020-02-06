@@ -23,7 +23,6 @@ import (
 	"net/http"
 	"os"
 	"runtime"
-	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	"github.com/KohlsTechnology/eunomia/pkg/controller"
@@ -38,6 +37,7 @@ import (
 	"github.com/spf13/pflag"
 	corev1 "k8s.io/api/core/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
@@ -159,6 +159,8 @@ func main() {
 		w.Write([]byte("ok"))
 	})
 
+	// Get namespaces (as there for sure will be some) directly from Kubernetes to ensure that
+	// there is access to Kubernetes API, and there are no errors when calling it.
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, _ *http.Request) {
 		namespaces := corev1.NamespaceList{}
 		err = mgr.GetClient().List(ctx, &client.ListOptions{}, &namespaces)
