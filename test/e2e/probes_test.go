@@ -61,11 +61,6 @@ func TestReadinessAndLivelinessProbes(t *testing.T) {
 
 	t.Logf("minikube IP: %s", minikubeIP)
 
-	err = util.WaitForOperatorDeployment(t, framework.Global.KubeClient, operatorNamespace, operatorName, 1, retryInterval, timeout)
-	if err != nil {
-		t.Error(err)
-	}
-
 	service := &corev1.Service{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "Service",
@@ -104,31 +99,33 @@ func TestReadinessAndLivelinessProbes(t *testing.T) {
 
 	t.Logf("minikube exposing service Node Port: %d", nodePort)
 
+	err = util.WaitForOperatorDeployment(t, framework.Global.KubeClient, operatorNamespace, operatorName, 1, retryInterval, timeout)
+	if err != nil {
+		t.Error(err)
+	}
+
 	//Waiting for service to get connection to operator pod
-	serviceReady := false
-	retries := 50
+	maxRetries := 50
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("http://%s:%d/%s", minikubeIP, nodePort, "readyz"), strings.NewReader(""))
 	if err != nil {
 		t.Log(err)
 	}
+	retryCount := 0
 	for {
-		retries--
-		t.Logf("retrying %d", retries)
+		retryCount++
+		t.Logf("retrying %d", retryCount)
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Log(err)
 			continue
 		}
-		defer resp.Body.Close()
 		if resp.StatusCode == http.StatusOK {
-			serviceReady = true
 			break
 		}
-		if retries < 1 {
+		if retryCount > maxRetries {
 			break
 		}
 	}
-	t.Logf("Service Accessible: %t", serviceReady)
 
 	tests := []struct {
 		endpoint      string
