@@ -258,7 +258,13 @@ Currently the following templating engines are supported (follow the link to see
 
 ## serviceAccountRef
 
-This is the service account used by the job pod that will process the resources. The service account must be present in the same namespace as the one where the GitOpsConfig CR is and must have enough permission to manage the resources. It is out of scope of this controller how that service account is provisioned, although you can use a different GitOpsConfig CR to provision it (seeding CR).
+This is the service account used by the job pod that will process the resources.
+The service account must be present in the same namespace as the one where the GitOpsConfig CR is and must have enough permission to manage the resources.
+It is out of scope of this controller how that service account is provisioned, although you can use a different GitOpsConfig CR to provision it (seeding CR).
+
+In the Helm deployment, the `ClusterRole` `eunomia-cluster-list` provides `list` access to all resources, and will be provisioned if you set `.Values.eunomia.operator.deployment.clusterViewer` to `true`.
+This `ClusterRole` is intended to be used in a `ClusterRoleBinding` with "job runner" service accounts so they can find all of the resources that it owns.
+Without the `ClusterRoleBinding`, the jobs can still successfully run, however there will be error logs stating it can not find any cluster scoped resources.
 
 ## Resource Handling Mode
 

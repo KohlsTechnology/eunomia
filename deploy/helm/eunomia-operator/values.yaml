@@ -1,9 +1,10 @@
 eunomia:
   operator:
     namespace: "eunomia-operator"
-    deployment: 
+    deployment:
       enabled: true
       nsRbacOnly: false
+      clusterViewer: true
     replicas: 1
     serviceAccount: "eunomia-operator"
 
