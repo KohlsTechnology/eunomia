@@ -61,10 +61,10 @@ func TestReadinessAndLivelinessProbes(t *testing.T) {
 
 	t.Logf("minikube IP: %s", minikubeIP)
 
-	// Aim of this test is to validate that required endpoints are there and are accessible. To achieve this,
-	// we need to expose deployment externally outside of minikube as this test runs outside of it. To ensure
-	// that this is done correctly Service with Type: "NodePort" is created here, to expose operator webhook
-	// via high, random port.
+	// The aim of this test is to validate that the required endpoints are there and are accessible. To
+	// achieve this, we need to expose the deployment externally outside of minikube as this test runs
+	// outside of it. To ensure that this is done correctly, a Service with Type: "NodePort" is created,
+	// to expose the operator's webhook via high, random port.
 	service := &corev1.Service{
 		TypeMeta: v1.TypeMeta{
 			Kind:       "Service",
@@ -123,38 +123,32 @@ func TestReadinessAndLivelinessProbes(t *testing.T) {
 
 	tests := []struct {
 		endpoint string
-		wantCode int
-		wantBody string
 	}{
 		{
 			endpoint: "readyz",
-			wantCode: http.StatusOK,
-			wantBody: "ok",
 		},
 		{
 			endpoint: "healthz",
-			wantCode: http.StatusOK,
-			wantBody: "ok",
 		},
 	}
 
 	for _, tt := range tests {
 		resp, err := http.Get(fmt.Sprintf("http://%s:%d/%s", minikubeIP, nodePort, tt.endpoint))
 		if err != nil {
-			t.Error(err)
+			t.Errorf("%q: %s", tt.endpoint, err)
 			continue
 		}
 		defer resp.Body.Close()
-		if tt.wantCode != resp.StatusCode {
-			t.Errorf("%q: returned status: %d, wanted: %d", tt.endpoint, resp.StatusCode, tt.wantCode)
+		if http.StatusOK != resp.StatusCode {
+			t.Errorf("%q: returned status: %d, wanted: %d", tt.endpoint, resp.StatusCode, http.StatusOK)
 		}
 		body, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			t.Error(err)
+			t.Errorf("%q: %s", tt.endpoint, err)
 			continue
 		}
-		if tt.wantBody != string(body) {
-			t.Errorf("%q: returned body: %s, wanted: %s", tt.endpoint, string(body), tt.wantBody)
+		if "ok" != string(body) {
+			t.Errorf("%q: returned body: %s, wanted: %s", tt.endpoint, string(body), "ok")
 		}
 	}
 }

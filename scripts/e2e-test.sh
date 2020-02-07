@@ -57,8 +57,9 @@ GOOS=linux make e2e-test-images
 # shellcheck disable=SC2155
 export MINIKUBE_IP=$(minikube ip)
 
-# TestReadinessAndLivelinessProbes is accessing operator via newly created service
-# and it needs to know what is the port to connect to.
+# TestReadinessAndLivelinessProbes is accessing operator via newly created service and
+# it needs to know what is the port to connect to. This value should be consistent with
+# livenessProbe and readinessProbe ports in deploy/helm/eunomia-operator/templates/deployment.yaml
 export OPERATOR_WEBHOOK_PORT=8080
 
 # Eunomia setup
