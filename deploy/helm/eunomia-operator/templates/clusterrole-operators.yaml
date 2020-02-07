@@ -11,7 +11,7 @@ rules:
   - jobs
   - cronjobs
   verbs:
-  - '*'  
+  - '*'
 # needed by operator logic when handling finalizers
 - apiGroups:
   - ''
@@ -29,11 +29,19 @@ rules:
   - events
   verbs:
   - create
-# operator's resources  
+# operator's resources
 - apiGroups:
   - eunomia.kohls.io
   resources:
   - '*'
   verbs:
   - '*'
+{{- if .Values.eunomia.operator.openshift.enabled }}
+- apiGroups:
+  - template.openshift.io
+  resources:
+  - processedtemplates
+  verbs:
+  - '*'
+{{- end }}
 {{- end }}
