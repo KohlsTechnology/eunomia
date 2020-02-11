@@ -1,0 +1,18 @@
+{{- if .Values.eunomia.operator.deployment.clusterViewer -}}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: eunomia-cluster-list
+rules:
+# Allow all actions on gitopsconfigs
+- apiGroups:
+  - '*'
+  resources:
+  - '*'
+  verbs:
+  - list
+- nonResourceURLs:
+  - '*'
+  verbs:
+  - list
+{{- end -}}
