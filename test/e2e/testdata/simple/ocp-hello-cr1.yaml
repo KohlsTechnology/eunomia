@@ -1,0 +1,19 @@
+apiVersion: eunomia.kohls.io/v1alpha1
+kind: GitOpsConfig
+metadata:
+  name: hello-world-ocp
+spec:
+  templateSource:
+    uri: https://github.com/KohlsTechnology/eunomia
+    ref: master
+    contextDir: test/e2e/testdata/simple/templates
+  parameterSource:
+    ref: master
+    contextDir: test/e2e/testdata/simple/parameters
+  triggers:
+  - type: Change
+  serviceAccountRef: eunomia-operator
+  templateProcessorImage: quay.io/kohlstechnology/eunomia-ocp-templates:latest
+  resourceHandlingMode: Apply
+  resourceDeletionMode: Delete
+

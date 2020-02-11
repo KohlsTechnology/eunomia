@@ -20,4 +20,9 @@ set -euxo pipefail
 ## we assume that in $CLONED_PARAMETER_GIT_DIR there is a parameter file called parameters.ini
 
 envsubst <"$CLONED_PARAMETER_GIT_DIR/parameters.ini" >"$CLONED_PARAMETER_GIT_DIR/parameters_subst.ini"
-oc process -f "$CLONED_TEMPLATE_GIT_DIR/template.yaml" --param-file="$CLONED_PARAMETER_GIT_DIR/parameters_subst.ini" >"$MANIFEST_DIR/manifests.yaml"
+# shellcheck disable=SC2086
+oc process \
+    -f "$CLONED_TEMPLATE_GIT_DIR/template.yaml" \
+    --param-file="$CLONED_PARAMETER_GIT_DIR/parameters_subst.ini" \
+    ${TEMPLATE_PROCESSOR_ARGS:-} \
+    >"$MANIFEST_DIR/manifests.yaml"

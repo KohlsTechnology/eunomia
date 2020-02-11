@@ -52,5 +52,6 @@ eunomia:
         memory: 256Mi
 
     openshift:
+      enabled: false
       route:
         enabled: false
