@@ -30,7 +30,9 @@ import (
 	sdkVersion "github.com/operator-framework/operator-sdk/version"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/spf13/pflag"
+	corev1 "k8s.io/api/core/v1"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
@@ -181,7 +183,21 @@ func main() {
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok\n"))
+		w.Write([]byte("ok"))
+	})
+
+	// Get namespaces (as there for sure will be some) directly from Kubernetes to ensure that
+	// there is access to Kubernetes API, and there are no errors when calling it.
+	mux.HandleFunc("/readyz", func(w http.ResponseWriter, _ *http.Request) {
+		namespaces := corev1.NamespaceList{}
+		err = mgr.GetClient().List(ctx, &client.ListOptions{}, &namespaces)
+		if err != nil {
+			log.Error(err, "namespaces listing for /readyz endpoint failed")
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte("ok"))
 	})
 
 	log.Info("Starting the Web Server")
