@@ -18,7 +18,6 @@ package gitopsconfig
 
 import (
 	"context"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -34,21 +33,12 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	"github.com/KohlsTechnology/eunomia/test"
 )
 
 const (
 	name      = "gitops-operator"
 	namespace = "gitops"
 )
-
-func TestMain(m *testing.M) {
-	// Initialize the environment
-	test.Initialize()
-
-	code := m.Run()
-	os.Exit(code)
-}
 
 func defaultGitOpsConfig() *gitopsv1alpha1.GitOpsConfig {
 	return &gitopsv1alpha1.GitOpsConfig{
