@@ -113,7 +113,7 @@ func TestCRDInitialization(t *testing.T) {
 
 	// Check if the CRD has been created
 	crd := &gitopsv1alpha1.GitOpsConfig{}
-	err := cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
+	err := cl.Get(context.Background(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -146,7 +146,7 @@ func TestPeriodicTrigger(t *testing.T) {
 
 	// Check if the CRD has been created
 	cron := &batchv1beta1.CronJob{}
-	err := cl.Get(context.TODO(), types.NamespacedName{Name: "gitopsconfig-gitops-operator", Namespace: namespace}, cron)
+	err := cl.Get(context.Background(), types.NamespacedName{Name: "gitopsconfig-gitops-operator", Namespace: namespace}, cron)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -185,7 +185,7 @@ func TestChangeTrigger(t *testing.T) {
 
 	// Check if the CRD has been created
 	job := &batchv1.Job{}
-	err := cl.Get(context.TODO(), types.NamespacedName{Namespace: namespace}, job)
+	err := cl.Get(context.Background(), types.NamespacedName{Namespace: namespace}, job)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -224,7 +224,7 @@ func TestWebhookTrigger(t *testing.T) {
 
 	// Check if the CRD has been created
 	job := &batchv1.Job{}
-	err := cl.Get(context.TODO(), types.NamespacedName{Namespace: namespace}, job)
+	err := cl.Get(context.Background(), types.NamespacedName{Namespace: namespace}, job)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -251,7 +251,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
 	// Create a namespace
-	err := cl.Create(context.TODO(), defaultNamespace())
+	err := cl.Create(context.Background(), defaultNamespace())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -276,7 +276,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -289,7 +289,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	deleteTime := metav1.Now()
 	crd.ObjectMeta.DeletionTimestamp = &deleteTime
 	// Update the CRD with the new deletion timestamp
-	err = cl.Update(context.TODO(), crd)
+	err = cl.Update(context.Background(), crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -298,7 +298,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 		dummyInt32 int32 = 1
 		dummyBool  bool  = true
 	)
-	err = cl.Create(context.TODO(), &batchv1.Job{
+	err = cl.Create(context.Background(), &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
 			APIVersion: "eunomia.kohls.io/v1alpha1",
@@ -334,7 +334,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 
 	// Check the status
 	crd = &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.TODO(), types.NamespacedName{Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), types.NamespacedName{Namespace: namespace}, crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -359,7 +359,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
 	// Create a namespace
-	err := cl.Create(context.TODO(), defaultNamespace())
+	err := cl.Create(context.Background(), defaultNamespace())
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -384,7 +384,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -406,7 +406,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	deleteTime := metav1.Now()
 	crd.ObjectMeta.DeletionTimestamp = &deleteTime
 	// Update the CRD with the new deletion timestamp
-	err = cl.Update(context.TODO(), crd)
+	err = cl.Update(context.Background(), crd)
 	if err != nil {
 		t.Error(err)
 	}
@@ -422,7 +422,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	job.Status.Failed = 0
 	job.Status.StartTime = &deleteTime
 	// Update the job with the status
-	err = cl.Update(context.TODO(), &job)
+	err = cl.Update(context.Background(), &job)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -459,7 +459,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	deleteTime := metav1.Now()
 	ns0 := defaultNamespace()
 	ns0.ObjectMeta.DeletionTimestamp = &deleteTime
-	err := cl.Create(context.TODO(), ns0)
+	err := cl.Create(context.Background(), ns0)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -484,7 +484,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -497,7 +497,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	deleteTime = metav1.Now()
 	crd.ObjectMeta.DeletionTimestamp = &deleteTime
 	// Update the CRD with the new deletion timestamp
-	err = cl.Update(context.TODO(), crd)
+	err = cl.Update(context.Background(), crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -507,7 +507,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 
 	// Check the status
 	crd = &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.TODO(), types.NamespacedName{Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), types.NamespacedName{Namespace: namespace}, crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -521,7 +521,7 @@ func findDeleteJob(cl client.Client) (batchv1.Job, error) {
 	// At times other jobs can exist
 	jobList := &batchv1.JobList{}
 	// Looking up all jobs
-	err := cl.List(context.TODO(), &client.ListOptions{
+	err := cl.List(context.Background(), &client.ListOptions{
 		Namespace: namespace,
 	}, jobList)
 	if err != nil {
@@ -573,7 +573,7 @@ func TestCreateJob(t *testing.T) {
 	job.Status.Failed = 0
 	job.Status.StartTime = &startTime
 
-	err = cl.Update(context.TODO(), &job)
+	err = cl.Update(context.Background(), &job)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -591,7 +591,7 @@ func findJobList(cl client.Client) (int, error) {
 	// At times other jobs can exist
 	jobList := &batchv1.JobList{}
 	// Looking up all jobs
-	err := cl.List(context.TODO(), &client.ListOptions{
+	err := cl.List(context.Background(), &client.ListOptions{
 		Namespace: namespace,
 	}, jobList)
 	if err != nil {
@@ -604,7 +604,7 @@ func findRunningJob(cl client.Client) (batchv1.Job, error) {
 	// At times other jobs can exist
 	jobList := &batchv1.JobList{}
 	// Looking up all jobs
-	err := cl.List(context.TODO(), &client.ListOptions{
+	err := cl.List(context.Background(), &client.ListOptions{
 		Namespace: namespace,
 	}, jobList)
 	if err != nil {
