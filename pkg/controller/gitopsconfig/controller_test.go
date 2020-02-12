@@ -25,7 +25,6 @@ import (
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -97,15 +96,11 @@ func TestCRDInitialization(t *testing.T) {
 	// This flag is needed to let the reconciler know that the CRD has been initialized
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
-	// Objects to track in the fake client.
-	objs := []runtime.Object{
-		gitops,
-	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
-	// Initialize fake client
-	cl := fake.NewFakeClient(objs...)
+	// Initialize fake client with objects it should track
+	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: s}
 
 	nsn := types.NamespacedName{
@@ -137,15 +132,11 @@ func TestPeriodicTrigger(t *testing.T) {
 	// This flag is needed to let the reconciler know that the CRD has been initialized
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
-	// Objects to track in the fake client.
-	objs := []runtime.Object{
-		gitops,
-	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
-	// Initialize fake client
-	cl := fake.NewFakeClient(objs...)
+	// Initialize fake client with objects it should track
+	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: s}
 
 	nsn := types.NamespacedName{
@@ -183,15 +174,11 @@ func TestChangeTrigger(t *testing.T) {
 			Type: "Change",
 		},
 	}
-	// Objects to track in the fake client.
-	objs := []runtime.Object{
-		gitops,
-	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
-	// Initialize fake client
-	cl := fake.NewFakeClient(objs...)
+	// Initialize fake client with objects it should track
+	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: s}
 
 	nsn := types.NamespacedName{
@@ -229,15 +216,11 @@ func TestWebhookTrigger(t *testing.T) {
 			Type: "Webhook",
 		},
 	}
-	// Objects to track in the fake client.
-	objs := []runtime.Object{
-		gitops,
-	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
-	// Initialize fake client
-	cl := fake.NewFakeClient(objs...)
+	// Initialize fake client with objects it should track
+	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: s}
 
 	nsn := types.NamespacedName{
@@ -275,15 +258,11 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 		},
 	}
 
-	// Objects to track in the fake client.
-	objs := []runtime.Object{
-		gitops,
-	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
-	// Initialize fake client
-	cl := fake.NewFakeClient(objs...)
+	// Initialize fake client with objects it should track
+	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: s}
 
 	// Create a namespace
@@ -390,15 +369,11 @@ func TestCreatingDeleteJob(t *testing.T) {
 		},
 	}
 
-	// Objects to track in the fake client.
-	objs := []runtime.Object{
-		gitops,
-	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
-	// Initialize fake client
-	cl := fake.NewFakeClient(objs...)
+	// Initialize fake client with objects it should track
+	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: s}
 
 	// Create a namespace
@@ -501,15 +476,11 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 		},
 	}
 
-	// Objects to track in the fake client.
-	objs := []runtime.Object{
-		gitops,
-	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client
-	cl := fake.NewFakeClient(objs...)
+	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: s}
 
 	// Create a namespace
@@ -612,15 +583,11 @@ func TestCreateJob(t *testing.T) {
 			Type: "Change",
 		},
 	}
-	// Objects to track in the fake client.
-	objs := []runtime.Object{
-		gitops,
-	}
 	// Register operator types with the runtime scheme.
 	s := scheme.Scheme
 	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
-	// Initialize fake client
-	cl := fake.NewFakeClient(objs...)
+	// Initialize fake client with objects it should track
+	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: s}
 
 	nsn := types.NamespacedName{
