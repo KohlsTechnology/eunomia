@@ -35,4 +35,5 @@ minishift) eval "$(minishift docker-env)" ;;
     ;;
 esac
 
+GOOS=linux make
 "$(dirname "$0")/build-images.sh" quay.io/kohlstechnology

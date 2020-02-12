@@ -43,15 +43,19 @@ Eunomia can handle straight-up (static) yaml files with the complete definition 
 
 These templates will be merged and processed with a set of environment-specific parameters to get a list of resource manifests. Then these manifest can be created/updated/deleted in Kubernetes.
 
+## Getting started
+
+If you want to deploy Eunomia from scratch to a local Minikube cluster, begin with the [Getting started](./GETTING_STARTED.md) document. It will guide your through the setup step-by-step.
+
 ## Vision
 
-While this controller can certainly be used to directly populate an individual namespace with a configuration stored in git, the vision is that a hierarchy of controllers will be used to populate multiple namespaces. Ideally this approach will be used to bring a newly created cluster to a desired configured state. Only the initial seeding CR should have cluster-level permissions. Any sub-CRs should have progressively less access assigned to their service accounts.
+While this controller can certainly be used to directly populate an individual namespace with a configuration stored in git, the vision is that a hierarchy of controllers will be used to populate multiple namespaces. Ideally this approach will be used to bring a newly created cluster to a desired configured state. Only the initial seeding CR ([Custom Resource](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/)) should have cluster-level permissions. Any sub-CRs should have progressively less access assigned to their service accounts.
 
 Here is a very simple example of how the hierarchy might look like:
 
 ![Gitops-hierarchy.png](./media/Gitops-hierarchy.png)
 
-The main sections of the GitOpsConfig CRD are described below.
+The main sections of the GitOpsConfig CRD ([Custom Resource Definition](https://docs.okd.io/latest/admin_guide/custom_resource_definitions.html#crd_admin-guide-custom-resources)) are described below.
 
 ## Example
 
@@ -78,10 +82,10 @@ spec:
   - type: Webhook
   - type: Periodic
     cron: "0 * * * *"
-  ServiceAccountRef:      "mysvcaccount"
+  serviceAccountRef:      "mysvcaccount"
   templateProcessorImage: "quay.io/kohlstechnology/eunomia-base:latest"
-  ResourceDeletionMode:   "Delete"
-  ResourceHandlingMode:   "Apply"
+  resourceDeletionMode:   "Delete"
+  resourceHandlingMode:   "Apply"
 ```
 
 ## TemplateSource and ParameterSource and TemplateProcessorArgs
@@ -144,7 +148,8 @@ Example `hierarchy.lst`:
 ../development #this is third ... highest priority
 ```
 
-In this case it will load all yaml files from `../defaults`, then merge it with everything in `../marketing`, and lastly merges it with everything in `../development`. You can also use the relative path `./`, which means it'll also load the variables defined in `contextDir` directly (same folder that as `hierarchy.lst`).
+In this case it will load all yaml files from `../defaults`, then merge it with everything in `../marketing`, and lastly merges it with everything in `../development`.  
+You can also use the relative path `./`, which means it'll also load the variables defined in `contextDir` directly (same folder that as `hierarchy.lst`). You can insert `./` in whatever order you want in the `hierarchy.lst` - it will determine its priority.
 
 #### Upcoming features
 Once [issue #4](https://github.com/KohlsTechnology/eunomia/issues/4) is resolved, you will be able to specify variable names to dynamically determine the correct folder. This will allow you to only have one `hierarchy.lst`. (Technically, it is actually already possible to use environment variables, but without #4, there are just none set that would be of any practical use in hierarchy.lst.)
@@ -226,12 +231,12 @@ A base image is provided that can be inherited to simplify the process of adding
 The base image provides the following workflow:
 
 1. `gitClone.sh` : This will clone the template and parameter repos. It is expected that there will be no need to customize this. Any required changes are most likely worthy of a pull-request upstream.
-2. `discoverEnvironment.sh` : This will create a set of environment variables that are specific to the target Kubernetes environment. Currently the following variable are supported:
+2. `discoverEnvironment.sh` : This will create a set of environment variables that are specific to the target Kubernetes environment. Currently the following variables are supported:
 
     | Name  | Description  |
     |:---|:---|
-    | `CA_BUNDLE`  | Path to the platform-level CA bundle  |
-    | `SERVICE_CA_BUNDLE`  | Path to the service-level CA bundle  |
+    | `CA_BUNDLE`  | Path to the [platform-level CA bundle](https://kubernetes.io/docs/tasks/access-application-cluster/access-cluster/#accessing-the-api-from-a-pod)  |
+    | `SERVICE_CA_BUNDLE`  | Path to the [service-level CA bundle](https://docs.openshift.com/container-platform/3.11/dev_guide/secrets.html#service-serving-certificate-secrets)  |
     | `NAMESPACE`  | Current namespace  |
 
 3. `processParameters.sh` : This script processes all the parameter files and generates `/tmp/eunomia_values_processed.yaml`. This script currently supports the following features:

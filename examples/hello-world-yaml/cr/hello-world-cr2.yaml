@@ -12,8 +12,6 @@ spec:
     contextDir: examples/hello-world-yaml/parameters
   triggers:
   - type: Change
-  #- type: Periodic
-    #cron: '*/1 * * * *'
   serviceAccountRef: eunomia-runner-yaml
   templateProcessorImage: quay.io/kohlstechnology/eunomia-base:latest
   resourceHandlingMode: Apply
