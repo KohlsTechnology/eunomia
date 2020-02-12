@@ -75,7 +75,7 @@ func defaultGitOpsConfig() *gitopsv1alpha1.GitOpsConfig {
 				},
 			},
 			ServiceAccountRef:      "mysvcaccount",
-			ResourceDeletionMode:   "Cascade",
+			ResourceDeletionMode:   "Delete",
 			TemplateProcessorImage: "myimage",
 			ResourceHandlingMode:   "Apply",
 		},
