@@ -37,18 +37,21 @@ import (
 	"github.com/KohlsTechnology/eunomia/test"
 )
 
-var gitops *gitopsv1alpha1.GitOpsConfig
-var deleteJob *batchv1.Job
-var deleteJobName = "gitops-operator-delete"
-var name = "gitops-operator"
-var namespace = "gitops"
-var ns *corev1.Namespace
+const (
+	name      = "gitops-operator"
+	namespace = "gitops"
+)
 
 func TestMain(m *testing.M) {
 	// Initialize the environment
 	test.Initialize()
-	// Placeholder for gitops CRD
-	gitops = &gitopsv1alpha1.GitOpsConfig{
+
+	code := m.Run()
+	os.Exit(code)
+}
+
+func defaultGitOpsConfig() *gitopsv1alpha1.GitOpsConfig {
+	return &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "GitOpsConfig",
 			APIVersion: "eunomia.kohls.io/v1alpha1",
@@ -88,54 +91,19 @@ func TestMain(m *testing.M) {
 			ResourceHandlingMode:   "Apply",
 		},
 	}
+}
 
-	parallelism := int32(1)
-	completions := int32(1)
-	backoffLimit := int32(1)
-	controller := true
-	blockDelete := true
-
-	deleteJob = &batchv1.Job{
-		TypeMeta: metav1.TypeMeta{
-			Kind:       "Job",
-			APIVersion: "eunomia.kohls.io/v1alpha1",
-		},
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      deleteJobName,
-			Namespace: namespace,
-			Labels:    map[string]string{"action": "delete"},
-			OwnerReferences: []metav1.OwnerReference{
-				{
-					APIVersion:         "eunomia.kohls.io/v1alpha1",
-					Kind:               "GitOpsConfig",
-					Name:               name,
-					Controller:         &controller,
-					BlockOwnerDeletion: &blockDelete,
-				},
-			},
-		},
-		Spec: batchv1.JobSpec{
-			Parallelism:  &parallelism,
-			Completions:  &completions,
-			BackoffLimit: &backoffLimit,
-		},
-		Status: batchv1.JobStatus{
-			Succeeded: 2,
-		},
-	}
-
-	ns = &corev1.Namespace{
+func defaultNamespace() *corev1.Namespace {
+	return &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      namespace,
 			Namespace: namespace,
 		},
 	}
-
-	code := m.Run()
-	os.Exit(code)
 }
 
 func TestCRDInitialization(t *testing.T) {
+	gitops := defaultGitOpsConfig()
 	// This flag is needed to let the reconciler know that the CRD has been initialized
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
@@ -175,6 +143,7 @@ func TestCRDInitialization(t *testing.T) {
 }
 
 func TestPeriodicTrigger(t *testing.T) {
+	gitops := defaultGitOpsConfig()
 	// This flag is needed to let the reconciler know that the CRD has been initialized
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
@@ -215,6 +184,7 @@ func TestPeriodicTrigger(t *testing.T) {
 }
 
 func TestChangeTrigger(t *testing.T) {
+	gitops := defaultGitOpsConfig()
 	// This flag is needed to let the reconciler know that the CRD has been initialized
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	// Set trigger type to Change
@@ -260,6 +230,7 @@ func TestChangeTrigger(t *testing.T) {
 }
 
 func TestWebhookTrigger(t *testing.T) {
+	gitops := defaultGitOpsConfig()
 	// This flag is needed to let the reconciler know that the CRD has been initialized
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	// Set trigger type to Webhook
@@ -305,6 +276,7 @@ func TestWebhookTrigger(t *testing.T) {
 }
 
 func TestDeleteRemovingFinalizer(t *testing.T) {
+	gitops := defaultGitOpsConfig()
 	// This flag is needed to let the reconciler know that the CRD has been initialized
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
@@ -325,7 +297,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	r := &Reconciler{client: cl, scheme: s}
 
 	// Create a namespace
-	err := cl.Create(context.TODO(), ns)
+	err := cl.Create(context.TODO(), defaultNamespace())
 	if err != nil {
 		log.Error(err, "Namespace", "Failed to create namespace")
 	}
@@ -366,7 +338,38 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 		log.Error(err, "Update CRD", "Failed Updating CRD type of GitOpsConfig")
 	}
 	// Create the deleteJob
-	err = cl.Create(context.TODO(), deleteJob)
+	var (
+		dummyInt32 int32 = 1
+		dummyBool  bool  = true
+	)
+	err = cl.Create(context.TODO(), &batchv1.Job{
+		TypeMeta: metav1.TypeMeta{
+			Kind:       "Job",
+			APIVersion: "eunomia.kohls.io/v1alpha1",
+		},
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      "gitops-operator-delete",
+			Namespace: namespace,
+			Labels:    map[string]string{"action": "delete"},
+			OwnerReferences: []metav1.OwnerReference{
+				{
+					APIVersion:         "eunomia.kohls.io/v1alpha1",
+					Kind:               "GitOpsConfig",
+					Name:               name,
+					Controller:         &dummyBool,
+					BlockOwnerDeletion: &dummyBool,
+				},
+			},
+		},
+		Spec: batchv1.JobSpec{
+			Parallelism:  &dummyInt32,
+			Completions:  &dummyInt32,
+			BackoffLimit: &dummyInt32,
+		},
+		Status: batchv1.JobStatus{
+			Succeeded: 2,
+		},
+	})
 	if err != nil {
 		log.Error(err, "Create Job", "Failed creating Job type action of Delete")
 	}
@@ -382,6 +385,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 }
 
 func TestCreatingDeleteJob(t *testing.T) {
+	gitops := defaultGitOpsConfig()
 	// This flag is needed to let the reconciler know that the CRD has been initialized
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
@@ -402,7 +406,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	r := &Reconciler{client: cl, scheme: s}
 
 	// Create a namespace
-	err := cl.Create(context.TODO(), ns)
+	err := cl.Create(context.TODO(), defaultNamespace())
 	if err != nil {
 		log.Error(err, "Namespace", "Failed to create namespace")
 	}
@@ -477,6 +481,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 }
 
 func TestDeleteWhileNamespaceDeleting(t *testing.T) {
+	gitops := defaultGitOpsConfig()
 	// This flag is needed to let the reconciler know that the CRD has been initialized
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
@@ -499,8 +504,9 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	// Create a namespace
 	// Set deletion timestamp on the namespace
 	deleteTime := metav1.Now()
-	ns.ObjectMeta.DeletionTimestamp = &deleteTime
-	err := cl.Create(context.TODO(), ns)
+	ns0 := defaultNamespace()
+	ns0.ObjectMeta.DeletionTimestamp = &deleteTime
+	err := cl.Create(context.TODO(), ns0)
 	if err != nil {
 		log.Error(err, "Namespace", "Failed to create namespace")
 	}
@@ -581,6 +587,7 @@ func findDeleteJob(cl client.Client) batchv1.Job {
 }
 
 func TestCreateJob(t *testing.T) {
+	gitops := defaultGitOpsConfig()
 	// This flag is needed to let the reconciler know that the CRD has been initialized
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	// Set trigger type to Change
