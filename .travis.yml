@@ -15,8 +15,8 @@ env:
   # NOTE: We can add 200 items to the build matrix, but only 3 run in parallel. So having more than three
   # items in the build matrix will cause the tests to wait in a queue. We will need to select the k8s versions
   # that we want to test carefully, or we risk having the tests run for a very long time.
-  - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.14.2 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1
-  - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.13.2 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1
+  - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.15.10 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1
+  - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.16.7 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1
 
 before_install:
   - travis_retry go mod vendor
@@ -53,19 +53,24 @@ before_script:
 script:
   - make test-dirty test
 
+jobs:
+  include:
+    - stage: deploy
+      env:
+        - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.15.10 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1
+      script: make travis-deploy-images
+    - stage: deploy-release
+      env:
+        - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.15.10 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1
+      script: make travis-release
+
+stages:
+  - test
+  - name: deploy
+    if: type = push AND branch = master AND fork = false
+  - name: deploy-release
+    if: tag =~ /^v\d+\.\d+\.\d+$/ AND fork = false
+
 after_success:
   - bash <(curl -s https://codecov.io/bash)
 
-deploy:
-  - provider: script
-    skip_cleanup: true
-    script: make travis-deploy-images
-    on:
-      repo: KohlsTechnology/eunomia
-      branch: master
-  - provider: script
-    skip_cleanup: true
-    script: make travis-release
-    on:
-      repo: KohlsTechnology/eunomia
-      tags: true
