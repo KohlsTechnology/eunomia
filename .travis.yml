@@ -67,9 +67,9 @@ jobs:
 stages:
   - test
   - name: deploy
-    if: type IN (push) AND branch = master
+    if: type = push AND branch = master AND fork = false
   - name: deploy-release
-    if: tag =~ /^v\d+\.\d+\.\d+$/
+    if: tag =~ /^v\d+\.\d+\.\d+$/ AND fork = false
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
