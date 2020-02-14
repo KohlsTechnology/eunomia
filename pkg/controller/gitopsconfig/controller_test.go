@@ -124,7 +124,7 @@ func TestCRDInitialization(t *testing.T) {
 	crd := &gitopsv1alpha1.GitOpsConfig{}
 	err := cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
 	if err != nil {
-		log.Error(err, "Get CRD", "Failed retrieving CRD type of GitOpsConfig")
+		t.Fatal(err)
 	}
 
 	// Check if the name matches what was deployed
@@ -163,9 +163,8 @@ func TestPeriodicTrigger(t *testing.T) {
 	// Check if the CRD has been created
 	cron := &batchv1beta1.CronJob{}
 	err := cl.Get(context.TODO(), types.NamespacedName{Name: "gitopsconfig-gitops-operator", Namespace: namespace}, cron)
-
 	if err != nil {
-		log.Error(err, "Get Cron", "Failed retrieving type of CronJob")
+		t.Fatal(err)
 	}
 
 	// Check if the name matches what was deployed
@@ -209,9 +208,8 @@ func TestChangeTrigger(t *testing.T) {
 	// Check if the CRD has been created
 	job := &batchv1.Job{}
 	err := cl.Get(context.TODO(), types.NamespacedName{Namespace: namespace}, job)
-
 	if err != nil {
-		log.Error(err, "Get Job", "Failed retrieving type of Job")
+		t.Fatal(err)
 	}
 
 	// Check if the name matches what was deployed
@@ -255,9 +253,8 @@ func TestWebhookTrigger(t *testing.T) {
 	// Check if the CRD has been created
 	job := &batchv1.Job{}
 	err := cl.Get(context.TODO(), types.NamespacedName{Namespace: namespace}, job)
-
 	if err != nil {
-		log.Error(err, "Get Job", "Failed retrieving type of Job")
+		t.Fatal(err)
 	}
 
 	// Check if the name matches what was deployed
@@ -290,7 +287,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	// Create a namespace
 	err := cl.Create(context.TODO(), defaultNamespace())
 	if err != nil {
-		log.Error(err, "Namespace", "Failed to create namespace")
+		t.Fatal(err)
 	}
 
 	nsn := types.NamespacedName{
@@ -308,14 +305,14 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
 	err = cl.Update(context.Background(), gitops)
 	if err != nil {
-		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")
+		t.Fatal(err)
 	}
 
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
 	err = cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
 	if err != nil {
-		log.Error(err, "Get CRD", "Failed retrieving CRD type of GitOpsConfig")
+		t.Fatal(err)
 	}
 	// Make sure the finalizer has been added
 	assert.NotEmpty(t, crd.ObjectMeta.Finalizers)
@@ -326,7 +323,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	// Update the CRD with the new deletion timestamp
 	err = cl.Update(context.TODO(), crd)
 	if err != nil {
-		log.Error(err, "Update CRD", "Failed Updating CRD type of GitOpsConfig")
+		t.Fatal(err)
 	}
 	// Create the deleteJob
 	var (
@@ -362,7 +359,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 		},
 	})
 	if err != nil {
-		log.Error(err, "Create Job", "Failed creating Job type action of Delete")
+		t.Fatal(err)
 	}
 	// Reconcile so that the controller can delete the finalizer
 	r.Reconcile(req)
@@ -399,7 +396,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	// Create a namespace
 	err := cl.Create(context.TODO(), defaultNamespace())
 	if err != nil {
-		log.Error(err, "Namespace", "Failed to create namespace")
+		t.Fatal(err)
 	}
 
 	nsn := types.NamespacedName{
@@ -418,21 +415,21 @@ func TestCreatingDeleteJob(t *testing.T) {
 		Name: namespace,
 	}, ns)
 	if err != nil {
-		log.Error(err, "unable to lookup instance's namespace")
+		t.Error(err)
 	}
 
 	// Add a finalizer to the CRD
 	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
 	err = cl.Update(context.Background(), gitops)
 	if err != nil {
-		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")
+		t.Error(err)
 	}
 
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
 	err = cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
 	if err != nil {
-		log.Error(err, "Get CRD", "Failed retrieving CRD type of GitOpsConfig")
+		t.Fatal(err)
 	}
 	// Make sure the finalizer has been added
 	assert.NotEmpty(t, crd.ObjectMeta.Finalizers)
@@ -450,7 +447,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	// Update the CRD with the new deletion timestamp
 	err = cl.Update(context.TODO(), crd)
 	if err != nil {
-		log.Error(err, "Update CRD", "Failed Updating CRD type of GitOpsConfig")
+		t.Error(err)
 	}
 
 	// Fakeclient is not updating the job status , inorder to create the new job we are
@@ -466,7 +463,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	// Update the job with the status
 	err = cl.Update(context.TODO(), &job)
 	if err != nil {
-		log.Error(err, "Update job", "Failed to Updating the job status")
+		t.Fatal(err)
 	}
 
 	// There shouldn't be a delete job at this point, the reconciler should create one
@@ -508,7 +505,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	ns0.ObjectMeta.DeletionTimestamp = &deleteTime
 	err := cl.Create(context.TODO(), ns0)
 	if err != nil {
-		log.Error(err, "Namespace", "Failed to create namespace")
+		t.Fatal(err)
 	}
 
 	nsn := types.NamespacedName{
@@ -527,21 +524,21 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 		Name: namespace,
 	}, ns)
 	if err != nil {
-		log.Error(err, "unable to lookup instance's namespace")
+		t.Fatal(err)
 	}
 
 	// Add a finalizer to the CRD
 	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
 	err = cl.Update(context.Background(), gitops)
 	if err != nil {
-		log.Error(err, "Add Finalizer", "Failed adding finalizer to CRD")
+		t.Fatal(err)
 	}
 
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
 	err = cl.Get(context.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
 	if err != nil {
-		log.Error(err, "Get CRD", "Failed retrieving CRD type of GitOpsConfig")
+		t.Fatal(err)
 	}
 	// Make sure the finalizer has been added
 	assert.NotEmpty(t, crd.ObjectMeta.Finalizers)
@@ -552,7 +549,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	// Update the CRD with the new deletion timestamp
 	err = cl.Update(context.TODO(), crd)
 	if err != nil {
-		log.Error(err, "Update CRD", "Failed Updating CRD type of GitOpsConfig")
+		t.Fatal(err)
 	}
 
 	// There shouldn't be a delete job at this point, the reconciler should create one
@@ -631,12 +628,12 @@ func TestCreateJob(t *testing.T) {
 
 	err = cl.Update(context.TODO(), &job)
 	if err != nil {
-		log.Error(err, "Update job", "Failed to Updating the job status")
+		t.Fatal(err)
 	}
 	r.Reconcile(req)
 	jobCount, err := findJobList(cl)
 	if err != nil {
-		log.Error(err, "Job list", "Failed to fetch job list")
+		t.Fatal(err)
 	}
 	if jobCount > 1 {
 		t.Error("Job was not postponed")
