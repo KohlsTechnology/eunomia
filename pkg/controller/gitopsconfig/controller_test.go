@@ -20,7 +20,6 @@ import (
 	"context"
 	"testing"
 
-	"github.com/stretchr/testify/assert"
 	"golang.org/x/xerrors"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
@@ -128,9 +127,9 @@ func TestCRDInitialization(t *testing.T) {
 	}
 
 	// Check if the name matches what was deployed
-	assert.Equal(t, crd.Name, nsn.Name)
-	// Make sure no errors happened when getting the resource
-	assert.NoError(t, err)
+	if crd.Name != nsn.Name {
+		t.Errorf("expected name %q, got %q", nsn.Name, crd.Name)
+	}
 }
 
 func TestPeriodicTrigger(t *testing.T) {
@@ -168,9 +167,10 @@ func TestPeriodicTrigger(t *testing.T) {
 	}
 
 	// Check if the name matches what was deployed
-	assert.Equal(t, cron.Name, "gitopsconfig-gitops-operator")
-	// Make sure no errors happened when getting the resource
-	assert.NoError(t, err)
+	wantName := "gitopsconfig-gitops-operator"
+	if cron.Name != wantName {
+		t.Errorf("expected name %q, got %q", wantName, cron.Name)
+	}
 }
 
 func TestChangeTrigger(t *testing.T) {
@@ -213,9 +213,10 @@ func TestChangeTrigger(t *testing.T) {
 	}
 
 	// Check if the name matches what was deployed
-	assert.Equal(t, job.Kind, "Job")
-	// Make sure no errors happened when getting the resource
-	assert.NoError(t, err)
+	wantKind := "Job"
+	if job.Kind != wantKind {
+		t.Errorf("expected Kind %q, got %q", wantKind, job.Kind)
+	}
 }
 
 func TestWebhookTrigger(t *testing.T) {
@@ -258,9 +259,10 @@ func TestWebhookTrigger(t *testing.T) {
 	}
 
 	// Check if the name matches what was deployed
-	assert.Equal(t, job.Kind, "Job")
-	// Make sure no errors happened when getting the resource
-	assert.NoError(t, err)
+	wantKind := "Job"
+	if job.Kind != wantKind {
+		t.Errorf("expected Kind %q, got %q", wantKind, job.Kind)
+	}
 }
 
 func TestDeleteRemovingFinalizer(t *testing.T) {
@@ -315,7 +317,9 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Make sure the finalizer has been added
-	assert.NotEmpty(t, crd.ObjectMeta.Finalizers)
+	if len(crd.ObjectMeta.Finalizers) == 0 {
+		t.Fatal("finalizer was not added")
+	}
 
 	// Set deletion timestamp
 	deleteTime := metav1.Now()
@@ -367,9 +371,13 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	// Check the status
 	crd = &gitopsv1alpha1.GitOpsConfig{}
 	err = cl.Get(context.TODO(), types.NamespacedName{Namespace: namespace}, crd)
+	if err != nil {
+		t.Fatal(err)
+	}
 	// The finalizer should have been removed
-	assert.Empty(t, crd.ObjectMeta.Finalizers)
-	assert.NoError(t, err)
+	if len(crd.ObjectMeta.Finalizers) != 0 {
+		t.Errorf("expected empty finalizers, got: %v", crd.ObjectMeta.Finalizers)
+	}
 }
 
 func TestCreatingDeleteJob(t *testing.T) {
@@ -432,14 +440,18 @@ func TestCreatingDeleteJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Make sure the finalizer has been added
-	assert.NotEmpty(t, crd.ObjectMeta.Finalizers)
+	if len(crd.ObjectMeta.Finalizers) == 0 {
+		t.Fatal("finalizer was not added")
+	}
 
 	// Make sure there's no delete job
 	job, err := findDeleteJob(cl)
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.NotEqual(t, "delete", job.GetLabels()["action"])
+	if job.GetLabels()["action"] == "delete" {
+		t.Fatalf("found unexpected delete job: %q", job.Name)
+	}
 
 	// Set deletion timestamp
 	deleteTime := metav1.Now()
@@ -474,7 +486,9 @@ func TestCreatingDeleteJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	assert.Equal(t, "delete", job.GetLabels()["action"])
+	if job.GetLabels()["action"] != "delete" {
+		t.Error("delete job not found")
+	}
 }
 
 func TestDeleteWhileNamespaceDeleting(t *testing.T) {
@@ -541,7 +555,9 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Make sure the finalizer has been added
-	assert.NotEmpty(t, crd.ObjectMeta.Finalizers)
+	if len(crd.ObjectMeta.Finalizers) == 0 {
+		t.Fatal("finalizer was not added")
+	}
 
 	// Set deletion timestamp
 	deleteTime = metav1.Now()
@@ -558,9 +574,13 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	// Check the status
 	crd = &gitopsv1alpha1.GitOpsConfig{}
 	err = cl.Get(context.TODO(), types.NamespacedName{Namespace: namespace}, crd)
+	if err != nil {
+		t.Fatal(err)
+	}
 	// The finalizer should have been removed
-	assert.Empty(t, crd.ObjectMeta.Finalizers)
-	assert.NoError(t, err)
+	if len(crd.ObjectMeta.Finalizers) != 0 {
+		t.Errorf("expected empty finalizers, got: %v", crd.ObjectMeta.Finalizers)
+	}
 }
 
 func findDeleteJob(cl client.Client) (batchv1.Job, error) {
