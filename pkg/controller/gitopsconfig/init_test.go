@@ -18,8 +18,10 @@ package gitopsconfig
 
 import (
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
+	"k8s.io/client-go/kubernetes/scheme"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
@@ -39,4 +41,7 @@ func init() {
 		"../../../build/job-templates/job.yaml",
 		"../../../build/job-templates/cronjob.yaml",
 	)
+
+	// Register operator types with the runtime scheme.
+	scheme.Scheme.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, &gitopsv1alpha1.GitOpsConfig{})
 }

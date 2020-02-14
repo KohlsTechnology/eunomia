@@ -96,12 +96,9 @@ func TestCRDInitialization(t *testing.T) {
 	// This flag is needed to let the reconciler know that the CRD has been initialized
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client with objects it should track
 	cl := fake.NewFakeClient(gitops)
-	r := &Reconciler{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -132,12 +129,9 @@ func TestPeriodicTrigger(t *testing.T) {
 	// This flag is needed to let the reconciler know that the CRD has been initialized
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client with objects it should track
 	cl := fake.NewFakeClient(gitops)
-	r := &Reconciler{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -174,12 +168,9 @@ func TestChangeTrigger(t *testing.T) {
 			Type: "Change",
 		},
 	}
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client with objects it should track
 	cl := fake.NewFakeClient(gitops)
-	r := &Reconciler{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -216,12 +207,9 @@ func TestWebhookTrigger(t *testing.T) {
 			Type: "Webhook",
 		},
 	}
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client with objects it should track
 	cl := fake.NewFakeClient(gitops)
-	r := &Reconciler{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
 	nsn := types.NamespacedName{
 		Name:      name,
@@ -258,12 +246,9 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 		},
 	}
 
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client with objects it should track
 	cl := fake.NewFakeClient(gitops)
-	r := &Reconciler{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
 	// Create a namespace
 	err := cl.Create(context.TODO(), defaultNamespace())
@@ -369,12 +354,9 @@ func TestCreatingDeleteJob(t *testing.T) {
 		},
 	}
 
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client with objects it should track
 	cl := fake.NewFakeClient(gitops)
-	r := &Reconciler{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
 	// Create a namespace
 	err := cl.Create(context.TODO(), defaultNamespace())
@@ -476,12 +458,9 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 		},
 	}
 
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client
 	cl := fake.NewFakeClient(gitops)
-	r := &Reconciler{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
 	// Create a namespace
 	// Set deletion timestamp on the namespace
@@ -583,12 +562,9 @@ func TestCreateJob(t *testing.T) {
 			Type: "Change",
 		},
 	}
-	// Register operator types with the runtime scheme.
-	s := scheme.Scheme
-	s.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, gitops)
 	// Initialize fake client with objects it should track
 	cl := fake.NewFakeClient(gitops)
-	r := &Reconciler{client: cl, scheme: s}
+	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
 	nsn := types.NamespacedName{
 		Name:      name,
