@@ -22,11 +22,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	batch "k8s.io/api/batch/v1"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
-	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
@@ -40,11 +38,11 @@ import (
 )
 
 var gitops *gitopsv1alpha1.GitOpsConfig
-var deleteJob *batch.Job
+var deleteJob *batchv1.Job
 var deleteJobName = "gitops-operator-delete"
 var name = "gitops-operator"
 var namespace = "gitops"
-var ns *v1.Namespace
+var ns *corev1.Namespace
 
 func TestMain(m *testing.M) {
 	// Initialize the environment
@@ -97,7 +95,7 @@ func TestMain(m *testing.M) {
 	controller := true
 	blockDelete := true
 
-	deleteJob = &batch.Job{
+	deleteJob = &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
 			APIVersion: "eunomia.kohls.io/v1alpha1",
@@ -116,17 +114,17 @@ func TestMain(m *testing.M) {
 				},
 			},
 		},
-		Spec: batch.JobSpec{
+		Spec: batchv1.JobSpec{
 			Parallelism:  &parallelism,
 			Completions:  &completions,
 			BackoffLimit: &backoffLimit,
 		},
-		Status: batch.JobStatus{
+		Status: batchv1.JobStatus{
 			Succeeded: 2,
 		},
 	}
 
-	ns = &v1.Namespace{
+	ns = &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      namespace,
 			Namespace: namespace,
@@ -248,7 +246,7 @@ func TestChangeTrigger(t *testing.T) {
 	r.Reconcile(req)
 
 	// Check if the CRD has been created
-	job := &batch.Job{}
+	job := &batchv1.Job{}
 	err := cl.Get(context.TODO(), types.NamespacedName{Namespace: namespace}, job)
 
 	if err != nil {
@@ -293,7 +291,7 @@ func TestWebhookTrigger(t *testing.T) {
 	r.Reconcile(req)
 
 	// Check if the CRD has been created
-	job := &batch.Job{}
+	job := &batchv1.Job{}
 	err := cl.Get(context.TODO(), types.NamespacedName{Namespace: namespace}, job)
 
 	if err != nil {
@@ -562,7 +560,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func findDeleteJob(cl client.Client) batch.Job {
+func findDeleteJob(cl client.Client) batchv1.Job {
 	// At times other jobs can exist
 	jobList := &batchv1.JobList{}
 	// Looking up all jobs
@@ -571,7 +569,7 @@ func findDeleteJob(cl client.Client) batch.Job {
 	}, jobList)
 	if err != nil {
 		log.Error(err, "unable to list jobs")
-		return batch.Job{}
+		return batchv1.Job{}
 	}
 	// Return the first instance that is a delete job
 	for _, job := range jobList.Items {
@@ -579,7 +577,7 @@ func findDeleteJob(cl client.Client) batch.Job {
 			return job
 		}
 	}
-	return batch.Job{}
+	return batchv1.Job{}
 }
 
 func TestCreateJob(t *testing.T) {
@@ -650,7 +648,7 @@ func findJobList(cl client.Client) (int, error) {
 	return len(jobList.Items), nil
 }
 
-func findRunningJob(cl client.Client) batch.Job {
+func findRunningJob(cl client.Client) batchv1.Job {
 	// At times other jobs can exist
 	jobList := &batchv1.JobList{}
 	// Looking up all jobs
@@ -659,11 +657,11 @@ func findRunningJob(cl client.Client) batch.Job {
 	}, jobList)
 	if err != nil {
 		log.Error(err, "unable to list jobs")
-		return batch.Job{}
+		return batchv1.Job{}
 	}
 	// Returning the jobs
 	if len(jobList.Items) > 0 {
 		return jobList.Items[0]
 	}
-	return batch.Job{}
+	return batchv1.Job{}
 }
