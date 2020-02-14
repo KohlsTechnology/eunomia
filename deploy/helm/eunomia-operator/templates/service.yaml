@@ -1,5 +1,5 @@
 {{- with .Values.eunomia.operator }}
-{{- if not .deployment.nsRbacOnly -}}
+{{- if not (or .deployment.nsRbacOnly .deployment.operatorHub) -}}
 apiVersion: v1
 kind: Service
 metadata:

@@ -5,6 +5,7 @@ eunomia:
       enabled: true
       nsRbacOnly: false
       clusterViewer: true
+      operatorHub: false
     replicas: 1
     serviceAccount: "eunomia-operator"
 

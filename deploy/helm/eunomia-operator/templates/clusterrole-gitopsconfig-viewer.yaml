@@ -1,4 +1,4 @@
-{{- if not .Values.eunomia.operator.deployment.nsRbacOnly -}}
+{{- if not (or .Values.eunomia.operator.deployment.nsRbacOnly .Values.eunomia.operator.deployment.operatorHub) -}}
 apiVersion: rbac.authorization.k8s.io/v1
 kind: ClusterRole
 metadata:
