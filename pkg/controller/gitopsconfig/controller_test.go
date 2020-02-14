@@ -21,6 +21,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
+	"golang.org/x/xerrors"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -437,7 +438,10 @@ func TestCreatingDeleteJob(t *testing.T) {
 	assert.NotEmpty(t, crd.ObjectMeta.Finalizers)
 
 	// Make sure there's no delete job
-	job := findDeleteJob(cl)
+	job, err := findDeleteJob(cl)
+	if err != nil {
+		t.Fatal(err)
+	}
 	assert.NotEqual(t, "delete", job.GetLabels()["action"])
 
 	// Set deletion timestamp
@@ -451,7 +455,10 @@ func TestCreatingDeleteJob(t *testing.T) {
 
 	// Fakeclient is not updating the job status , inorder to create the new job we are
 	// Updating the job status manually for the existing job created by Reconcile.
-	job = findRunningJob(cl)
+	job, err = findRunningJob(cl)
+	if err != nil {
+		t.Fatal(err)
+	}
 	job.Status.Active = 0
 	job.Status.Succeeded = 1
 	job.Status.Failed = 0
@@ -466,7 +473,10 @@ func TestCreatingDeleteJob(t *testing.T) {
 	r.Reconcile(req)
 
 	// See if a delete job was created
-	job = findDeleteJob(cl)
+	job, err = findDeleteJob(cl)
+	if err != nil {
+		t.Fatal(err)
+	}
 	assert.Equal(t, "delete", job.GetLabels()["action"])
 }
 
@@ -556,7 +566,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	assert.NoError(t, err)
 }
 
-func findDeleteJob(cl client.Client) batchv1.Job {
+func findDeleteJob(cl client.Client) (batchv1.Job, error) {
 	// At times other jobs can exist
 	jobList := &batchv1.JobList{}
 	// Looking up all jobs
@@ -564,16 +574,15 @@ func findDeleteJob(cl client.Client) batchv1.Job {
 		Namespace: namespace,
 	}, jobList)
 	if err != nil {
-		log.Error(err, "unable to list jobs")
-		return batchv1.Job{}
+		return batchv1.Job{}, xerrors.Errorf("unable to list jobs: %w", err)
 	}
 	// Return the first instance that is a delete job
 	for _, job := range jobList.Items {
 		if job.GetLabels()["action"] == "delete" {
-			return job
+			return job, nil
 		}
 	}
-	return batchv1.Job{}
+	return batchv1.Job{}, nil
 }
 
 func TestCreateJob(t *testing.T) {
@@ -611,13 +620,16 @@ func TestCreateJob(t *testing.T) {
 	// Fakeclient is not updating the job status , inorder to test race condition between the jobs we are
 	// Updating the job status manually for the existing job created by Reconcile.
 	startTime := metav1.Now()
-	job := findRunningJob(cl)
+	job, err := findRunningJob(cl)
+	if err != nil {
+		t.Fatal(err)
+	}
 	job.Status.Active = 1
 	job.Status.Succeeded = 0
 	job.Status.Failed = 0
 	job.Status.StartTime = &startTime
 
-	err := cl.Update(context.TODO(), &job)
+	err = cl.Update(context.TODO(), &job)
 	if err != nil {
 		log.Error(err, "Update job", "Failed to Updating the job status")
 	}
@@ -639,13 +651,12 @@ func findJobList(cl client.Client) (int, error) {
 		Namespace: namespace,
 	}, jobList)
 	if err != nil {
-		log.Error(err, "unable to list the running jobs")
-		return 0, err
+		return 0, xerrors.Errorf("unable to list the running jobs: %w", err)
 	}
 	return len(jobList.Items), nil
 }
 
-func findRunningJob(cl client.Client) batchv1.Job {
+func findRunningJob(cl client.Client) (batchv1.Job, error) {
 	// At times other jobs can exist
 	jobList := &batchv1.JobList{}
 	// Looking up all jobs
@@ -653,12 +664,11 @@ func findRunningJob(cl client.Client) batchv1.Job {
 		Namespace: namespace,
 	}, jobList)
 	if err != nil {
-		log.Error(err, "unable to list jobs")
-		return batchv1.Job{}
+		return batchv1.Job{}, xerrors.Errorf("unable to list jobs: %w", err)
 	}
 	// Returning the jobs
 	if len(jobList.Items) > 0 {
-		return jobList.Items[0]
+		return jobList.Items[0], nil
 	}
-	return batchv1.Job{}
+	return batchv1.Job{}, nil
 }
