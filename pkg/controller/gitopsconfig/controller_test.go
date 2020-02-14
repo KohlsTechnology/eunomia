@@ -375,14 +375,6 @@ func TestCreatingDeleteJob(t *testing.T) {
 
 	r.Reconcile(req)
 
-	ns := &corev1.Namespace{}
-	err = cl.Get(context.TODO(), types.NamespacedName{
-		Name: namespace,
-	}, ns)
-	if err != nil {
-		t.Error(err)
-	}
-
 	// Add a finalizer to the CRD
 	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
 	err = cl.Update(context.Background(), gitops)
@@ -482,14 +474,6 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	}
 
 	r.Reconcile(req)
-
-	ns := &corev1.Namespace{}
-	err = cl.Get(context.TODO(), types.NamespacedName{
-		Name: namespace,
-	}, ns)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	// Add a finalizer to the CRD
 	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
