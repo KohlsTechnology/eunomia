@@ -1,4 +1,17 @@
-## v0.1.3 (Unreleased)
+## v0.1.3 (February 17, 2020)
+FEATURES:
+* N/A
+
+CHANGES:
+* Update Travis CI config to test against multiple k8s versions [GH-283](https://github.com/KohlsTechnology/eunomia/pull/283), [GH-285](https://github.com/KohlsTechnology/eunomia/pull/285), [GH-295](https://github.com/KohlsTechnology/eunomia/pull/295)
+* Expose operator version to end users [GH-284](https://github.com/KohlsTechnology/eunomia/pull/284)
+* Add readiness probe [GH-287](https://github.com/KohlsTechnology/eunomia/pull/287)
+* Add getting started docs [GH-281](https://github.com/KohlsTechnology/eunomia/pull/281)
+* Partially automated operator hub deployment [GH-294](https://github.com/KohlsTechnology/eunomia/pull/294)
+
+BUG FIXES:
+* OpenShift template processor uses oc v3.11 [GH-290](https://github.com/KohlsTechnology/eunomia/pull/290)
+* Add cluster list ClusterRole to operator deployment [GH-291](https://github.com/KohlsTechnology/eunomia/pull/291)
 
 ## v0.1.2 (January 31, 2020)
 FEATURES:
