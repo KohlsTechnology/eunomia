@@ -518,17 +518,12 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 }
 
 func findDeleteJob(cl client.Client) (batchv1.Job, error) {
-	// At times other jobs can exist
-	jobList := &batchv1.JobList{}
-	// Looking up all jobs
-	err := cl.List(context.Background(), &client.ListOptions{
-		Namespace: namespace,
-	}, jobList)
+	jobs, err := findJobList(cl)
 	if err != nil {
-		return batchv1.Job{}, xerrors.Errorf("unable to list jobs: %w", err)
+		return batchv1.Job{}, xerrors.Errorf("unable to find delete job: %w", err)
 	}
 	// Return the first instance that is a delete job
-	for _, job := range jobList.Items {
+	for _, job := range jobs {
 		if job.GetLabels()["action"] == "delete" {
 			return job, nil
 		}
@@ -578,41 +573,34 @@ func TestCreateJob(t *testing.T) {
 		t.Fatal(err)
 	}
 	r.Reconcile(req)
-	jobCount, err := findJobList(cl)
+	jobs, err := findJobList(cl)
 	if err != nil {
 		t.Fatal(err)
 	}
-	if jobCount > 1 {
+	if len(jobs) > 1 {
 		t.Error("Job was not postponed")
 	}
 }
 
-func findJobList(cl client.Client) (int, error) {
-	// At times other jobs can exist
-	jobList := &batchv1.JobList{}
+func findJobList(cl client.Client) ([]batchv1.Job, error) {
 	// Looking up all jobs
+	jobs := batchv1.JobList{}
 	err := cl.List(context.Background(), &client.ListOptions{
 		Namespace: namespace,
-	}, jobList)
+	}, &jobs)
 	if err != nil {
-		return 0, xerrors.Errorf("unable to list the running jobs: %w", err)
+		return nil, xerrors.Errorf("unable to list the running jobs: %w", err)
 	}
-	return len(jobList.Items), nil
+	return jobs.Items, nil
 }
 
 func findRunningJob(cl client.Client) (batchv1.Job, error) {
-	// At times other jobs can exist
-	jobList := &batchv1.JobList{}
-	// Looking up all jobs
-	err := cl.List(context.Background(), &client.ListOptions{
-		Namespace: namespace,
-	}, jobList)
+	jobs, err := findJobList(cl)
 	if err != nil {
-		return batchv1.Job{}, xerrors.Errorf("unable to list jobs: %w", err)
+		return batchv1.Job{}, xerrors.Errorf("unable to find running job: %w", err)
 	}
-	// Returning the jobs
-	if len(jobList.Items) > 0 {
-		return jobList.Items[0], nil
+	if len(jobs) > 0 {
+		return jobs[0], nil
 	}
 	return batchv1.Job{}, nil
 }
