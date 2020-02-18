@@ -129,7 +129,7 @@ func TestPeriodicTrigger(t *testing.T) {
 		NamespacedName: util.GetNN(gitops),
 	})
 
-	// Check if the CRD has been created
+	// Check if the CronJob has been created
 	cron := &batchv1beta1.CronJob{}
 	err := cl.Get(context.Background(), util.NN{Name: "gitopsconfig-gitops-operator", Namespace: namespace}, cron)
 	if err != nil {
@@ -193,7 +193,7 @@ func TestWebhookTrigger(t *testing.T) {
 		NamespacedName: util.GetNN(gitops),
 	})
 
-	// Check if the CRD has been created
+	// Check if the Job has been created
 	job := &batchv1.Job{}
 	err := cl.Get(context.Background(), util.NN{Namespace: namespace}, job)
 	if err != nil {
