@@ -553,6 +553,13 @@ func findRunningJob(cl client.Client) (batchv1.Job, error) {
 	if err != nil {
 		return batchv1.Job{}, xerrors.Errorf("unable to find running job: %w", err)
 	}
+	if len(jobs) >= 2 {
+		names := []string{}
+		for _, j := range jobs {
+			names = append(names, j.Name)
+		}
+		return batchv1.Job{}, xerrors.Errorf("found more than 1 job: %v", names)
+	}
 	if len(jobs) > 0 {
 		return jobs[0], nil
 	}
