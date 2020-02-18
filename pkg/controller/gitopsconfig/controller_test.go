@@ -35,7 +35,6 @@ import (
 )
 
 const (
-	name      = "gitops-operator"
 	namespace = "gitops"
 )
 
@@ -46,7 +45,7 @@ func defaultGitOpsConfig() *gitopsv1alpha1.GitOpsConfig {
 			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      name,
+			Name:      "gitops-operator",
 			Namespace: namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
@@ -276,7 +275,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 				{
 					APIVersion:         "eunomia.kohls.io/v1alpha1",
 					Kind:               "GitOpsConfig",
-					Name:               name,
+					Name:               gitops.Name,
 					Controller:         &dummyBool,
 					BlockOwnerDeletion: &dummyBool,
 				},
