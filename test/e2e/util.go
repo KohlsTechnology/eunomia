@@ -23,7 +23,7 @@ import (
 	goctx "context"
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -59,6 +59,21 @@ func GetPod(namespace, namePrefix, containsImage string, kubeclient kubernetes.I
 		}
 	}
 	return nil, nil
+}
+
+// GetPodLogs retrieves logs of a given pod
+func GetPodLogs(pod *v1.Pod, kubeclient kubernetes.Interface) (string, error) {
+	req := kubeclient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &v1.PodLogOptions{Timestamps: true})
+	logs, err := req.Stream()
+	if err != nil {
+		return "", xerrors.Errorf("could not get logs for pod %q: %w", pod.Name, err)
+	}
+	defer logs.Close()
+	b, err := ioutil.ReadAll(logs)
+	if err != nil {
+		return "", xerrors.Errorf("could not get logs for pod %q: %w", pod.Name, err)
+	}
+	return string(b), nil
 }
 
 // WaitForPod retrieves a specific pod with a known name and namespace and waits for it to be running and available
@@ -151,8 +166,7 @@ func DumpJobsLogsOnError(t *testing.T, f *framework.Framework, namespace string)
 	if !t.Failed() {
 		return
 	}
-	pods := f.KubeClient.CoreV1().Pods(namespace)
-	podsList, err := pods.List(metav1.ListOptions{})
+	podsList, err := f.KubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
 	if err != nil {
 		t.Logf("failed to list pods in namespace %s: %s", namespace, err)
 		return
@@ -169,20 +183,12 @@ func DumpJobsLogsOnError(t *testing.T, f *framework.Framework, namespace string)
 			continue
 		}
 		// Retrieve pod's logs
-		req := pods.GetLogs(p.Name, &v1.PodLogOptions{Timestamps: true})
-		logs, err := req.Stream()
+		logs, err := GetPodLogs(&p, f.KubeClient)
 		if err != nil {
 			t.Logf("failed to retrieve logs for pod %s: %s", p.Name, err)
 			continue
 		}
-		buf := &bytes.Buffer{}
-		_, err = io.Copy(buf, logs)
-		logs.Close()
-		if err != nil {
-			t.Logf("failed to retrieve logs for pod %s: %s", p.Name, err)
-			continue
-		}
-		t.Logf("================ POD LOGS FOR %s ================\n%s\n\n", p.Name, buf.String())
+		t.Logf("================ POD LOGS FOR %s ================\n%s\n\n", p.Name, logs)
 	}
 }
 
