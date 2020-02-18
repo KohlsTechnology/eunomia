@@ -212,7 +212,7 @@ You can enable one or multiple triggers.
 |:---|:---|
 |`Change` | This triggers every time the CR is changed, including when it is created.|
 |`Periodic` | Periodically apply the configuration. This can be used to either schedule changes for a specific time, use it for drift management to revert any changes, or as a safeguard in case webhooks were missed. It uses a cron-style expression.
-|`Webhook` | This triggers when something on git changes. You have to configure the webhook yourself.
+|`Webhook` | This triggers when something on git changes. You have to configure the webhook yourself. For branches use just branch name in GitOpsConfig CR `ref`, but if you want webhook working for git tag, use refs/tags/[tag_name].
 
 ### GitHub webhook configuration
 

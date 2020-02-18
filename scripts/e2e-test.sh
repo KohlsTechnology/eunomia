@@ -93,7 +93,7 @@ kubectl apply -f examples/hello-world-yaml/eunomia-runner-sa.yaml -n eunomia-hel
 
 #Test hello-world-yaml-cr1
 hello_world_yaml_cr_1() {
-    timeout=30
+    timeout=60
     kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-hello-world-yaml-demo
     while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running" ]]; do
         echo "waiting for hello-world-yaml-cr1 deployment: remaining $timeout sec..."
