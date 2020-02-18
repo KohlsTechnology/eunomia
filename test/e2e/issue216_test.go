@@ -26,11 +26,11 @@ import (
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 func TestIssue216InvalidImageDeleted(t *testing.T) {
@@ -138,9 +138,7 @@ func TestIssue216InvalidImageDeleted(t *testing.T) {
 
 	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		found := gitopsv1alpha1.GitOpsConfig{}
-		err = framework.Global.Client.Get(context.TODO(),
-			types.NamespacedName{Namespace: namespace, Name: gitops.ObjectMeta.Name},
-			&found)
+		err = framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), &found)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Confirmed GitOpsConfig shutdown")

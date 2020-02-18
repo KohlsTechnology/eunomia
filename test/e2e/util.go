@@ -31,12 +31,12 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"golang.org/x/xerrors"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 )
@@ -66,7 +66,7 @@ func WaitForPod(t *testing.T, f *framework.Framework, namespace, name string, re
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		// Check if the CRD has been created
 		pod := &v1.Pod{}
-		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, pod)
+		err = f.Client.Get(goctx.TODO(), util.NN{Name: name, Namespace: namespace}, pod)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Waiting for availability of %s pod", name)

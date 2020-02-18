@@ -25,13 +25,13 @@ import (
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
 
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 const (
@@ -100,25 +100,20 @@ func TestCRDInitialization(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	nsn := types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
-
 	r.Reconcile(reconcile.Request{
-		NamespacedName: nsn,
+		NamespacedName: util.GetNN(gitops),
 	})
 
 	// Check if the CRD has been created
 	crd := &gitopsv1alpha1.GitOpsConfig{}
-	err := cl.Get(context.Background(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
+	err := cl.Get(context.Background(), util.GetNN(gitops), crd)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Check if the name matches what was deployed
-	if crd.Name != nsn.Name {
-		t.Errorf("expected name %q, got %q", nsn.Name, crd.Name)
+	if crd.Name != gitops.Name {
+		t.Errorf("expected name %q, got %q", gitops.Name, crd.Name)
 	}
 }
 
@@ -131,18 +126,13 @@ func TestPeriodicTrigger(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	nsn := types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
-
 	r.Reconcile(reconcile.Request{
-		NamespacedName: nsn,
+		NamespacedName: util.GetNN(gitops),
 	})
 
 	// Check if the CRD has been created
 	cron := &batchv1beta1.CronJob{}
-	err := cl.Get(context.Background(), types.NamespacedName{Name: "gitopsconfig-gitops-operator", Namespace: namespace}, cron)
+	err := cl.Get(context.Background(), util.NN{Name: "gitopsconfig-gitops-operator", Namespace: namespace}, cron)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -168,18 +158,13 @@ func TestChangeTrigger(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	nsn := types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
-
 	r.Reconcile(reconcile.Request{
-		NamespacedName: nsn,
+		NamespacedName: util.GetNN(gitops),
 	})
 
 	// Check if the CRD has been created
 	job := &batchv1.Job{}
-	err := cl.Get(context.Background(), types.NamespacedName{Namespace: namespace}, job)
+	err := cl.Get(context.Background(), util.NN{Namespace: namespace}, job)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -205,18 +190,13 @@ func TestWebhookTrigger(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	nsn := types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
-
 	r.Reconcile(reconcile.Request{
-		NamespacedName: nsn,
+		NamespacedName: util.GetNN(gitops),
 	})
 
 	// Check if the CRD has been created
 	job := &batchv1.Job{}
-	err := cl.Get(context.Background(), types.NamespacedName{Namespace: namespace}, job)
+	err := cl.Get(context.Background(), util.NN{Namespace: namespace}, job)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -248,13 +228,8 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	nsn := types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
-
 	r.Reconcile(reconcile.Request{
-		NamespacedName: nsn,
+		NamespacedName: util.GetNN(gitops),
 	})
 
 	// Add a finalizer to the CRD
@@ -266,7 +241,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.Background(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), util.GetNN(gitops), crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -319,14 +294,15 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	// Reconcile so that the controller can delete the finalizer
 	r.Reconcile(reconcile.Request{
-		NamespacedName: nsn,
+		NamespacedName: util.GetNN(gitops),
 	})
 
 	// Check the status
 	crd = &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.Background(), types.NamespacedName{Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), util.NN{Namespace: namespace}, crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -356,13 +332,8 @@ func TestCreatingDeleteJob(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	nsn := types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
-
 	r.Reconcile(reconcile.Request{
-		NamespacedName: nsn,
+		NamespacedName: util.GetNN(gitops),
 	})
 
 	// Add a finalizer to the CRD
@@ -374,7 +345,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.Background(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), util.GetNN(gitops), crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -419,7 +390,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 
 	// There shouldn't be a delete job at this point, the reconciler should create one
 	r.Reconcile(reconcile.Request{
-		NamespacedName: nsn,
+		NamespacedName: util.GetNN(gitops),
 	})
 
 	// See if a delete job was created
@@ -456,13 +427,8 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	nsn := types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
-
 	r.Reconcile(reconcile.Request{
-		NamespacedName: nsn,
+		NamespacedName: util.GetNN(gitops),
 	})
 
 	// Add a finalizer to the CRD
@@ -474,7 +440,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.Background(), types.NamespacedName{Name: name, Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), util.GetNN(gitops), crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -494,12 +460,12 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 
 	// There shouldn't be a delete job at this point, the reconciler should create one
 	r.Reconcile(reconcile.Request{
-		NamespacedName: nsn,
+		NamespacedName: util.GetNN(gitops),
 	})
 
 	// Check the status
 	crd = &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.Background(), types.NamespacedName{Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), util.NN{Namespace: namespace}, crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -537,13 +503,8 @@ func TestCreateJob(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	nsn := types.NamespacedName{
-		Name:      name,
-		Namespace: namespace,
-	}
-
 	r.Reconcile(reconcile.Request{
-		NamespacedName: nsn,
+		NamespacedName: util.GetNN(gitops),
 	})
 
 	// Fakeclient is not updating the job status , inorder to test race condition between the jobs we are
@@ -562,8 +523,9 @@ func TestCreateJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	r.Reconcile(reconcile.Request{
-		NamespacedName: nsn,
+		NamespacedName: util.GetNN(gitops),
 	})
 
 	jobs, err := findJobList(cl)
