@@ -105,11 +105,9 @@ func TestCRDInitialization(t *testing.T) {
 		Namespace: namespace,
 	}
 
-	req := reconcile.Request{
+	r.Reconcile(reconcile.Request{
 		NamespacedName: nsn,
-	}
-
-	r.Reconcile(req)
+	})
 
 	// Check if the CRD has been created
 	crd := &gitopsv1alpha1.GitOpsConfig{}
@@ -138,11 +136,9 @@ func TestPeriodicTrigger(t *testing.T) {
 		Namespace: namespace,
 	}
 
-	req := reconcile.Request{
+	r.Reconcile(reconcile.Request{
 		NamespacedName: nsn,
-	}
-
-	r.Reconcile(req)
+	})
 
 	// Check if the CRD has been created
 	cron := &batchv1beta1.CronJob{}
@@ -177,11 +173,9 @@ func TestChangeTrigger(t *testing.T) {
 		Namespace: namespace,
 	}
 
-	req := reconcile.Request{
+	r.Reconcile(reconcile.Request{
 		NamespacedName: nsn,
-	}
-
-	r.Reconcile(req)
+	})
 
 	// Check if the CRD has been created
 	job := &batchv1.Job{}
@@ -216,11 +210,9 @@ func TestWebhookTrigger(t *testing.T) {
 		Namespace: namespace,
 	}
 
-	req := reconcile.Request{
+	r.Reconcile(reconcile.Request{
 		NamespacedName: nsn,
-	}
-
-	r.Reconcile(req)
+	})
 
 	// Check if the CRD has been created
 	job := &batchv1.Job{}
@@ -261,11 +253,9 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 		Namespace: namespace,
 	}
 
-	req := reconcile.Request{
+	r.Reconcile(reconcile.Request{
 		NamespacedName: nsn,
-	}
-
-	r.Reconcile(req)
+	})
 
 	// Add a finalizer to the CRD
 	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
@@ -330,7 +320,9 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Reconcile so that the controller can delete the finalizer
-	r.Reconcile(req)
+	r.Reconcile(reconcile.Request{
+		NamespacedName: nsn,
+	})
 
 	// Check the status
 	crd = &gitopsv1alpha1.GitOpsConfig{}
@@ -369,11 +361,9 @@ func TestCreatingDeleteJob(t *testing.T) {
 		Namespace: namespace,
 	}
 
-	req := reconcile.Request{
+	r.Reconcile(reconcile.Request{
 		NamespacedName: nsn,
-	}
-
-	r.Reconcile(req)
+	})
 
 	// Add a finalizer to the CRD
 	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
@@ -428,7 +418,9 @@ func TestCreatingDeleteJob(t *testing.T) {
 	}
 
 	// There shouldn't be a delete job at this point, the reconciler should create one
-	r.Reconcile(req)
+	r.Reconcile(reconcile.Request{
+		NamespacedName: nsn,
+	})
 
 	// See if a delete job was created
 	job, err = findDeleteJob(cl)
@@ -469,11 +461,9 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 		Namespace: namespace,
 	}
 
-	req := reconcile.Request{
+	r.Reconcile(reconcile.Request{
 		NamespacedName: nsn,
-	}
-
-	r.Reconcile(req)
+	})
 
 	// Add a finalizer to the CRD
 	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
@@ -503,7 +493,9 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	}
 
 	// There shouldn't be a delete job at this point, the reconciler should create one
-	r.Reconcile(req)
+	r.Reconcile(reconcile.Request{
+		NamespacedName: nsn,
+	})
 
 	// Check the status
 	crd = &gitopsv1alpha1.GitOpsConfig{}
@@ -550,11 +542,9 @@ func TestCreateJob(t *testing.T) {
 		Namespace: namespace,
 	}
 
-	req := reconcile.Request{
+	r.Reconcile(reconcile.Request{
 		NamespacedName: nsn,
-	}
-
-	r.Reconcile(req)
+	})
 
 	// Fakeclient is not updating the job status , inorder to test race condition between the jobs we are
 	// Updating the job status manually for the existing job created by Reconcile.
@@ -572,7 +562,10 @@ func TestCreateJob(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	r.Reconcile(req)
+	r.Reconcile(reconcile.Request{
+		NamespacedName: nsn,
+	})
+
 	jobs, err := findJobList(cl)
 	if err != nil {
 		t.Fatal(err)
