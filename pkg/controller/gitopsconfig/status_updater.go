@@ -20,11 +20,11 @@ import (
 	"context"
 
 	batchv1 "k8s.io/api/batch/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 // statusUpdater updates Status of GitOpsConfig objects in the cluster when it
@@ -101,7 +101,7 @@ func (u *statusUpdater) OnUpdate(oldObj, newObj interface{}) {
 
 	// Update status
 	gitops := &gitopsv1alpha1.GitOpsConfig{}
-	err := u.client.Get(context.TODO(), types.NamespacedName{Name: gitopsName, Namespace: newJob.GetNamespace()}, gitops)
+	err := u.client.Get(context.TODO(), util.NN{Name: gitopsName, Namespace: newJob.GetNamespace()}, gitops)
 	if err != nil {
 		log.Error(err, "cannot update GitOpsConfig")
 		return

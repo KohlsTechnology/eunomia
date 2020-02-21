@@ -1,5 +1,5 @@
 /*
-Copyright 2019 Kohl's Department Stores, Inc.
+Copyright 2020 Kohl's Department Stores, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -14,35 +14,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package test
+package gitopsconfig
 
 import (
-	"flag"
-	"path/filepath"
-	"runtime"
-
-	"github.com/KohlsTechnology/eunomia/pkg/util"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
-	"github.com/spf13/pflag"
-	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp" // Make linter tmp happy
+	"k8s.io/client-go/kubernetes/scheme"
 	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
-// Initialize infrastructure for eunomia unit tests
-func Initialize() {
-
-	logf.Log.Info("Initializing Test")
-
-	// Add the zap logger flag set to the CLI. The flag set must
-	// be added before calling pflag.Parse().
-	pflag.CommandLine.AddFlagSet(zap.FlagSet())
-
-	// Add flags registered by imported packages (e.g. glog and
-	// controller-runtime)
-	pflag.CommandLine.AddGoFlagSet(flag.CommandLine)
-
-	pflag.Parse()
-
+func init() {
 	// Use a zap logr.Logger implementation. If none of the zap
 	// flags are configured (or if the zap flag set is not being
 	// used), this defaults to a production zap logger.
@@ -54,10 +37,11 @@ func Initialize() {
 	logf.SetLogger(zap.Logger())
 
 	// initialize the templates
-	_, initFilename, _, _ := runtime.Caller(0)
-	eunomiaRoot := filepath.Join(filepath.Dir(initFilename), "..")
 	util.InitializeTemplates(
-		filepath.Join(eunomiaRoot, "./build/job-templates/job.yaml"),
-		filepath.Join(eunomiaRoot, "./build/job-templates/cronjob.yaml"),
+		"../../../build/job-templates/job.yaml",
+		"../../../build/job-templates/cronjob.yaml",
 	)
+
+	// Register operator types with the runtime scheme.
+	scheme.Scheme.AddKnownTypes(gitopsv1alpha1.SchemeGroupVersion, &gitopsv1alpha1.GitOpsConfig{})
 }

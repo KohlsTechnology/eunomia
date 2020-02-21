@@ -30,7 +30,6 @@ import (
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/selection"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -275,9 +274,7 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 		return xerrors.Errorf("unable to create cronjob manifest from merge data: %w", err)
 	}
 
-	err = r.client.Get(context.TODO(),
-		types.NamespacedName{Name: cronjob.GetName(), Namespace: cronjob.GetNamespace()},
-		&batchv1beta1.CronJob{})
+	err = r.client.Get(context.TODO(), util.GetNN(&cronjob), &batchv1beta1.CronJob{})
 	update := true
 	if err != nil {
 		if errors.IsNotFound(err) {
@@ -305,9 +302,7 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 		return xerrors.Errorf("unable to create/update the cronjob %q: %w", cronjob.Name, err)
 	}
 	var result batchv1beta1.CronJob
-	err = r.client.Get(context.TODO(),
-		types.NamespacedName{Name: cronjob.Name, Namespace: cronjob.Namespace},
-		&result)
+	err = r.client.Get(context.TODO(), util.GetNN(&cronjob), &result)
 
 	if err != nil {
 		log.Error(err, "client failed to retrieve CronJob", "cronjob", cronjob.Name, "namespace", cronjob.Namespace)
@@ -392,9 +387,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 
 	// To avoid a deadlock situation let's check if the namespace in which we are is maybe being deleted
 	ns := &corev1.Namespace{}
-	err := r.client.Get(context.TODO(), types.NamespacedName{
-		Name: instance.GetNamespace(),
-	}, ns)
+	err := r.client.Get(context.TODO(), util.NN{Name: instance.GetNamespace()}, ns)
 	if err != nil {
 		log.Error(err, "GitOpsConfig finalizer unable to lookup instance's namespace", "instance", instance.Name)
 		return reconcile.Result{}, xerrors.Errorf("GitOpsConfig finalizer unable to lookup instance's namespace for %q: %w", instance.Name, err)

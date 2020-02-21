@@ -25,11 +25,11 @@ import (
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/util/retry"
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 func TestModesCreateReplaceDelete(t *testing.T) {
@@ -106,7 +106,7 @@ func TestModesCreateReplaceDelete(t *testing.T) {
 	// Step 2: change the CR to a different version of image, using "Replace" mode, then verify pod change
 
 	err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		err := framework.Global.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: gitops.ObjectMeta.Name}, gitops)
+		err := framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), gitops)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -127,7 +127,7 @@ func TestModesCreateReplaceDelete(t *testing.T) {
 	// Step 2: change the CR to "Delete" mode, then verify that the Pod is deleted
 
 	err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		err := framework.Global.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: gitops.ObjectMeta.Name}, gitops)
+		err := framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), gitops)
 		if err != nil {
 			t.Fatal(err)
 		}

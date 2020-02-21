@@ -26,11 +26,11 @@ import (
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 func TestStatusSuccess(t *testing.T) {
@@ -103,7 +103,7 @@ func TestStatusSuccess(t *testing.T) {
 
 	err = wait.Poll(retryInterval, 25*time.Second, func() (done bool, err error) {
 		fresh := gitopsv1alpha1.GitOpsConfig{}
-		err = framework.Global.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: gitops.Name}, &fresh)
+		err = framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), &fresh)
 		if err != nil {
 			return false, err
 		}
@@ -219,7 +219,7 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 
 	err = wait.Poll(retryInterval, 2*time.Minute, func() (done bool, err error) {
 		fresh := gitopsv1alpha1.GitOpsConfig{}
-		err = framework.Global.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: gitops.Name}, &fresh)
+		err = framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), &fresh)
 		if err != nil {
 			return false, err
 		}
@@ -233,7 +233,7 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 
 	err = wait.Poll(retryInterval, 2*time.Minute, func() (done bool, err error) {
 		fresh := gitopsv1alpha1.GitOpsConfig{}
-		err = framework.Global.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: gitops.Name}, &fresh)
+		err = framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), &fresh)
 		if err != nil {
 			return false, err
 		}
@@ -356,7 +356,7 @@ func TestStatusFailure(t *testing.T) {
 
 	err = wait.Poll(retryInterval, 3*time.Minute, func() (done bool, err error) {
 		fresh := gitopsv1alpha1.GitOpsConfig{}
-		err = framework.Global.Client.Get(context.TODO(), types.NamespacedName{Namespace: namespace, Name: gitops.Name}, &fresh)
+		err = framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), &fresh)
 		if err != nil {
 			return false, err
 		}
