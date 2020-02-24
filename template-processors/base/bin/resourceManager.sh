@@ -59,13 +59,12 @@ function addLabels() {
 function deleteByOldLabels() {
     local owner="$1"
     local timestamp="${2:-}"
-    # NOTE: removing componentstatus because it shows up unintended in ownedKinds: https://github.com/kubernetes/kubectl/issues/151#issuecomment-562578617
-    local allKinds="$(kube api-resources --verbs=list -o name | grep -ivE '^componentstatus(es)?$' | paste -sd, -)"
+    local allKinds="$(kube api-resources --verbs=list,delete -o name | paste -sd, -)"
     local ownedKinds="$(kube get "$allKinds" --ignore-not-found \
         -l "$TAG_OWNER==$owner" \
-        -o custom-columns=kind:.kind \
-        --no-headers=true |
+        -o jsonpath="{range .items[*]}{.kind} {.apiVersion}{'\n'}{end}" | # e.g. "Pod v1" OR "StorageClass storage.k8s.io/v1"
         sort -u |
+        awk -F'[ /]' '{if (NF==2) {print $1} else {print $1"."$3"."$2}}' | # e.g. "Pod" OR "StorageClass.v1.storage.k8s.io"
         paste -sd, -)"
     if [ -z "$ownedKinds" ]; then
         return
