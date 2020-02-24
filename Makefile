@@ -95,7 +95,7 @@ shellcheck:
 
 .PHONY: e2e-test-images
 e2e-test-images: build
-	TRAVIS_TAG=v999.0.0 ./scripts/build-images.sh ${REPOSITORY}
+	TRAVIS_TAG=latest ./scripts/build-images.sh ${REPOSITORY}
 
 # Deploy images to Quay.io
 .PHONY: travis-deploy-images
