@@ -63,9 +63,9 @@ function deleteByOldLabels() {
     local allKinds="$(kube api-resources --verbs=list -o name | grep -ivE '^componentstatus(es)?$' | paste -sd, -)"
     local ownedKinds="$(kube get "$allKinds" --ignore-not-found \
         -l "$TAG_OWNER==$owner" \
-        -o custom-columns=kind:.kind \
-        --no-headers=true |
+        -o jsonpath="{range .items[*]}{.kind} {.apiVersion}{'\n'}{end}" | # e.g. "Pod v1" OR "StorageClass storage.k8s.io/v1"
         sort -u |
+        awk -F'[ /]' '{if (NF==2) {print $1} else {print $1"."$3"."$2}}' | # e.g. "Pod" OR "StorageClass.v1.storage.k8s.io"
         paste -sd, -)"
     if [ -z "$ownedKinds" ]; then
         return
