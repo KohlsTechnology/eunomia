@@ -70,5 +70,12 @@ function pullFromParametersRepo() {
 
 echo Cloning Repositories
 pullFromTemplatesRepo
+# In git, if directory contains no files, it isn't tracked:
+# https://git.wiki.kernel.org/index.php/Git_FAQ#Can_I_add_empty_directories.3F
+if ! [[ -d "$CLONED_TEMPLATE_GIT_DIR" ]]; then
+    echo "ERROR - directory ${CLONED_TEMPLATE_GIT_DIR#/git/templates/} does not exist in the remote repository.
+If you want an empty directory to be tracked by git, add a .gitkeep file inside" >&2
+    exit 1
+fi
 pullFromParametersRepo
 mkdir -p "$MANIFEST_DIR"

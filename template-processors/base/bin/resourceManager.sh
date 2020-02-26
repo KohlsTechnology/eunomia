@@ -44,7 +44,7 @@ function addLabels() {
     local timestamp="$2"
     local tmpdir="$(mktemp -d)"
     # shellcheck disable=SC2044
-    for file in $(find "$MANIFEST_DIR" -iregex '.*\.\(ya?ml\|json\)'); do
+    for file in $(find "$MANIFEST_DIR" -regextype posix-extended -iregex '.*\.(ya?ml|json)'); do
         cat "$file" |
             yq -y -s "map(select(.!=null)|setpath([\"metadata\",\"labels\",\"$TAG_OWNER\"]; \"$owner\"))|.[]" |
             yq -y -s "map(select(.!=null)|setpath([\"metadata\",\"labels\",\"$TAG_APPLIED\"]; \"$timestamp\"))|.[]" \
@@ -79,6 +79,16 @@ function deleteByOldLabels() {
 function createUpdateResources() {
     local owner="$1"
     local timestamp="$(date +%s)"
+    # Check if directory contains only hidden files like .gitkeep, or .gitignore.
+    # This would mean that user purposefully wanted to track an empty directory in git.
+    # https://git.wiki.kernel.org/index.php/Git_FAQ#Can_I_add_empty_directories.3F
+    if [[ -z $(ls "${MANIFEST_DIR}") ]]; then
+        echo "Manifest directory empty, skipping"
+        return
+    elif [[ -z $(find "$MANIFEST_DIR" -regextype posix-extended -iregex '.*\.(ya?ml|json)') ]]; then
+        echo "ERROR - no files with .yaml, .yml, or .json extension in manifest directory"
+        exit 1
+    fi
     case "$CREATE_MODE" in
     Apply)
         addLabels "$owner" "$timestamp"

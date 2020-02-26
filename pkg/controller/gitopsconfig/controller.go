@@ -415,7 +415,8 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 	// assume the GitOpsConfig never managed to successfully deploy, so we can
 	// just delete the job, remove the finalizer, and be done (#216). It may be
 	// either action=create or action=delete job.
-	if len(jobs) == 1 {
+	// If a job is blocked because of bad image, it only has one active pod
+	if len(jobs) == 1 && jobs[0].Status.Succeeded == 0 && jobs[0].Status.Failed == 0 && jobs[0].Status.Active == 1 {
 		status, err := jobContainerStatus(context.TODO(), r.client, &jobs[0])
 		if err != nil {
 			log.Error(err, "GitOpsConfig finalizer unable to get job pod's status", "instance", instance.Name)
