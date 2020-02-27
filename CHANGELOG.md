@@ -1,4 +1,15 @@
-## v0.1.4 (Unreleased)
+## v0.1.4 (February 27, 2020)
+FEATURES:
+* N/A
+
+CHANGES:
+* Cleanup unit tests [GH-296](https://github.com/KohlsTechnology/eunomia/pull/296)
+
+BUG FIXES:
+* Add git branch and tag check to GitHub webhook [GH-293](https://github.com/KohlsTechnology/eunomia/pull/293)
+* Use fully qualified k8s kind names [GH-302](https://github.com/KohlsTechnology/eunomia/pull/302)
+* Fix issues with managing k8s namespaces [GH-302](https://github.com/KohlsTechnology/eunomia/pull/302)
+* Allow empty template source directory [GH-301](https://github.com/KohlsTechnology/eunomia/pull/301)
 
 ## v0.1.3 (February 17, 2020)
 FEATURES:
