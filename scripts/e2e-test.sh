@@ -38,24 +38,40 @@ echo "EUNOMIA_URI=${EUNOMIA_URI:-}"
 echo "EUNOMIA_REF=${EUNOMIA_REF:-}"
 
 # Check if minikube is running
-minikube status || {
-    echo "Minikube is not running, aborting tests"
-    exit 1
-}
+if [[ "${MINIKUBE_VERSION:-}" ]]; then
+    minikube status || {
+        echo "Minikube is not running, aborting tests"
+        exit 1
+    }
+# Check if minishift is running
+elif [[ "${OPENSHIFT_VERSION:-}" ]]; then
+    minishift status || {
+        echo "Minishift is not running, aborting tests"
+        exit 1
+    }
+fi
 
 # Ensure clean workspace
 if [[ $(kubectl get namespace $OPERATOR_NAMESPACE) ]]; then
     kubectl delete namespace $OPERATOR_NAMESPACE
 fi
 
-# Pre-populate the Docker registry in minikube with images built from the current commit
+# Pre-populate the Docker registry in minikube/minishift with images built from the current commit
 # See also: https://stackoverflow.com/q/42564058
-eval "$(minikube docker-env)"
+if [[ "${MINIKUBE_VERSION:-}" ]]; then
+    eval "$(minikube docker-env)"
+elif [[ "${OPENSHIFT_VERSION:-}" ]]; then
+    eval "$(minishift docker-env)"
+fi
 GOOS=linux make e2e-test-images
 
-# Get minikube IP address
+# Get minikube/minishift IP address
 # shellcheck disable=SC2155
-export MINIKUBE_IP=$(minikube ip)
+if [[ "${MINIKUBE_VERSION:-}" ]]; then
+    export MINIKUBE_IP=$(minikube ip)
+elif [[ "${OPENSHIFT_VERSION:-}" ]]; then
+    export MINIKUBE_IP=$(minishift ip)
+fi
 
 # TestReadinessAndLivelinessProbes is accessing operator via newly created service and
 # it needs to know what is the port to connect to. This value should be consistent with
