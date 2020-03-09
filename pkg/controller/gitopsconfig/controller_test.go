@@ -45,8 +45,10 @@ func defaultGitOpsConfig() *gitopsv1alpha1.GitOpsConfig {
 			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "gitops-operator",
-			Namespace: namespace,
+			Name:        "gitops-operator",
+			Namespace:   namespace,
+			Finalizers:  []string{tagFinalizer},
+			Annotations: map[string]string{tagInitialized: "true"},
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
@@ -92,8 +94,6 @@ func defaultNamespace() *corev1.Namespace {
 
 func TestCRDInitialization(t *testing.T) {
 	gitops := defaultGitOpsConfig()
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	// Initialize fake client with objects it should track
 	cl := fake.NewFakeClient(gitops)
@@ -118,8 +118,6 @@ func TestCRDInitialization(t *testing.T) {
 
 func TestPeriodicTrigger(t *testing.T) {
 	gitops := defaultGitOpsConfig()
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	// Initialize fake client with objects it should track
 	cl := fake.NewFakeClient(gitops)
@@ -145,8 +143,6 @@ func TestPeriodicTrigger(t *testing.T) {
 
 func TestChangeTrigger(t *testing.T) {
 	gitops := defaultGitOpsConfig()
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	// Set trigger type to Change
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
 		{
@@ -177,8 +173,6 @@ func TestChangeTrigger(t *testing.T) {
 
 func TestWebhookTrigger(t *testing.T) {
 	gitops := defaultGitOpsConfig()
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	// Set trigger type to Webhook
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
 		{
@@ -209,8 +203,6 @@ func TestWebhookTrigger(t *testing.T) {
 
 func TestDeleteRemovingFinalizer(t *testing.T) {
 	gitops := defaultGitOpsConfig()
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
 		{
 			Type: "Change",
@@ -230,13 +222,6 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	r.Reconcile(reconcile.Request{
 		NamespacedName: util.GetNN(gitops),
 	})
-
-	// Add a finalizer to the CRD
-	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
-	err = cl.Update(context.Background(), gitops)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
@@ -313,8 +298,6 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 
 func TestCreatingDeleteJob(t *testing.T) {
 	gitops := defaultGitOpsConfig()
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
 		{
 			Type: "Change",
@@ -334,13 +317,6 @@ func TestCreatingDeleteJob(t *testing.T) {
 	r.Reconcile(reconcile.Request{
 		NamespacedName: util.GetNN(gitops),
 	})
-
-	// Add a finalizer to the CRD
-	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
-	err = cl.Update(context.Background(), gitops)
-	if err != nil {
-		t.Error(err)
-	}
 
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
@@ -404,8 +380,6 @@ func TestCreatingDeleteJob(t *testing.T) {
 
 func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	gitops := defaultGitOpsConfig()
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
 		{
 			Type: "Change",
@@ -429,13 +403,6 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	r.Reconcile(reconcile.Request{
 		NamespacedName: util.GetNN(gitops),
 	})
-
-	// Add a finalizer to the CRD
-	gitops.ObjectMeta.Finalizers = append(gitops.ObjectMeta.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
-	err = cl.Update(context.Background(), gitops)
-	if err != nil {
-		t.Fatal(err)
-	}
 
 	// Get the CRD so that we can add the deletion timestamp
 	crd := &gitopsv1alpha1.GitOpsConfig{}
@@ -490,8 +457,6 @@ func findDeleteJob(cl client.Client) (batchv1.Job, error) {
 
 func TestCreateJob(t *testing.T) {
 	gitops := defaultGitOpsConfig()
-	// This flag is needed to let the reconciler know that the CRD has been initialized
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 	// Set trigger type to Change
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
 		{
