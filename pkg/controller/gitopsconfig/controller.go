@@ -18,14 +18,14 @@ package gitopsconfig
 
 import (
 	"context"
-	goerrors "errors"
+	"errors"
 	"time"
 
 	"golang.org/x/xerrors"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
-	"k8s.io/apimachinery/pkg/api/errors"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
@@ -165,7 +165,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 	instance := &gitopsv1alpha1.GitOpsConfig{}
 	err := r.client.Get(context.TODO(), request.NamespacedName, instance)
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			// Request object not found, could have been deleted after reconcile request.
 			// Owned objects are automatically garbage collected. For additional cleanup logic use finalizers.
 			// Return and don't requeue
@@ -277,7 +277,7 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 	err = r.client.Get(context.TODO(), util.GetNN(&cronjob), &batchv1beta1.CronJob{})
 	update := true
 	if err != nil {
-		if errors.IsNotFound(err) {
+		if apierrors.IsNotFound(err) {
 			update = false
 		} else {
 			// Error reading the object - requeue the request.
@@ -327,7 +327,7 @@ func (r *Reconciler) initialize(instance *gitopsv1alpha1.GitOpsConfig) error {
 	spec := &instance.Spec
 	if spec.TemplateSource.URI == "" {
 		//TODO set wrong status
-		return goerrors.New("template source URI cannot be empty")
+		return errors.New("template source URI cannot be empty")
 	}
 	replaceEmpty(&spec.TemplateSource.Ref, "master")
 	replaceEmpty(&spec.TemplateSource.ContextDir, ".")
@@ -476,8 +476,8 @@ func (r *Reconciler) removeFinalizer(ctx context.Context, instance *gitopsv1alph
 	instance.Finalizers = removeString(instance.Finalizers, tagFinalizer)
 	err := r.client.Update(ctx, instance)
 	if err != nil {
-		// if errors.IsConflict, then requeue
-		var errAPI errors.APIStatus
+		// if apierrors.IsConflict, then requeue
+		var errAPI apierrors.APIStatus
 		if xerrors.As(err, &errAPI) && errAPI.Status().Reason == metav1.StatusReasonConflict {
 			log.Error(err, "GitOpsConfig finalizer unable to remove itself; will retry", "instance", instance.Name)
 			return reconcile.Result{
