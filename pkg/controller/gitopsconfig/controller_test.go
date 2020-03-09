@@ -296,6 +296,62 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	}
 }
 
+func TestIssue272ResourceDeletionModeChange(t *testing.T) {
+	gitops := defaultGitOpsConfig()
+	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{
+		{Type: "Change"},
+	}
+	gitops.Spec.ResourceDeletionMode = "Retain"
+	gitops.Finalizers = []string{}
+
+	// Initialize fake client with objects it should track
+	cl := fake.NewFakeClient(gitops)
+	r := &Reconciler{client: cl, scheme: scheme.Scheme}
+
+	// Create a namespace
+	err := cl.Create(context.Background(), defaultNamespace())
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// A sequence of tests, where each next one depends on the previous one
+	testsSequence := []struct {
+		mode          string
+		wantFinalizer bool
+	}{
+		{"Delete", true},
+		{"Retain", false},
+		{"None", true},
+		{"Delete", true},
+	}
+	for _, tt := range testsSequence {
+		// Change ResourceDeletionMode in the simulated cluster
+		gitops.Spec.ResourceDeletionMode = tt.mode
+		err = cl.Update(context.Background(), gitops)
+		if err != nil {
+			t.Fatalf("%q: %s", tt.mode, err)
+		}
+		// Run tested code
+		_, err = r.Reconcile(reconcile.Request{
+			NamespacedName: util.GetNN(gitops),
+		})
+		if err != nil {
+			t.Errorf("Reconcile(.ResourceDeletionMode=%q): %s", tt.mode, err)
+		}
+		// Verify presence/absence of finalizer
+		gitopsAfter := &gitopsv1alpha1.GitOpsConfig{}
+		err = cl.Get(context.Background(), util.GetNN(gitops), gitopsAfter)
+		if err != nil {
+			t.Fatalf("%q: %s", tt.mode, err)
+		}
+		hasFinalizer := containsString(gitopsAfter.Finalizers, "gitopsconfig.eunomia.kohls.io/finalizer")
+		if hasFinalizer != tt.wantFinalizer {
+			t.Errorf("%q: hasFinalizer expected %v, got %v", tt.mode, tt.wantFinalizer, hasFinalizer)
+		}
+		gitops = gitopsAfter
+	}
+}
+
 func TestCreatingDeleteJob(t *testing.T) {
 	gitops := defaultGitOpsConfig()
 	gitops.Spec.Triggers = []gitopsv1alpha1.GitOpsTrigger{

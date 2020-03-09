@@ -226,7 +226,7 @@ kubectl apply -f examples/hello-world-helm/service_account_runner.yaml -n eunomi
 
 #Test hello_world_hierarchy_cr1
 hello_world_hierarchy_cr1() {
-    timeout=90
+    timeout=100
     kubectl apply -f examples/hello-world-hierarchy/cr/hello-world-cr.yaml -n eunomia-hello-world-demo
     while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-demo-hierarchy -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running" ]]; do
         echo "waiting for hello-world-hierarchy-cr1 deployment: remaining $timeout sec..."
