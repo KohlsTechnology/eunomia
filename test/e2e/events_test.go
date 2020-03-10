@@ -86,7 +86,7 @@ func TestJobEventsJobSuccess(t *testing.T) {
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/testdata/events/test-a",
+				ContextDir: "test/e2e/testdata/hello-a",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
@@ -109,7 +109,7 @@ func TestJobEventsJobSuccess(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-events-test-a", "hello-app:1.0", retryInterval, timeout)
+	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-test-a", "hello-app:1.0", retryInterval, timeout)
 	if err != nil {
 		t.Error(err)
 	}
@@ -188,7 +188,7 @@ func TestJobEventsPeriodicJobSuccess(t *testing.T) {
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/testdata/events/test-b",
+				ContextDir: "test/e2e/testdata/hello-b",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
@@ -214,7 +214,7 @@ func TestJobEventsPeriodicJobSuccess(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-events-test-b", "hello-app:1.0", retryInterval, 2*time.Minute)
+	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-test-b", "hello-app:1.0", retryInterval, 2*time.Minute)
 	if err != nil {
 		t.Error(err)
 	}

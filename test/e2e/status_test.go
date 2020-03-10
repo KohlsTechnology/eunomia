@@ -75,7 +75,7 @@ func TestStatusSuccess(t *testing.T) {
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/testdata/status/test-a",
+				ContextDir: "test/e2e/testdata/hello-a",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
@@ -137,7 +137,7 @@ func TestStatusSuccess(t *testing.T) {
 
 	// Step 3: verify that the pod exists
 
-	pod, err := GetPod(namespace, "hello-status-test-a", "hello-app:1.0", framework.Global.KubeClient)
+	pod, err := GetPod(namespace, "hello-test-a", "hello-app:1.0", framework.Global.KubeClient)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,7 +188,7 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/testdata/status/test-b",
+				ContextDir: "test/e2e/testdata/hello-b",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
@@ -267,7 +267,7 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 
 	// Step 3: verify that the pod exists
 
-	pod, err := GetPod(namespace, "hello-status-test-b", "hello-app:1.0", framework.Global.KubeClient)
+	pod, err := GetPod(namespace, "hello-test-b", "hello-app:1.0", framework.Global.KubeClient)
 	if err != nil {
 		t.Fatal(err)
 	}
