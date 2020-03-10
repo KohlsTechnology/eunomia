@@ -518,6 +518,32 @@ func (r *Reconciler) removeFinalizer(ctx context.Context, instance *gitopsv1alph
 	return reconcile.Result{}, nil
 }
 
+// ownedCronJobs retrieves all cronjobs in namespace owner.Namespace whose owner is the passed GitOpsConfig.
+func ownedCronJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha1.GitOpsConfig) ([]batchv1beta1.CronJob, error) {
+	cronJobs := batchv1beta1.CronJobList{}
+	err := kube.List(ctx, &client.ListOptions{
+		Namespace: owner.Namespace,
+	}, &cronJobs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list cronjobs in namespace %s: %w", owner.Namespace, err)
+	}
+
+	owned := []batchv1beta1.CronJob{}
+	for _, cronJob := range cronJobs.Items {
+		ownerRefs := cronJob.GetOwnerReferences()
+		for _, ownerRef := range ownerRefs {
+			if *ownerRef.Controller == true &&
+				ownerRef.APIVersion == owner.APIVersion &&
+				ownerRef.Kind == owner.Kind &&
+				ownerRef.Name == owner.ObjectMeta.Name {
+				owned = append(owned, cronJob)
+				break
+			}
+		}
+	}
+	return owned, nil
+}
+
 // ownedJobs retrieves all jobs in namespace owner.Namespace with value of label tagJobOwner equal to owner.Name.
 func ownedJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha1.GitOpsConfig) ([]batchv1.Job, error) {
 	jobs := batchv1.JobList{}
