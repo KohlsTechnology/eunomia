@@ -34,6 +34,7 @@ import (
 	"github.com/KohlsTechnology/eunomia/pkg/util"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	"golang.org/x/xerrors"
+	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -159,6 +160,21 @@ func WaitForPodAbsence(t *testing.T, f *framework.Framework, namespace, name, im
 	}
 	t.Logf("pod %s in namespace %s is absent", name, namespace)
 	return nil
+}
+
+// GetCronJob retrieves a given cronJob based on namespace, and the cronJob name prefix
+func GetCronJob(namespace, namePrefix string, kubeclient kubernetes.Interface) (*batchv1beta1.CronJob, error) {
+	cronJobs, err := kubeclient.BatchV1beta1().CronJobs(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return nil, xerrors.Errorf("cannot retrieve cronjobs in namespace %q: %w", namespace, err)
+	}
+	for _, cronJob := range cronJobs.Items {
+		if strings.HasPrefix(cronJob.Name, namePrefix) {
+			fmt.Printf("Found cronjob %s\n", cronJob.Name)
+			return &cronJob, nil
+		}
+	}
+	return nil, nil
 }
 
 // DumpJobsLogsOnError checks if t is marked as failed, and if yes, dumps the logs of all pods in the specified namespace.
