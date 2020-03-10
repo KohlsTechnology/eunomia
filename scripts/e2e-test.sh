@@ -26,7 +26,6 @@ export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/cronjob.yaml
 export WATCH_NAMESPACE=""
 export OPERATOR_NAME=eunomia-operator
 export OPERATOR_NAMESPACE=test-eunomia-operator
-export GO111MODULE=on
 
 # If we're called as part of CI build on a PR, make sure we test the resources
 # (templates etc.) from the PR, instead of the master branch of the main repo

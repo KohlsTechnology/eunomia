@@ -25,7 +25,7 @@ clean:
 
 generate:
 	docker build ./scripts -f ./scripts/operator-sdk.docker -t 'operator-sdk:old'
-	GO111MODULE=on go mod vendor
+	go mod vendor
 	cp go.mod go.mod.bak
 	docker run \
 		-u "$(shell id -u)" \
@@ -38,8 +38,8 @@ generate:
 # Build binary
 .PHONY: build
 build:
-	GO111MODULE=on go mod vendor
-	GO111MODULE=on go build -o build/_output/bin/eunomia -ldflags $(LDFLAGS) github.com/KohlsTechnology/eunomia/cmd/manager
+	go mod vendor
+	go build -o build/_output/bin/eunomia -ldflags $(LDFLAGS) github.com/KohlsTechnology/eunomia/cmd/manager
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
@@ -81,7 +81,7 @@ lint:
 # Run go vet against code
 .PHONY: vet
 vet:
-	VET_INPUT="$(shell go list ./... | grep -v /vendor/)"; GO111MODULE=on go vet $$VET_INPUT
+	VET_INPUT="$(shell go list ./... | grep -v /vendor/)"; go vet $$VET_INPUT
 
 # TODO: improve the command to also check scripts outside the scripts and template-processors dirs
 .PHONY: check-shfmt

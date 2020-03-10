@@ -132,7 +132,6 @@ The Eunomia operator gets packaged as a container image for running on Kubernete
 See https://golang.org/doc/install to install/setup your Go Programming environment if you have not already done this.
 
 ```shell
-export GO111MODULE=on
 GOOS=linux make
 ```
 

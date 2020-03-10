@@ -9,7 +9,6 @@ go:
 - "1.13.x"
 env:
   global:
-  - GO111MODULE=on
   - CHANGE_MINIKUBE_NONE_USER=true
   matrix:
   # NOTE: We can add 200 items to the build matrix, but only 3 run in parallel. So having more than three
