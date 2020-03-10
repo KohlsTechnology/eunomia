@@ -432,28 +432,41 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		return reconcile.Result{}, xerrors.Errorf("GitOpsConfig finalizer unable to list owned jobs for %q: %w", instance.Name, err)
 	}
 
-	// If exactly 1 job exists, but it's blocked because of bad image, we
-	// assume the GitOpsConfig never managed to successfully deploy, so we can
-	// just delete the job, remove the finalizer, and be done (#216). It may be
-	// either action=create or action=delete job.
-	// If a job is blocked because of bad image, it only has one active pod
-	if len(jobs) == 1 && jobs[0].Status.Succeeded == 0 && jobs[0].Status.Failed == 0 && jobs[0].Status.Active == 1 {
-		status, err := jobContainerStatus(context.TODO(), r.client, &jobs[0])
+	// If a job exists, but it's blocked because of bad image, we assume the
+	// GitOpsConfig never managed to successfully deploy, so we can just delete
+	// the job, remove the finalizer, and be done (#216). It may be either
+	// action=create or action=delete job.
+	// There can be more than one stuck job - such situation occurs when there
+	// was a GitOpsConfig with a Periodic trigger which created a few jobs. If
+	// there are such stuck jobs, we remove it, then the finalizer - because such
+	// jobs would block a deletion job creation.
+	stuckGitOpsConfig := false
+	for _, j := range jobs {
+		// If a job is blocked because of bad image, it only has one active pod
+		if j.Status.Succeeded != 0 || j.Status.Failed != 0 || j.Status.Active != 1 {
+			continue
+		}
+		status, err := jobContainerStatus(context.TODO(), r.client, &j)
 		if err != nil {
 			log.Error(err, "GitOpsConfig finalizer unable to get job pod's status", "instance", instance.Name)
 			return reconcile.Result{}, xerrors.Errorf("GitOpsConfig finalizer unable to get job pod's status for %q: %w", instance.Name, err)
 		}
-		log.Info("GitOpsConfig finalizer found one job", "instance", instance.Name, "podStatus", status)
+		log.Info("GitOpsConfig finalizer found a job", "instance", instance.Name, "job", j.Name, "podStatus", status)
 		safeReasons := []string{"ErrImagePull", "ImagePullBackOff", "InvalidImageName"}
-		if status != nil && status.Waiting != nil && containsString(safeReasons, status.Waiting.Reason) {
-			err = r.client.Delete(context.TODO(), &jobs[0], client.PropagationPolicy(metav1.DeletePropagationBackground))
-			if err != nil {
-				log.Error(err, "GitOpsConfig finalizer unable to delete job", "instance", instance.Name, "job", jobs[0].Name)
-				return reconcile.Result{}, xerrors.Errorf("GitOpsConfig finalizer unable to delete job %q for %q: %w", jobs[0].Name, instance.Name, err)
-			}
-			log.Info("GitOpsConfig finalizer deleted stuck job", "instance", instance.Name, "job", jobs[0].Name)
-			return r.removeFinalizer(context.TODO(), instance)
+		if status == nil || status.Waiting == nil || !containsString(safeReasons, status.Waiting.Reason) {
+			log.Info("Job is not stuck", "job", j.Name)
+			continue
 		}
+		stuckGitOpsConfig = true
+		err = r.client.Delete(context.TODO(), &j, client.PropagationPolicy(metav1.DeletePropagationBackground))
+		if err != nil {
+			log.Error(err, "GitOpsConfig finalizer unable to delete stuck job", "instance", instance.Name, "job", j.Name)
+			return reconcile.Result{}, xerrors.Errorf("GitOpsConfig finalizer unable to delete stuck job %q for %q: %w", j.Name, instance.Name, err)
+		}
+		log.Info("GitOpsConfig finalizer deleted stuck job", "instance", instance.Name, "job", j.Name)
+	}
+	if stuckGitOpsConfig {
+		return r.removeFinalizer(context.TODO(), instance)
 	}
 
 	// If a delete job exists, we wait (Requeue) until we can see that it
