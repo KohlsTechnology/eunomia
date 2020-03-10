@@ -414,7 +414,14 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		return r.removeFinalizer(context.TODO(), instance)
 	}
 
-	// TODO: also search and delete a CronJob
+	// Note:
+	// CronJob is deleted implicitly, so no need to include deletion here. While
+	// creating a CronJob in the createCronJob function, the SetControllerReference
+	// function makes the GitOpsConfig the owner of the CronJob. If the GitOpsConfig
+	// is deleted, the CronJob is garbage-collected by Kubernetes.
+	// Ref:
+	// https://pkg.go.dev/sigs.k8s.io/controller-runtime/pkg/controller/controllerutil?tab=doc#SetControllerReference
+	// https://kubernetes.io/docs/concepts/workloads/controllers/garbage-collection/
 
 	// We list all jobs that were created because of this GitOpsConfig. Then,
 	// further down, we will take one of a few different actions depending on
