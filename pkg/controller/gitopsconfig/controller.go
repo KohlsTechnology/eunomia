@@ -203,8 +203,22 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 		if err != nil {
 			reqLogger.Error(err, "error creating the cronjob, continuing...")
 		}
+	} else {
+		// if there are some leftover cronjobs after removing the Periodic trigger, delete them
+		cronJobs, err := ownedCronJobs(context.TODO(), r.client, instance)
+		if err != nil {
+			reqLogger.Error(err, "unable to list cronjobs", "namespace", instance.Namespace)
+			return reconcile.Result{}, fmt.Errorf("unable to list cronjobs while checking if there are any left after updating GitOpsConfig: %w", err)
+		}
+		for _, cronJob := range cronJobs {
+			err = r.client.Delete(context.TODO(), &cronJob, client.PropagationPolicy(metav1.DeletePropagationBackground))
+			if err != nil {
+				log.Error(err, "Unable to delete leftover cronjob", "instance", instance.Name, "cronjob", cronJob.Name)
+				return reconcile.Result{}, fmt.Errorf("Unable to delete leftover cronjob %q for %q: %w", cronJob.Name, instance.Name, err)
+			}
+			log.Info("Deleted leftover cronjob", "instance", instance.Name, "cronjob", cronJob.Name)
+		}
 	}
-	// TODO: if Periodic trigger is removed from CR, remove corresponding CronJob
 
 	if ContainsTrigger(instance, "Change") || ContainsTrigger(instance, "Webhook") {
 		reqLogger.Info("Instance has a change or Webhook trigger, creating job", "instance", instance.GetName())
