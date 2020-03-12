@@ -190,7 +190,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 		err := r.client.Update(context.TODO(), instance)
 		if err != nil {
 			reqLogger.Error(err, "syncing finalizer")
-			return reconcile.Result{RequeueAfter: 5 * time.Second}, xerrors.Errorf("syncing finalizer on %s.%s: %w", request.Namespace, request.Name, err)
+			return reconcile.Result{RequeueAfter: 5 * time.Second}, fmt.Errorf("syncing finalizer on %s.%s: %w", request.Namespace, request.Name, err)
 		}
 		return reconcile.Result{Requeue: true}, nil
 	}
