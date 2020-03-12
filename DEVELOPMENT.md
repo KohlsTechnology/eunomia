@@ -43,7 +43,7 @@ Apart from setting up access to a cluster, you will need some tools in order to 
 Tools to build:
 
 - [Git](https://git-scm.com/downloads)
-- [Go 1.12+](https://golang.org/dl/)
+- [Go 1.13+](https://golang.org/dl/)
 - [Docker](https://docs.docker.com/install/)
 - [Operator SDK v0.8.1](https://github.com/operator-framework/operator-sdk/blob/v0.8.1/doc/user/install-operator-sdk.md)
 
@@ -59,7 +59,7 @@ Again, all the components (except operator-sdk v0.8.1 and golint) can be easily 
 
 ```shell
 brew install git
-brew install go@1.12
+brew install go@1.13
 brew install docker
 brew install make  # it will be installed as "gmake"; follow the instructions that will appear to use it as "make"
 brew install shfmt
@@ -132,7 +132,6 @@ The Eunomia operator gets packaged as a container image for running on Kubernete
 See https://golang.org/doc/install to install/setup your Go Programming environment if you have not already done this.
 
 ```shell
-export GO111MODULE=on
 GOOS=linux make
 ```
 

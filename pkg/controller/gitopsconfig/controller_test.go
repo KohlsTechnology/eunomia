@@ -18,9 +18,9 @@ package gitopsconfig
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
-	"golang.org/x/xerrors"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
@@ -477,7 +477,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 func findDeleteJob(cl client.Client) (batchv1.Job, error) {
 	jobs, err := findJobList(cl)
 	if err != nil {
-		return batchv1.Job{}, xerrors.Errorf("unable to find delete job: %w", err)
+		return batchv1.Job{}, fmt.Errorf("unable to find delete job: %w", err)
 	}
 	// Return the first instance that is a delete job
 	for _, job := range jobs {
@@ -543,7 +543,7 @@ func findJobList(cl client.Client) ([]batchv1.Job, error) {
 		Namespace: namespace,
 	}, &jobs)
 	if err != nil {
-		return nil, xerrors.Errorf("unable to list the running jobs: %w", err)
+		return nil, fmt.Errorf("unable to list the running jobs: %w", err)
 	}
 	return jobs.Items, nil
 }
@@ -551,14 +551,14 @@ func findJobList(cl client.Client) ([]batchv1.Job, error) {
 func findRunningJob(cl client.Client) (batchv1.Job, error) {
 	jobs, err := findJobList(cl)
 	if err != nil {
-		return batchv1.Job{}, xerrors.Errorf("unable to find running job: %w", err)
+		return batchv1.Job{}, fmt.Errorf("unable to find running job: %w", err)
 	}
 	if len(jobs) >= 2 {
 		names := []string{}
 		for _, j := range jobs {
 			names = append(names, j.Name)
 		}
-		return batchv1.Job{}, xerrors.Errorf("found more than 1 job: %v", names)
+		return batchv1.Job{}, fmt.Errorf("found more than 1 job: %v", names)
 	}
 	if len(jobs) > 0 {
 		return jobs[0], nil

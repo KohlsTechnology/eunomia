@@ -17,7 +17,8 @@ limitations under the License.
 package gitopsconfig
 
 import (
-	"golang.org/x/xerrors"
+	"fmt"
+
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -39,7 +40,7 @@ func addJobWatch(kubecfg *rest.Config, handler cache.ResourceEventHandler) (func
 	// based on: http://web.archive.org/web/20161221032701/https://solinea.com/blog/tapping-kubernetes-events
 	clientset, err := kubernetes.NewForConfig(kubecfg)
 	if err != nil {
-		return nil, xerrors.Errorf("cannot create Job watcher from config: %w", err)
+		return nil, fmt.Errorf("cannot create Job watcher from config: %w", err)
 	}
 	watchlist := cache.NewListWatchFromClient(clientset.Batch().RESTClient(), "jobs", corev1.NamespaceAll, fields.Everything())
 	// https://stackoverflow.com/a/49231503/98528

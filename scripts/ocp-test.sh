@@ -17,7 +17,6 @@
 set -euxo pipefail
 
 export TEST_NAMESPACE=test-eunomia-operator
-export GO111MODULE=on
 
 # Check if minishift is running
 minishift status || {
