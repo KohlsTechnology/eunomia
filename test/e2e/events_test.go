@@ -228,7 +228,7 @@ func TestJobEventsPeriodicJobSuccess(t *testing.T) {
 			event.DeprecatedSource.Component != "gitopsconfig-controller" {
 			t.Errorf("got bad event: %v", event)
 		}
-	case <-time.After(10 * time.Second):
+	case <-time.After(20 * time.Second):
 		t.Error("timeout waiting for JobSuccessful event")
 	}
 }

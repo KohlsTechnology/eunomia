@@ -186,6 +186,15 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 		return reconcile.Result{}, r.initialize(instance)
 	}
 
+	if syncFinalizer(instance) {
+		err := r.client.Update(context.TODO(), instance)
+		if err != nil {
+			reqLogger.Error(err, "syncing finalizer")
+			return reconcile.Result{RequeueAfter: 5 * time.Second}, xerrors.Errorf("syncing finalizer on %s.%s: %w", request.Namespace, request.Name, err)
+		}
+		return reconcile.Result{Requeue: true}, nil
+	}
+
 	reqLogger.Info("Instance is initialized", "instance", instance.GetName())
 
 	if ContainsTrigger(instance, "Periodic") {
@@ -339,11 +348,8 @@ func (r *Reconciler) initialize(instance *gitopsv1alpha1.GitOpsConfig) error {
 	replaceEmpty(&spec.ResourceDeletionMode, "Delete")
 
 	// add finalizer and mark the object as initialized
-	meta := &instance.ObjectMeta
-	if !containsString(meta.Finalizers, tagFinalizer) && spec.ResourceDeletionMode != "Retain" {
-		meta.Finalizers = append(meta.Finalizers, tagFinalizer)
-	}
-	meta.Annotations[tagInitialized] = "true"
+	syncFinalizer(instance)
+	instance.Annotations[tagInitialized] = "true"
 
 	err := r.client.Update(context.TODO(), instance)
 	if err != nil {
@@ -377,6 +383,27 @@ func removeString(slice []string, s string) (result []string) {
 		result = append(result, item)
 	}
 	return
+}
+
+// syncFinalizer adds or removes finalizer in instance depending on its
+// ResourceDeletionMode field. The function returns true if it modified the
+// instance. Note: the function does only local modification, propagating the
+// change into the cluster is the caller's responsibility.
+func syncFinalizer(instance *gitopsv1alpha1.GitOpsConfig) bool {
+	var (
+		found  = containsString(instance.Finalizers, tagFinalizer)
+		wanted = instance.Spec.ResourceDeletionMode != "Retain"
+	)
+	switch {
+	case wanted && !found:
+		instance.Finalizers = append(instance.Finalizers, tagFinalizer)
+		return true
+	case !wanted && found:
+		instance.Finalizers = removeString(instance.Finalizers, tagFinalizer)
+		return true
+	default:
+		return false
+	}
 }
 
 func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
