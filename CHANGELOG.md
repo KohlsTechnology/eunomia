@@ -1,4 +1,13 @@
-## v0.1.5 (Unreleased)
+## v0.1.5 (March 12, 2020)
+FEATURES:
+* N/A
+
+CHANGES:
+* Add minishift to Travis CI test matrix [GH-304](https://github.com/KohlsTechnology/eunomia/pull/304)
+* Update to Go 1.13 [GH-314](https://github.com/KohlsTechnology/eunomia/pull/314)
+
+BUG FIXES:
+* Update finalizer when `.Spec.ResourceDeletionMode` is changed [GH-313](https://github.com/KohlsTechnology/eunomia/pull/313)
 
 ## v0.1.4 (February 27, 2020)
 FEATURES:
