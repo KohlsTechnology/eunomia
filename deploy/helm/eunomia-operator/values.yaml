@@ -1,9 +1,11 @@
 eunomia:
   operator:
     namespace: "eunomia-operator"
-    deployment: 
+    deployment:
       enabled: true
       nsRbacOnly: false
+      clusterViewer: true
+      operatorHub: false
     replicas: 1
     serviceAccount: "eunomia-operator"
 
@@ -52,5 +54,6 @@ eunomia:
         memory: 256Mi
 
     openshift:
+      enabled: false
       route:
         enabled: false

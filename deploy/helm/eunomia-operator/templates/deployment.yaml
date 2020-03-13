@@ -37,6 +37,10 @@ spec:
               port: 8080
             initialDelaySeconds: 30
             periodSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /readyz
+              port: 8080
       {{- with .nodeSelector }}
       nodeSelector:
         {{- toYaml . | nindent 8 }}

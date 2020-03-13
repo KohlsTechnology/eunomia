@@ -27,12 +27,13 @@ EOT
 }
 
 case "${1:-}" in
-  minikube) eval $(minikube docker-env);;
-  minishift) eval $(minishift docker-env);;
-  *)
+minikube) eval "$(minikube docker-env)" ;;
+minishift) eval "$(minishift docker-env)" ;;
+*)
     usage
     exit 1
     ;;
 esac
 
+GOOS=linux make
 "$(dirname "$0")/build-images.sh" quay.io/kohlstechnology

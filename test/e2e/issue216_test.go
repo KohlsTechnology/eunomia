@@ -24,15 +24,16 @@ import (
 	"testing"
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/util/retry"
+	"k8s.io/apimachinery/pkg/util/wait"
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
-func TestModesCreateReplaceDelete(t *testing.T) {
+func TestIssue216InvalidImageDeleted(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 
@@ -54,13 +55,12 @@ func TestModesCreateReplaceDelete(t *testing.T) {
 	if !found {
 		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
 	}
-
 	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
 	if !found {
 		eunomiaRef = "master"
 	}
 
-	// Step 1: create initial CR with "Create" mode, check that pods are started
+	// Step 1: create a simple CR with an invalid template-processor URL
 
 	gitops := &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
@@ -68,14 +68,17 @@ func TestModesCreateReplaceDelete(t *testing.T) {
 			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      "gitops-modes",
+			Name:      "gitops-issue216",
 			Namespace: namespace,
+			Finalizers: []string{
+				"gitopsconfig.eunomia.kohls.io/finalizer",
+			},
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
 				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/testdata/modes/template1",
+				ContextDir: "test/e2e/testdata/events/test-a",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        eunomiaURI,
@@ -85,8 +88,8 @@ func TestModesCreateReplaceDelete(t *testing.T) {
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
 				{Type: "Change"},
 			},
-			TemplateProcessorImage: "quay.io/kohlstechnology/eunomia-base:dev",
-			ResourceHandlingMode:   "Create",
+			TemplateProcessorImage: "quay.io/kohlstechnology/invalid:bad",
+			ResourceHandlingMode:   "Apply",
 			ResourceDeletionMode:   "Delete",
 			ServiceAccountRef:      "eunomia-operator",
 		},
@@ -98,48 +101,78 @@ func TestModesCreateReplaceDelete(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-world-modes", "hello-app:1.0", retryInterval, timeout)
+	// Step 2: Wait until Job exists (in incomplete state)
+
+	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		const name = "gitopsconfig-gitops-issue216-"
+		pod, err := GetPod(namespace, name, "quay.io/kohlstechnology/invalid:bad", framework.Global.KubeClient)
+		switch {
+		case apierrors.IsNotFound(err):
+			t.Logf("Waiting for availability of %s pod", name)
+			return false, nil
+		case err != nil:
+			return false, err
+		case pod != nil && pod.Status.Phase == "Pending":
+			return true, nil
+		case pod != nil:
+			t.Logf("Waiting for error in pod %s; status: %s", name, debugJSON(pod.Status))
+			return false, nil
+		default:
+			t.Logf("Waiting for error in pod %s", name)
+			return false, nil
+		}
+	})
 	if err != nil {
 		t.Error(err)
 	}
 
-	// Step 2: change the CR to a different version of image, using "Replace" mode, then verify pod change
+	// Step 3: Delete CR
 
-	err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		err := framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), gitops)
-		if err != nil {
-			t.Fatal(err)
-		}
-		gitops.Spec.TemplateSource.ContextDir = "test/e2e/testdata/modes/template2"
-		gitops.Spec.ResourceHandlingMode = "Replace"
-		err = framework.Global.Client.Update(context.Background(), gitops)
-		return err
-	})
+	t.Logf("Deleting CR")
+	err = framework.Global.Client.Delete(context.TODO(), gitops)
 	if err != nil {
 		t.Fatal(err)
 	}
-	// Verify that the main "hello-world-modes" app gets upgraded
-	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-world-modes", "hello-app:2.0", retryInterval, timeout)
+
+	// Step 4: Wait to verify that CR got successfully removed
+
+	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		found := gitopsv1alpha1.GitOpsConfig{}
+		err = framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), &found)
+		switch {
+		case apierrors.IsNotFound(err):
+			t.Logf("Confirmed GitOpsConfig shutdown")
+			return true, nil
+		case err != nil:
+			return false, err
+		default:
+			t.Logf("Waiting for shutdown of GitOpsConfig; status: %s", debugJSON(found.Status))
+			return false, nil
+		}
+	})
 	if err != nil {
 		t.Error(err)
 	}
 
-	// Step 2: change the CR to "Delete" mode, then verify that the Pod is deleted
+	// Step 5: Wait until no Pods exist for this CR
 
-	err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		err := framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), gitops)
-		if err != nil {
-			t.Fatal(err)
+	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
+		const name = "gitopsconfig-gitops-issue216-"
+		pod, err := GetPod(namespace, name, "", framework.Global.KubeClient)
+		switch {
+		case apierrors.IsNotFound(err):
+			t.Logf("Confirmed no more pods found")
+			return true, nil
+		case err != nil:
+			return false, err
+		case pod == nil:
+			t.Logf("Confirmed no more %s pods found", name)
+			return true, nil
+		default:
+			t.Logf("Waiting for shutdown of %s pod; status: %s", name, debugJSON(pod.Status))
+			return false, nil
 		}
-		gitops.Spec.ResourceHandlingMode = "Delete"
-		err = framework.Global.Client.Update(context.Background(), gitops)
-		return err
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-	// Verify that the pod corresponding to the missing resource gets deleted
-	err = WaitForPodAbsence(t, framework.Global, namespace, "hello-world-modes", "hello-app:2.0", retryInterval, timeout)
 	if err != nil {
 		t.Error(err)
 	}

@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# shellcheck disable=SC2154
+
 # Copyright 2019 Kohl's Department Stores, Inc.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
@@ -16,30 +18,30 @@
 
 set -euxo pipefail
 
-function kube {
-  kubectl \
-    -s https://kubernetes.default.svc:443 \
-    --token "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
-    --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
-    "$@"
+function kube() {
+    kubectl \
+        -s https://kubernetes.default.svc:443 \
+        --token "$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)" \
+        --certificate-authority=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt \
+        "$@"
 }
 
-function getClusterCAs {
-    echo export CA_BUNDLE="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt" >> "$HOME"/envs.sh
+function getClusterCAs() {
+    echo export CA_BUNDLE="/var/run/secrets/kubernetes.io/serviceaccount/ca.crt" >>"$HOME"/envs.sh
 
     # service-ca.crt is only included by default in OpenShift
     if [ -e /var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt ]; then
-        echo export SERVICE_CA_BUNDLE="/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt" >> "$HOME"/envs.sh
+        echo export SERVICE_CA_BUNDLE="/var/run/secrets/kubernetes.io/serviceaccount/service-ca.crt" >>"$HOME"/envs.sh
     fi
 }
 
-function getNamespace {
-    echo export NAMESPACE="$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)" >> "$HOME"/envs.sh
+function getNamespace() {
+    echo export NAMESPACE="$(cat /var/run/secrets/kubernetes.io/serviceaccount/namespace)" >>"$HOME"/envs.sh
 }
 
-function setContext {
-  kube config set-context current --namespace="$NAMESPACE"
-  kube config use-context current
+function setContext() {
+    kube config set-context current --namespace="$NAMESPACE"
+    kube config use-context current
 }
 
 echo Setting cluster-related environment variable

@@ -76,7 +76,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopscon
 					continue
 				}
 				// if the repo URL do not correspond continue
-				if !repoURLMatch(&instance, e) {
+				if !repoURLAndRefMatch(&instance, e) {
 					continue
 				}
 				targetList.Items = append(targetList.Items, instance)
@@ -117,8 +117,12 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopscon
 	log.Info("webhook handling concluded correctly")
 }
 
-func repoURLMatch(instance *gitopsv1alpha1.GitOpsConfig, event *github.PushEvent) bool {
-	return strings.Contains(instance.Spec.TemplateSource.URI, *event.Repo.FullName) || strings.Contains(instance.Spec.ParameterSource.URI, *event.Repo.FullName)
+func repoURLAndRefMatch(instance *gitopsv1alpha1.GitOpsConfig, event *github.PushEvent) bool {
+	return event.Repo != nil && event.Repo.FullName != nil && event.Ref != nil &&
+		((strings.Contains(instance.Spec.TemplateSource.URI, *event.Repo.FullName) &&
+			instance.Spec.TemplateSource.Ref == strings.TrimPrefix(*event.Ref, "refs/heads/")) ||
+			(strings.Contains(instance.Spec.ParameterSource.URI, *event.Repo.FullName) &&
+				instance.Spec.ParameterSource.Ref == strings.TrimPrefix(*event.Ref, "refs/heads/")))
 }
 
 func getWebhookSecret(instance *gitopsv1alpha1.GitOpsConfig) string {

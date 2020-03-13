@@ -16,59 +16,66 @@
 
 set -euxo pipefail
 
-function pullFromTemplatesRepo {
-  set +u
-  if [ "$TEMPLATE_GIT_HTTP_PROXY" ]; then
-    local http_proxy="$TEMPLATE_GIT_HTTP_PROXY"
-  fi
-  if [ "$TEMPLATE_GIT_HTTPS_PROXY" ]; then
-    local https_proxy="$TEMPLATE_GIT_HTTPS_PROXY"
-  fi
-  if [ "$TEMPLATE_GIT_NO_PROXY" ]; then
-    local no_proxy="$TEMPLATE_GIT_NO_PROXY"
-  fi
-  if [ "$TEMPLATE_GITCONFIG" ] && [ -d "$TEMPLATE_GITCONFIG" ]; then
-    cp -r "${TEMPLATE_GITCONFIG}/." "${HOME}/"
-  else
-    export GIT_SSL_NO_VERIFY=true
-  fi
-  set -u
-  mkdir -p $TEMPLATE_GIT_DIR
-  (
-    export http_proxy
-    export https_proxy
-    export no_proxy
-    git clone -b "$TEMPLATE_GIT_REF" "$TEMPLATE_GIT_URI" "$TEMPLATE_GIT_DIR"
-  )
+function pullFromTemplatesRepo() {
+    set +u
+    if [ "$TEMPLATE_GIT_HTTP_PROXY" ]; then
+        local http_proxy="$TEMPLATE_GIT_HTTP_PROXY"
+    fi
+    if [ "$TEMPLATE_GIT_HTTPS_PROXY" ]; then
+        local https_proxy="$TEMPLATE_GIT_HTTPS_PROXY"
+    fi
+    if [ "$TEMPLATE_GIT_NO_PROXY" ]; then
+        local no_proxy="$TEMPLATE_GIT_NO_PROXY"
+    fi
+    if [ "$TEMPLATE_GITCONFIG" ] && [ -d "$TEMPLATE_GITCONFIG" ]; then
+        cp -r "${TEMPLATE_GITCONFIG}/." "${HOME}/"
+    else
+        export GIT_SSL_NO_VERIFY=true
+    fi
+    set -u
+    mkdir -p "$TEMPLATE_GIT_DIR"
+    (
+        export http_proxy
+        export https_proxy
+        export no_proxy
+        git clone -b "$TEMPLATE_GIT_REF" "$TEMPLATE_GIT_URI" "$TEMPLATE_GIT_DIR"
+    )
 }
 
-function pullFromParametersRepo {
-  set +u
-  if [ "$PARAMETER_GIT_HTTP_PROXY" ]; then
-    local http_proxy="$PARAMETER_GIT_HTTP_PROXY"
-  fi
-  if [ "$PARAMETER_GIT_HTTPS_PROXY" ]; then
-    local https_proxy="$PARAMETER_GIT_HTTPS_PROXY"
-  fi
-  if [ "$PARAMETER_GIT_NO_PROXY" ]; then
-    local no_proxy="$PARAMETER_GIT_NO_PROXY"
-  fi
-  if [ "$PARAMETER_GITCONFIG" ] && [ -d "$PARAMETER_GITCONFIG" ]; then
-    cp -r "${PARAMETER_GITCONFIG}/." "${HOME}/"
-  else
-    export GIT_SSL_NO_VERIFY=true
-  fi
-  set -u
-  mkdir -p $PARAMETER_GIT_DIR
-  (
-    export http_proxy
-    export https_proxy
-    export no_proxy
-    git clone -b "$PARAMETER_GIT_REF" "$PARAMETER_GIT_URI" "$PARAMETER_GIT_DIR"
-  )
+function pullFromParametersRepo() {
+    set +u
+    if [ "$PARAMETER_GIT_HTTP_PROXY" ]; then
+        local http_proxy="$PARAMETER_GIT_HTTP_PROXY"
+    fi
+    if [ "$PARAMETER_GIT_HTTPS_PROXY" ]; then
+        local https_proxy="$PARAMETER_GIT_HTTPS_PROXY"
+    fi
+    if [ "$PARAMETER_GIT_NO_PROXY" ]; then
+        local no_proxy="$PARAMETER_GIT_NO_PROXY"
+    fi
+    if [ "$PARAMETER_GITCONFIG" ] && [ -d "$PARAMETER_GITCONFIG" ]; then
+        cp -r "${PARAMETER_GITCONFIG}/." "${HOME}/"
+    else
+        export GIT_SSL_NO_VERIFY=true
+    fi
+    set -u
+    mkdir -p "$PARAMETER_GIT_DIR"
+    (
+        export http_proxy
+        export https_proxy
+        export no_proxy
+        git clone -b "$PARAMETER_GIT_REF" "$PARAMETER_GIT_URI" "$PARAMETER_GIT_DIR"
+    )
 }
 
 echo Cloning Repositories
 pullFromTemplatesRepo
+# In git, if directory contains no files, it isn't tracked:
+# https://git.wiki.kernel.org/index.php/Git_FAQ#Can_I_add_empty_directories.3F
+if ! [[ -d "$CLONED_TEMPLATE_GIT_DIR" ]]; then
+    echo "ERROR - directory ${CLONED_TEMPLATE_GIT_DIR#/git/templates/} does not exist in the remote repository.
+If you want an empty directory to be tracked by git, add a .gitkeep file inside" >&2
+    exit 1
+fi
 pullFromParametersRepo
-mkdir -p $MANIFEST_DIR
+mkdir -p "$MANIFEST_DIR"

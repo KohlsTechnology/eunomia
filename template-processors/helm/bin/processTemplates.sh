@@ -24,9 +24,10 @@ helm init --client-only
 helm repo update "${CLONED_TEMPLATE_GIT_DIR}"
 
 echo "Generating manifest files"
+# shellcheck disable=SC2086
 helm template \
-  -f /tmp/eunomia_values_processed.yaml \
-  ${TEMPLATE_PROCESSOR_ARGS:-} \
-  --output-dir "${MANIFEST_DIR}" \
-  --namespace "${NAMESPACE}" \
-  "${CLONED_TEMPLATE_GIT_DIR}"
+    -f /tmp/eunomia_values_processed.yaml \
+    ${TEMPLATE_PROCESSOR_ARGS:-} \
+    --output-dir "${MANIFEST_DIR}" \
+    --namespace "${NAMESPACE}" \
+    "${CLONED_TEMPLATE_GIT_DIR}"

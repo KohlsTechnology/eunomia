@@ -20,11 +20,11 @@ import (
 	"context"
 
 	batchv1 "k8s.io/api/batch/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 // statusUpdater updates Status of GitOpsConfig objects in the cluster when it
@@ -68,12 +68,11 @@ func (u *statusUpdater) OnUpdate(oldObj, newObj interface{}) {
 	}
 
 	// Check if this is a Job that's owned by GitOpsConfig.
-	gitopsRef, err := findJobOwner(newJob, u.client)
-	if err != nil {
-		log.Error(err, "cannot find Job's owner", "job", newJob.Name)
-		return
+	gitopsName := ""
+	if newJob.Labels != nil {
+		gitopsName = newJob.Labels[tagJobOwner]
 	}
-	if gitopsRef == nil {
+	if gitopsName == "" {
 		// Got an event for a job not owned by GitOpsConfig - ignore it.
 		return
 	}
@@ -102,7 +101,7 @@ func (u *statusUpdater) OnUpdate(oldObj, newObj interface{}) {
 
 	// Update status
 	gitops := &gitopsv1alpha1.GitOpsConfig{}
-	err = u.client.Get(context.TODO(), types.NamespacedName{Name: gitopsRef.Name, Namespace: newJob.GetNamespace()}, gitops)
+	err := u.client.Get(context.TODO(), util.NN{Name: gitopsName, Namespace: newJob.GetNamespace()}, gitops)
 	if err != nil {
 		log.Error(err, "cannot update GitOpsConfig")
 		return
@@ -115,6 +114,7 @@ func (u *statusUpdater) OnUpdate(oldObj, newObj interface{}) {
 		log.Info("Status is already set, with newer StartTime - skipping; reordered events?", "GitOpsConfig", gitops.Name)
 		return
 	}
+	// TODO: don't update if status didn't change
 	gitops.Status = status
 	err = u.client.Status().Update(context.TODO(), gitops)
 	if err != nil {

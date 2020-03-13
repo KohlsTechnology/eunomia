@@ -17,7 +17,8 @@ limitations under the License.
 package controller
 
 import (
-	"golang.org/x/xerrors"
+	"fmt"
+
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 )
 
@@ -28,7 +29,7 @@ var AddToManagerFuncs []func(manager.Manager) error
 func AddToManager(m manager.Manager) error {
 	for _, f := range AddToManagerFuncs {
 		if err := f(m); err != nil {
-			return xerrors.Errorf("cannot add controllers to the manager: %w", err)
+			return fmt.Errorf("cannot add controllers to the manager: %w", err)
 		}
 	}
 	return nil

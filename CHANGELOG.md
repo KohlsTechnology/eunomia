@@ -1,3 +1,59 @@
+## v0.1.6 (Unreleased)
+
+## v0.1.5 (March 12, 2020)
+FEATURES:
+* N/A
+
+CHANGES:
+* Add minishift to Travis CI test matrix [GH-304](https://github.com/KohlsTechnology/eunomia/pull/304)
+* Update to Go 1.13 [GH-314](https://github.com/KohlsTechnology/eunomia/pull/314)
+
+BUG FIXES:
+* Update finalizer when `.Spec.ResourceDeletionMode` is changed [GH-313](https://github.com/KohlsTechnology/eunomia/pull/313)
+
+## v0.1.4 (February 27, 2020)
+FEATURES:
+* N/A
+
+CHANGES:
+* Cleanup unit tests [GH-296](https://github.com/KohlsTechnology/eunomia/pull/296)
+
+BUG FIXES:
+* Add git branch and tag check to GitHub webhook [GH-293](https://github.com/KohlsTechnology/eunomia/pull/293)
+* Use fully qualified k8s kind names [GH-302](https://github.com/KohlsTechnology/eunomia/pull/302)
+* Fix issues with managing k8s namespaces [GH-302](https://github.com/KohlsTechnology/eunomia/pull/302)
+* Allow empty template source directory [GH-301](https://github.com/KohlsTechnology/eunomia/pull/301)
+
+## v0.1.3 (February 17, 2020)
+FEATURES:
+* N/A
+
+CHANGES:
+* Update Travis CI config to test against multiple k8s versions [GH-283](https://github.com/KohlsTechnology/eunomia/pull/283), [GH-285](https://github.com/KohlsTechnology/eunomia/pull/285), [GH-295](https://github.com/KohlsTechnology/eunomia/pull/295)
+* Expose operator version to end users [GH-284](https://github.com/KohlsTechnology/eunomia/pull/284)
+* Add readiness probe [GH-287](https://github.com/KohlsTechnology/eunomia/pull/287)
+* Add getting started docs [GH-281](https://github.com/KohlsTechnology/eunomia/pull/281)
+* Partially automated operator hub deployment [GH-294](https://github.com/KohlsTechnology/eunomia/pull/294)
+
+BUG FIXES:
+* OpenShift template processor uses oc v3.11 [GH-290](https://github.com/KohlsTechnology/eunomia/pull/290)
+* Add cluster list ClusterRole to operator deployment [GH-291](https://github.com/KohlsTechnology/eunomia/pull/291)
+
+## v0.1.2 (January 31, 2020)
+FEATURES:
+* N/A
+
+CHANGES:
+* Refactor Go errors to improve troubleshooting [GH-257](https://github.com/KohlsTechnology/eunomia/pull/257)
+* Run operator container as non-root user [GH-263](https://github.com/KohlsTechnology/eunomia/pull/263)
+* Add liveness probe [GH-268](https://github.com/KohlsTechnology/eunomia/pull/268)
+
+BUG FIXES:
+* Fix helm chart release automation [GH-259](https://github.com/KohlsTechnology/eunomia/pull/259)
+* Fix CA_BUNDLE and SERVICE_CA_BUNDLE environment variable usage in base template processor [GH-266](https://github.com/KohlsTechnology/eunomia/pull/266)
+* Fix spelling in CRD [GH-267](https://github.com/KohlsTechnology/eunomia/pull/267)
+* Delete stuck jobs when finalizing [GH-269](https://github.com/KohlsTechnology/eunomia/pull/269)
+
 ## v0.1.1 (January 16, 2020)
 FEATURES:
 * N/A

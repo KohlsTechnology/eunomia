@@ -18,6 +18,7 @@ set -euxo pipefail
 
 echo "Processing parameters in ${CLONED_PARAMETER_GIT_DIR}"
 
+# shellcheck disable=SC2086
 ansible-playbook /files/processParameters.yml \
     ${TEMPLATE_PROCESSOR_ARGS:-} \
     -e parameter_directory="${CLONED_PARAMETER_GIT_DIR}"

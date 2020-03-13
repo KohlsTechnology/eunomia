@@ -23,7 +23,7 @@ import (
 	goctx "context"
 	"encoding/json"
 	"fmt"
-	"io"
+	"io/ioutil"
 	"os/exec"
 	"path/filepath"
 	"runtime"
@@ -31,12 +31,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
-	"golang.org/x/xerrors"
 	v1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/apimachinery/pkg/util/wait"
 	"k8s.io/client-go/kubernetes"
 )
@@ -46,7 +45,7 @@ import (
 func GetPod(namespace, namePrefix, containsImage string, kubeclient kubernetes.Interface) (*v1.Pod, error) {
 	pods, err := kubeclient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
 	if err != nil {
-		return nil, xerrors.Errorf("cannot retrieve pods in namespace %q: %w", namespace, err)
+		return nil, fmt.Errorf("cannot retrieve pods in namespace %q: %w", namespace, err)
 	}
 	for _, pod := range pods.Items {
 		if strings.HasPrefix(pod.Name, namePrefix) {
@@ -61,18 +60,33 @@ func GetPod(namespace, namePrefix, containsImage string, kubeclient kubernetes.I
 	return nil, nil
 }
 
+// GetPodLogs retrieves logs of a given pod
+func GetPodLogs(pod *v1.Pod, kubeclient kubernetes.Interface) (string, error) {
+	req := kubeclient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &v1.PodLogOptions{Timestamps: true})
+	logs, err := req.Stream()
+	if err != nil {
+		return "", fmt.Errorf("could not get logs for pod %q: %w", pod.Name, err)
+	}
+	defer logs.Close()
+	b, err := ioutil.ReadAll(logs)
+	if err != nil {
+		return "", fmt.Errorf("could not get logs for pod %q: %w", pod.Name, err)
+	}
+	return string(b), nil
+}
+
 // WaitForPod retrieves a specific pod with a known name and namespace and waits for it to be running and available
 func WaitForPod(t *testing.T, f *framework.Framework, namespace, name string, retryInterval, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		// Check if the CRD has been created
 		pod := &v1.Pod{}
-		err = f.Client.Get(goctx.TODO(), types.NamespacedName{Name: name, Namespace: namespace}, pod)
+		err = f.Client.Get(goctx.TODO(), util.NN{Name: name, Namespace: namespace}, pod)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Waiting for availability of %s pod", name)
 			return false, nil
 		case err != nil:
-			return false, xerrors.Errorf("client failed to retrieve pod %q in namespace %q: %w", name, namespace, err)
+			return false, fmt.Errorf("client failed to retrieve pod %q in namespace %q: %w", name, namespace, err)
 		case pod.Status.Phase == "Running":
 			return true, nil
 		default:
@@ -81,7 +95,7 @@ func WaitForPod(t *testing.T, f *framework.Framework, namespace, name string, re
 		}
 	})
 	if err != nil {
-		return xerrors.Errorf("pod %q in namespace %q cannot be retrieved or is not yet available: %w", name, namespace, err)
+		return fmt.Errorf("pod %q in namespace %q cannot be retrieved or is not yet available: %w", name, namespace, err)
 	}
 	t.Logf("pod %s in namespace %s is available", name, namespace)
 	return nil
@@ -97,7 +111,7 @@ func WaitForPodWithImage(t *testing.T, f *framework.Framework, namespace, name, 
 			t.Logf("Waiting for availability of %s pod", name)
 			return false, nil
 		case err != nil:
-			return false, xerrors.Errorf("client failed to retrieve pod %q with image %q in namespace %q: %w", name, image, namespace, err)
+			return false, fmt.Errorf("client failed to retrieve pod %q with image %q in namespace %q: %w", name, image, namespace, err)
 		case pod != nil && pod.Status.Phase == "Running":
 			return true, nil
 		default:
@@ -116,7 +130,7 @@ func WaitForPodWithImage(t *testing.T, f *framework.Framework, namespace, name, 
 			pods = append(pods, fmt.Sprintf(`"%s" (%s)`, p.Name, strings.Join(images, " ")))
 		}
 		t.Logf("the following pods were found: %s", strings.Join(pods, ", "))
-		return xerrors.Errorf("pod %q in namespace %q with image %q cannot be retrieved or is not yet available: %w", name, namespace, image, err)
+		return fmt.Errorf("pod %q in namespace %q with image %q cannot be retrieved or is not yet available: %w", name, namespace, image, err)
 	}
 	t.Logf("pod %s in namespace %s is available", name, namespace)
 	return nil
@@ -131,7 +145,7 @@ func WaitForPodAbsence(t *testing.T, f *framework.Framework, namespace, name, im
 		case apierrors.IsNotFound(err):
 			return true, nil
 		case err != nil:
-			return false, xerrors.Errorf("client failed to retrieve pod %q with image %q in namespace %q: %w", name, image, namespace, err)
+			return false, fmt.Errorf("client failed to retrieve pod %q with image %q in namespace %q: %w", name, image, namespace, err)
 		case pod == nil || pod.Status.Phase == "Terminated":
 			return true, nil
 		default:
@@ -140,7 +154,7 @@ func WaitForPodAbsence(t *testing.T, f *framework.Framework, namespace, name, im
 		}
 	})
 	if err != nil {
-		return xerrors.Errorf("pod %q in namespace %q with image %q is still present: %w", name, namespace, image, err)
+		return fmt.Errorf("pod %q in namespace %q with image %q is still present: %w", name, namespace, image, err)
 	}
 	t.Logf("pod %s in namespace %s is absent", name, namespace)
 	return nil
@@ -151,8 +165,7 @@ func DumpJobsLogsOnError(t *testing.T, f *framework.Framework, namespace string)
 	if !t.Failed() {
 		return
 	}
-	pods := f.KubeClient.CoreV1().Pods(namespace)
-	podsList, err := pods.List(metav1.ListOptions{})
+	podsList, err := f.KubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
 	if err != nil {
 		t.Logf("failed to list pods in namespace %s: %s", namespace, err)
 		return
@@ -169,20 +182,12 @@ func DumpJobsLogsOnError(t *testing.T, f *framework.Framework, namespace string)
 			continue
 		}
 		// Retrieve pod's logs
-		req := pods.GetLogs(p.Name, &v1.PodLogOptions{Timestamps: true})
-		logs, err := req.Stream()
+		logs, err := GetPodLogs(&p, f.KubeClient)
 		if err != nil {
 			t.Logf("failed to retrieve logs for pod %s: %s", p.Name, err)
 			continue
 		}
-		buf := &bytes.Buffer{}
-		_, err = io.Copy(buf, logs)
-		logs.Close()
-		if err != nil {
-			t.Logf("failed to retrieve logs for pod %s: %s", p.Name, err)
-			continue
-		}
-		t.Logf("================ POD LOGS FOR %s ================\n%s\n\n", p.Name, buf.String())
+		t.Logf("================ POD LOGS FOR %s ================\n%s\n\n", p.Name, logs)
 	}
 }
 
@@ -222,14 +227,14 @@ func SetupRbacInNamespace(namespace string) error {
 		"--set", "eunomia.operator.deployment.nsRbacOnly=true",
 	).Output()
 	if err != nil {
-		return xerrors.Errorf("Failed to generate manifest files: %w", err)
+		return fmt.Errorf("Failed to generate manifest files: %w", err)
 	}
 
 	// create role, role binding and service account
 	cmd := exec.Command("kubectl", "apply", "-f", "-")
 	cmd.Stdin = bytes.NewReader(out)
 	if err := cmd.Run(); err != nil {
-		return xerrors.Errorf("Failed to create RBAC in %s namespace: %w", namespace, err)
+		return fmt.Errorf("Failed to create RBAC in %s namespace: %w", namespace, err)
 	}
 
 	return nil

@@ -19,15 +19,16 @@ set -euxo pipefail
 export HOME=/tmp
 
 case "$ACTION" in
-  create)
+create)
     /usr/local/bin/gitClone.sh
     /usr/local/bin/discoverEnvironment.sh
+    # shellcheck disable=SC1090
     source $HOME/envs.sh
     /usr/local/bin/processParameters.sh
     /usr/local/bin/processTemplates.sh
     /usr/local/bin/resourceManager.sh
     ;;
-  delete)
+delete)
     /usr/local/bin/discoverEnvironment.sh
     /usr/local/bin/resourceManager.sh
     ;;

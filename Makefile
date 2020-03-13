@@ -25,19 +25,21 @@ clean:
 
 generate:
 	docker build ./scripts -f ./scripts/operator-sdk.docker -t 'operator-sdk:old'
-	GO111MODULE=on go mod vendor
+	go mod vendor
+	cp go.mod go.mod.bak
 	docker run \
 		-u "$(shell id -u)" \
 		-v "$(shell go env GOCACHE):/gocache" \
 		-v "$(PWD):/gopath/src/github.com/KohlsTechnology/eunomia" \
 		-v "$(shell go env GOPATH | sed 's/:.*//' )/pkg:/gopath/pkg" \
 		operator-sdk:old
+	cp go.mod.bak go.mod  # undo changes made by go1.12 required for ancient operator-sdk.docker
 
 # Build binary
 .PHONY: build
 build:
-	GO111MODULE=on go mod vendor
-	GO111MODULE=on go build -o build/_output/bin/eunomia -ldflags $(LDFLAGS) github.com/KohlsTechnology/eunomia/cmd/manager
+	go mod vendor
+	go build -o build/_output/bin/eunomia -ldflags $(LDFLAGS) github.com/KohlsTechnology/eunomia/cmd/manager
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
 .PHONY: run
@@ -52,7 +54,7 @@ test-dirty: generate
 	# TODO: also check that there are no untracked files, e.g. extra .go and .yaml ones
 
 .PHONY: test
-test: check-fmt lint vet test-unit test-e2e
+test: check-fmt lint vet check-shfmt shellcheck test-unit test-e2e
 
 .PHONY: test-e2e
 test-e2e:
@@ -79,11 +81,23 @@ lint:
 # Run go vet against code
 .PHONY: vet
 vet:
-	VET_INPUT="$(shell go list ./... | grep -v /vendor/)"; GO111MODULE=on go vet $$VET_INPUT
+	VET_INPUT="$(shell go list ./... | grep -v /vendor/)"; go vet $$VET_INPUT
+
+# TODO: improve the command to also check scripts outside the scripts and template-processors dirs
+.PHONY: check-shfmt
+check-shfmt:
+	shfmt -i 4 -d ./scripts
+	shfmt -i 4 -d ./template-processors
+
+# TODO: improve the command to also check scripts without .sh extension
+# get_helm.sh is ignored because it is getting download from internet
+.PHONY: shellcheck
+shellcheck:
+	for file in $(shell find . -not -path "./vendor/*" -not -path "./get_helm.sh" -name "*.sh") ; do shellcheck $$file ; done
 
 .PHONY: e2e-test-images
 e2e-test-images: build
-	TRAVIS_TAG=v999.0.0 ./scripts/build-images.sh ${REPOSITORY}
+	TRAVIS_TAG=latest ./scripts/build-images.sh ${REPOSITORY}
 
 # Deploy images to Quay.io
 .PHONY: travis-deploy-images

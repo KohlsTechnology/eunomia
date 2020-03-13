@@ -18,4 +18,4 @@ set -euxo pipefail
 
 echo Processing Templates
 
-cp -R $CLONED_TEMPLATE_GIT_DIR/* $MANIFEST_DIR/
+cp -R "${CLONED_TEMPLATE_GIT_DIR}/." "${MANIFEST_DIR}/"

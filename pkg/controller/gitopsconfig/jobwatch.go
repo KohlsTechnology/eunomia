@@ -17,15 +17,12 @@ limitations under the License.
 package gitopsconfig
 
 import (
-	"context"
+	"fmt"
 
-	"golang.org/x/xerrors"
 	batchv1 "k8s.io/api/batch/v1"
-	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/fields"
-	"k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/rest"
 	"k8s.io/client-go/tools/cache"
@@ -43,7 +40,7 @@ func addJobWatch(kubecfg *rest.Config, handler cache.ResourceEventHandler) (func
 	// based on: http://web.archive.org/web/20161221032701/https://solinea.com/blog/tapping-kubernetes-events
 	clientset, err := kubernetes.NewForConfig(kubecfg)
 	if err != nil {
-		return nil, xerrors.Errorf("cannot create Job watcher from config: %w", err)
+		return nil, fmt.Errorf("cannot create Job watcher from config: %w", err)
 	}
 	watchlist := cache.NewListWatchFromClient(clientset.Batch().RESTClient(), "jobs", corev1.NamespaceAll, fields.Everything())
 	// https://stackoverflow.com/a/49231503/98528
@@ -108,22 +105,22 @@ func (e *jobCompletionEmitter) OnUpdate(oldObj, newObj interface{}) {
 	}
 
 	// Check if this is a Job that's owned by GitOpsConfig.
-	gitopsRef, err := findJobOwner(newJob, e.client)
-	if err != nil {
-		log.Error(err, "cannot find Job's owner")
-		return
+	gitopsName := ""
+	if newJob.Labels != nil {
+		gitopsName = newJob.Labels[tagJobOwner]
 	}
-	if gitopsRef == nil {
+	if gitopsName == "" {
 		// Got an event for a job not owned by GitOpsConfig - ignore it.
 		return
 	}
 	gitops := &gitopsv1alpha1.GitOpsConfig{
+		// TODO: create consts (?) for TypeMeta strings
 		TypeMeta: metav1.TypeMeta{
-			Kind:       gitopsRef.Kind,
-			APIVersion: gitopsRef.APIVersion,
+			Kind:       "GitOpsConfig",
+			APIVersion: "eunomia.kohls.io/v1alpha1",
 		},
 		ObjectMeta: metav1.ObjectMeta{
-			Name: gitopsRef.Name,
+			Name: gitopsName,
 			// Note: Assuming the same namespace for GitOpsConfig as for the Job
 			Namespace: newJob.GetNamespace(),
 		},
@@ -144,48 +141,4 @@ func (e *jobCompletionEmitter) OnUpdate(oldObj, newObj interface{}) {
 		e.eventRecorder.AnnotatedEventf(gitops, annotation, "Warning", "JobFailed",
 			"Job failed: %s", newJob.GetName())
 	}
-}
-
-// findJobOwner checks if the job is owned by a GitOpsConfig (either directly,
-// or through a CronJob intermediary). If yes, it returns a reference to the
-// GitOpsConfig. If not, it returns nil.
-//
-// TODO: it would be nice if we could generalize it to just walk the tree of
-// owners (possibly only where Controller==true), and search if any one of them
-// is a GitOpsConfig - instead of having to special-case a CronJob as a
-// possible intermediary.
-func findJobOwner(job *batchv1.Job, client client.Client) (*metav1.OwnerReference, error) {
-	const gitopsKind = "GitOpsConfig"
-
-	// Is the job owned directly by GitOpsConfig?
-	gitopsRef := getOwnerByKind(job, gitopsKind)
-	if gitopsRef != nil {
-		return gitopsRef, nil
-	}
-
-	// Is the job owned by a CronJob, which is then owned by GitOpsConfig?
-	cronjobRef := getOwnerByKind(job, "CronJob")
-	if cronjobRef == nil {
-		return nil, nil
-	}
-	cronjob := &batchv1beta1.CronJob{}
-	err := client.Get(context.TODO(),
-		types.NamespacedName{Name: cronjobRef.Name, Namespace: job.GetNamespace()},
-		cronjob)
-	if err != nil {
-		return nil, xerrors.Errorf("cannot load CronJob owner %q of Job %q: %w", cronjobRef.Name, job.GetName(), err)
-	}
-	gitopsRef = getOwnerByKind(cronjob, gitopsKind)
-	return gitopsRef, nil
-}
-
-// getOwnerByKind searches the direct owners of obj. It returns a reference to
-// an owner of the specified kind, or nil if a matching one was not found.
-func getOwnerByKind(obj metav1.Object, kind string) *metav1.OwnerReference {
-	for _, ref := range obj.GetOwnerReferences() {
-		if ref.Kind == kind {
-			return &ref
-		}
-	}
-	return nil
 }
