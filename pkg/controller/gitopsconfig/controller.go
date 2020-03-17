@@ -183,7 +183,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 
 	if _, ok := instance.GetAnnotations()[tagInitialized]; !ok {
 		reqLogger.Info("Instance needs to be initialized", "instance", instance.GetName())
-		return reconcile.Result{}, r.initialize(instance)
+		return reconcile.Result{Requeue: true}, r.initialize(instance)
 	}
 
 	if syncFinalizer(instance) {
