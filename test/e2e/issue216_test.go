@@ -19,8 +19,6 @@ limitations under the License.
 package e2e
 
 import (
-	"context"
-	"os"
 	"testing"
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
@@ -28,37 +26,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 
-	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 func TestIssue216InvalidImageDeleted(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatalf("could not get namespace: %v", err)
-	}
-	if err = SetupRbacInNamespace(namespace); err != nil {
-		t.Error(err)
-	}
-
-	defer DumpJobsLogsOnError(t, framework.Global, namespace)
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
-	if !found {
-		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
-	}
-	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
-	if !found {
-		eunomiaRef = "master"
-	}
+	defer ctx.Cleanup()
 
 	// Step 1: create a simple CR with an invalid template-processor URL
 
@@ -69,20 +46,20 @@ func TestIssue216InvalidImageDeleted(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-issue216",
-			Namespace: namespace,
+			Namespace: ctx.namespace,
 			Finalizers: []string{
 				"gitopsconfig.eunomia.kohls.io/finalizer",
 			},
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/events/test-a",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/empty-yaml",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
@@ -96,7 +73,7 @@ func TestIssue216InvalidImageDeleted(t *testing.T) {
 	}
 	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
-	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -105,7 +82,7 @@ func TestIssue216InvalidImageDeleted(t *testing.T) {
 
 	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		const name = "gitopsconfig-gitops-issue216-"
-		pod, err := GetPod(namespace, name, "quay.io/kohlstechnology/invalid:bad", framework.Global.KubeClient)
+		pod, err := GetPod(ctx.namespace, name, "quay.io/kohlstechnology/invalid:bad", framework.Global.KubeClient)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Waiting for availability of %s pod", name)
@@ -129,7 +106,7 @@ func TestIssue216InvalidImageDeleted(t *testing.T) {
 	// Step 3: Delete CR
 
 	t.Logf("Deleting CR")
-	err = framework.Global.Client.Delete(context.TODO(), gitops)
+	err = framework.Global.Client.Delete(ctx, gitops)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -138,7 +115,7 @@ func TestIssue216InvalidImageDeleted(t *testing.T) {
 
 	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		found := gitopsv1alpha1.GitOpsConfig{}
-		err = framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), &found)
+		err = framework.Global.Client.Get(ctx, util.GetNN(gitops), &found)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Confirmed GitOpsConfig shutdown")
@@ -158,7 +135,7 @@ func TestIssue216InvalidImageDeleted(t *testing.T) {
 
 	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		const name = "gitopsconfig-gitops-issue216-"
-		pod, err := GetPod(namespace, name, "", framework.Global.KubeClient)
+		pod, err := GetPod(ctx.namespace, name, "", framework.Global.KubeClient)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Confirmed no more pods found")
