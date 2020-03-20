@@ -19,14 +19,11 @@ limitations under the License.
 package e2e
 
 import (
-	goctx "context"
-	"os"
 	"testing"
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 )
 
@@ -35,31 +32,11 @@ DISABLED
 TODO create a make file and have a specific minihift-e2e-test, the below  test does not work with minikube.
 */
 func disabledOCPTemplate(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatalf("could not get namespace: %v", err)
-	}
-	if err = SetupRbacInNamespace(namespace); err != nil {
-		t.Error(err)
-	}
-
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
-	if !found {
-		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
-	}
-
-	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
-	if !found {
-		eunomiaRef = "master"
-	}
+	defer ctx.Cleanup()
 
 	gitops := &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
@@ -68,17 +45,17 @@ func disabledOCPTemplate(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-ocp",
-			Namespace: namespace,
+			Namespace: ctx.namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/simple/templates",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/simple/parameters",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
@@ -91,12 +68,12 @@ func disabledOCPTemplate(t *testing.T) {
 		},
 	}
 
-	err = framework.Global.Client.Create(goctx.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = WaitForPod(t, framework.Global, namespace, "helloworld", retryInterval, timeout)
+	err = WaitForPod(t, framework.Global, ctx.namespace, "helloworld", retryInterval, timeout)
 	if err != nil {
 		t.Error(err)
 	}

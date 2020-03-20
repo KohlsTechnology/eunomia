@@ -93,7 +93,7 @@ check-shfmt:
 # get_helm.sh is ignored because it is getting download from internet
 .PHONY: shellcheck
 shellcheck:
-	for file in $(shell find . -not -path "./vendor/*" -not -path "./get_helm.sh" -name "*.sh") ; do shellcheck $$file ; done
+	shellcheck $(shell find . -not -path "./vendor/*" -not -path "./get_helm.sh" -not -path "./ci/*" -name "*.sh")
 
 .PHONY: e2e-test-images
 e2e-test-images: build

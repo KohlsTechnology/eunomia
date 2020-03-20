@@ -19,46 +19,22 @@ limitations under the License.
 package e2e
 
 import (
-	"context"
-	"os"
 	"testing"
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/util/retry"
 
-	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 func TestModesCreateReplaceDelete(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatalf("could not get namespace: %v", err)
-	}
-	if err = SetupRbacInNamespace(namespace); err != nil {
-		t.Error(err)
-	}
-
-	defer DumpJobsLogsOnError(t, framework.Global, namespace)
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
-	if !found {
-		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
-	}
-
-	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
-	if !found {
-		eunomiaRef = "master"
-	}
+	defer ctx.Cleanup()
 
 	// Step 1: create initial CR with "Create" mode, check that pods are started
 
@@ -69,17 +45,17 @@ func TestModesCreateReplaceDelete(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-modes",
-			Namespace: namespace,
+			Namespace: ctx.namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/modes/template1",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/empty-yaml",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
@@ -92,12 +68,12 @@ func TestModesCreateReplaceDelete(t *testing.T) {
 		},
 	}
 
-	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-world-modes", "hello-app:1.0", retryInterval, timeout)
+	err = WaitForPodWithImage(t, framework.Global, ctx.namespace, "hello-world-modes", "hello-app:1.0", retryInterval, timeout)
 	if err != nil {
 		t.Error(err)
 	}
@@ -105,20 +81,20 @@ func TestModesCreateReplaceDelete(t *testing.T) {
 	// Step 2: change the CR to a different version of image, using "Replace" mode, then verify pod change
 
 	err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		err := framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), gitops)
+		err := framework.Global.Client.Get(ctx, util.GetNN(gitops), gitops)
 		if err != nil {
 			t.Fatal(err)
 		}
 		gitops.Spec.TemplateSource.ContextDir = "test/e2e/testdata/modes/template2"
 		gitops.Spec.ResourceHandlingMode = "Replace"
-		err = framework.Global.Client.Update(context.Background(), gitops)
+		err = framework.Global.Client.Update(ctx, gitops)
 		return err
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Verify that the main "hello-world-modes" app gets upgraded
-	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-world-modes", "hello-app:2.0", retryInterval, timeout)
+	err = WaitForPodWithImage(t, framework.Global, ctx.namespace, "hello-world-modes", "hello-app:2.0", retryInterval, timeout)
 	if err != nil {
 		t.Error(err)
 	}
@@ -126,19 +102,19 @@ func TestModesCreateReplaceDelete(t *testing.T) {
 	// Step 2: change the CR to "Delete" mode, then verify that the Pod is deleted
 
 	err = retry.RetryOnConflict(retry.DefaultRetry, func() error {
-		err := framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), gitops)
+		err := framework.Global.Client.Get(ctx, util.GetNN(gitops), gitops)
 		if err != nil {
 			t.Fatal(err)
 		}
 		gitops.Spec.ResourceHandlingMode = "Delete"
-		err = framework.Global.Client.Update(context.Background(), gitops)
+		err = framework.Global.Client.Update(ctx, gitops)
 		return err
 	})
 	if err != nil {
 		t.Fatal(err)
 	}
 	// Verify that the pod corresponding to the missing resource gets deleted
-	err = WaitForPodAbsence(t, framework.Global, namespace, "hello-world-modes", "hello-app:2.0", retryInterval, timeout)
+	err = WaitForPodAbsence(t, framework.Global, ctx.namespace, "hello-world-modes", "hello-app:2.0", retryInterval, timeout)
 	if err != nil {
 		t.Error(err)
 	}

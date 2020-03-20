@@ -19,43 +19,20 @@ limitations under the License.
 package e2e
 
 import (
-	goctx "context"
-	"os"
 	"testing"
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 )
 
 func TestHierarchy(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatalf("could not get namespace: %v", err)
-	}
-	if err = SetupRbacInNamespace(namespace); err != nil {
-		t.Error(err)
-	}
-
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
-	if !found {
-		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
-	}
-
-	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
-	if !found {
-		eunomiaRef = "master"
-	}
+	defer ctx.Cleanup()
 
 	gitops := &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
@@ -64,18 +41,18 @@ func TestHierarchy(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-hierarchy",
-			Namespace: namespace,
+			Namespace: ctx.namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
-			TemplateProcessorArgs: "--set namespace=" + namespace,
+			TemplateProcessorArgs: "--set namespace=" + ctx.namespace,
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/helm/templates",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/hierarchy/level4",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
@@ -88,12 +65,12 @@ func TestHierarchy(t *testing.T) {
 		},
 	}
 
-	err = framework.Global.Client.Create(goctx.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-world-hierarchy", "hello-app:1.0", retryInterval, timeout)
+	err = WaitForPodWithImage(t, framework.Global, ctx.namespace, "hello-world-hierarchy", "hello-app:1.0", retryInterval, timeout)
 	if err != nil {
 		t.Error(err)
 	}

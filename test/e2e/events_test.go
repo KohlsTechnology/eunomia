@@ -19,8 +19,6 @@ limitations under the License.
 package e2e
 
 import (
-	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -28,7 +26,6 @@ import (
 	eventv1beta1 "k8s.io/api/events/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	"github.com/KohlsTechnology/eunomia/test"
 )
@@ -36,36 +33,16 @@ import (
 // TestJobEvents_JobSuccess verifies that a JobSucceeded event is emitted by
 // eunomia after a simple GitOpsConfig is executed.
 func TestJobEventsJobSuccess(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatalf("could not get namespace: %v", err)
-	}
-	if err = SetupRbacInNamespace(namespace); err != nil {
-		t.Error(err)
-	}
-
-	defer DumpJobsLogsOnError(t, framework.Global, namespace)
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
-	if !found {
-		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
-	}
-	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
-	if !found {
-		eunomiaRef = "master"
-	}
+	defer ctx.Cleanup()
 
 	// Step 1: register an event monitor/watcher
 
 	events := make(chan *eventv1beta1.Event, 5)
-	closer, err := test.WatchEvents(framework.Global.KubeClient, events, namespace, "gitops-events-hello-success", 2*time.Minute)
+	closer, err := test.WatchEvents(framework.Global.KubeClient, events, ctx.namespace, "gitops-events-hello-success", 2*time.Minute)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -80,17 +57,17 @@ func TestJobEventsJobSuccess(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-events-hello-success",
-			Namespace: namespace,
+			Namespace: ctx.namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/hello-a",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/empty-yaml",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
@@ -103,12 +80,12 @@ func TestJobEventsJobSuccess(t *testing.T) {
 		},
 	}
 
-	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-test-a", "hello-app:1.0", retryInterval, timeout)
+	err = WaitForPodWithImage(t, framework.Global, ctx.namespace, "hello-test-a", "hello-app:1.0", retryInterval, timeout)
 	if err != nil {
 		t.Error(err)
 	}
@@ -137,36 +114,16 @@ func TestJobEventsJobSuccess(t *testing.T) {
 // TestJobEvents_PeriodicJobSuccess verifies that a JobSuccessful event is
 // emitted by eunomia for a Periodic GitOpsConfig.
 func TestJobEventsPeriodicJobSuccess(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatalf("could not get namespace: %v", err)
-	}
-	if err = SetupRbacInNamespace(namespace); err != nil {
-		t.Error(err)
-	}
-
-	defer DumpJobsLogsOnError(t, framework.Global, namespace)
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
-	if !found {
-		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
-	}
-	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
-	if !found {
-		eunomiaRef = "master"
-	}
+	defer ctx.Cleanup()
 
 	// Step 1: register an event monitor/watcher
 
 	events := make(chan *eventv1beta1.Event, 5)
-	closer, err := test.WatchEvents(framework.Global.KubeClient, events, namespace, "gitops-events-periodic-success", 180*time.Second)
+	closer, err := test.WatchEvents(framework.Global.KubeClient, events, ctx.namespace, "gitops-events-periodic-success", 180*time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -181,17 +138,17 @@ func TestJobEventsPeriodicJobSuccess(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-events-periodic-success",
-			Namespace: namespace,
+			Namespace: ctx.namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/hello-b",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/empty-yaml",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
@@ -207,12 +164,12 @@ func TestJobEventsPeriodicJobSuccess(t *testing.T) {
 		},
 	}
 
-	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = WaitForPodWithImage(t, framework.Global, namespace, "hello-test-b", "hello-app:1.0", retryInterval, 2*time.Minute)
+	err = WaitForPodWithImage(t, framework.Global, ctx.namespace, "hello-test-b", "hello-app:1.0", retryInterval, 2*time.Minute)
 	if err != nil {
 		t.Error(err)
 	}
@@ -245,36 +202,16 @@ func TestJobEventsJobFailed(t *testing.T) {
 		t.Skip("This test currently takes minutes to run, because of exponential backoff in kubernetes")
 	}
 
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatalf("could not get namespace: %v", err)
-	}
-	if err = SetupRbacInNamespace(namespace); err != nil {
-		t.Error(err)
-	}
-
-	defer DumpJobsLogsOnError(t, framework.Global, namespace)
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
-	if !found {
-		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
-	}
-	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
-	if !found {
-		eunomiaRef = "master"
-	}
+	defer ctx.Cleanup()
 
 	// Step 1: register an event monitor/watcher
 
 	events := make(chan *eventv1beta1.Event, 5)
-	closer, err := test.WatchEvents(framework.Global.KubeClient, events, namespace, "gitops-events-hello-failed", 5*time.Minute)
+	closer, err := test.WatchEvents(framework.Global.KubeClient, events, ctx.namespace, "gitops-events-hello-failed", 5*time.Minute)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -289,17 +226,17 @@ func TestJobEventsJobFailed(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-events-hello-failed",
-			Namespace: namespace,
+			Namespace: ctx.namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        "https://INVALID!!!",
-				Ref:        eunomiaRef,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "URI is already invalid so this value should be irrelevant",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/empty-yaml",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
@@ -312,7 +249,7 @@ func TestJobEventsJobFailed(t *testing.T) {
 		},
 	}
 
-	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
