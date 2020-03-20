@@ -183,7 +183,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 
 	if _, ok := instance.GetAnnotations()[tagInitialized]; !ok {
 		reqLogger.Info("Instance needs to be initialized", "instance", instance.GetName())
-		return reconcile.Result{}, r.initialize(instance)
+		return reconcile.Result{Requeue: true}, r.initialize(instance)
 	}
 
 	if syncFinalizer(instance) {
@@ -363,6 +363,9 @@ func (r *Reconciler) initialize(instance *gitopsv1alpha1.GitOpsConfig) error {
 
 	// add finalizer and mark the object as initialized
 	syncFinalizer(instance)
+	if instance.Annotations == nil {
+		instance.Annotations = map[string]string{}
+	}
 	instance.Annotations[tagInitialized] = "true"
 
 	err := r.client.Update(context.TODO(), instance)

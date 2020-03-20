@@ -71,7 +71,6 @@ func TestIssue216InvalidImageDeleted(t *testing.T) {
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {

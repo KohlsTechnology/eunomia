@@ -63,7 +63,7 @@ func TestJobEventsJobSuccess(t *testing.T) {
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        ctx.eunomiaURI,
 				Ref:        ctx.eunomiaRef,
-				ContextDir: "test/e2e/testdata/events/test-a",
+				ContextDir: "test/e2e/testdata/hello-a",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        ctx.eunomiaURI,
@@ -79,14 +79,13 @@ func TestJobEventsJobSuccess(t *testing.T) {
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = WaitForPodWithImage(t, framework.Global, ctx.namespace, "hello-events-test-a", "hello-app:1.0", retryInterval, timeout)
+	err = WaitForPodWithImage(t, framework.Global, ctx.namespace, "hello-test-a", "hello-app:1.0", retryInterval, timeout)
 	if err != nil {
 		t.Error(err)
 	}
@@ -145,7 +144,7 @@ func TestJobEventsPeriodicJobSuccess(t *testing.T) {
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        ctx.eunomiaURI,
 				Ref:        ctx.eunomiaRef,
-				ContextDir: "test/e2e/testdata/events/test-b",
+				ContextDir: "test/e2e/testdata/hello-b",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        ctx.eunomiaURI,
@@ -164,14 +163,13 @@ func TestJobEventsPeriodicJobSuccess(t *testing.T) {
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
 
-	err = WaitForPodWithImage(t, framework.Global, ctx.namespace, "hello-events-test-b", "hello-app:1.0", retryInterval, 2*time.Minute)
+	err = WaitForPodWithImage(t, framework.Global, ctx.namespace, "hello-test-b", "hello-app:1.0", retryInterval, 2*time.Minute)
 	if err != nil {
 		t.Error(err)
 	}
@@ -250,7 +248,6 @@ func TestJobEventsJobFailed(t *testing.T) {
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {

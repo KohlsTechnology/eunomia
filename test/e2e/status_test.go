@@ -52,7 +52,7 @@ func TestStatusSuccess(t *testing.T) {
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        ctx.eunomiaURI,
 				Ref:        ctx.eunomiaRef,
-				ContextDir: "test/e2e/testdata/status/test-a",
+				ContextDir: "test/e2e/testdata/hello-a",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        ctx.eunomiaURI,
@@ -68,7 +68,6 @@ func TestStatusSuccess(t *testing.T) {
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	start := time.Now().Truncate(time.Second) // Note: kubernetes returns times with only 1s precision, so truncate for comparisons
 	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
@@ -114,7 +113,7 @@ func TestStatusSuccess(t *testing.T) {
 
 	// Step 3: verify that the pod exists
 
-	pod, err := GetPod(ctx.namespace, "hello-status-test-a", "hello-app:1.0", framework.Global.KubeClient)
+	pod, err := GetPod(ctx.namespace, "hello-test-a", "hello-app:1.0", framework.Global.KubeClient)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -145,7 +144,7 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        ctx.eunomiaURI,
 				Ref:        ctx.eunomiaRef,
-				ContextDir: "test/e2e/testdata/status/test-b",
+				ContextDir: "test/e2e/testdata/hello-b",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        ctx.eunomiaURI,
@@ -164,7 +163,6 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	start := time.Now().Truncate(time.Second) // Note: kubernetes returns times with only 1s precision, so truncate for comparisons
 	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
@@ -224,7 +222,7 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 
 	// Step 3: verify that the pod exists
 
-	pod, err := GetPod(ctx.namespace, "hello-status-test-b", "hello-app:1.0", framework.Global.KubeClient)
+	pod, err := GetPod(ctx.namespace, "hello-test-b", "hello-app:1.0", framework.Global.KubeClient)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -281,7 +279,6 @@ func TestStatusFailure(t *testing.T) {
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	start := time.Now().Truncate(time.Second) // Note: kubernetes returns times with only 1s precision, so truncate for comparisons
 	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
