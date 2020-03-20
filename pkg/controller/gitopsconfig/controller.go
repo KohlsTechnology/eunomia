@@ -203,8 +203,22 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 		if err != nil {
 			reqLogger.Error(err, "error creating the cronjob, continuing...")
 		}
+	} else {
+		// if there are some leftover cronjobs after removing the Periodic trigger, delete them
+		cronJobs, err := ownedCronJobs(context.TODO(), r.client, instance)
+		if err != nil {
+			reqLogger.Error(err, "unable to list cronjobs", "namespace", instance.Namespace)
+			return reconcile.Result{}, fmt.Errorf("unable to list cronjobs while checking if there are any left after updating GitOpsConfig: %w", err)
+		}
+		for _, cronJob := range cronJobs {
+			err = r.client.Delete(context.TODO(), &cronJob, client.PropagationPolicy(metav1.DeletePropagationBackground))
+			if err != nil {
+				log.Error(err, "Unable to delete leftover cronjob", "instance", instance.Name, "cronjob", cronJob.Name)
+				return reconcile.Result{}, fmt.Errorf("Unable to delete leftover cronjob %q for %q: %w", cronJob.Name, instance.Name, err)
+			}
+			log.Info("Deleted leftover cronjob", "instance", instance.Name, "cronjob", cronJob.Name)
+		}
 	}
-	// TODO: if Periodic trigger is removed from CR, remove corresponding CronJob
 
 	if ContainsTrigger(instance, "Change") || ContainsTrigger(instance, "Webhook") {
 		reqLogger.Info("Instance has a change or Webhook trigger, creating job", "instance", instance.GetName())
@@ -519,6 +533,32 @@ func (r *Reconciler) removeFinalizer(ctx context.Context, instance *gitopsv1alph
 	}
 	log.Info("GitOpsConfig finalizer successfully removed itself from CR", "instance", instance.Name)
 	return reconcile.Result{}, nil
+}
+
+// ownedCronJobs retrieves all cronjobs in namespace owner.Namespace whose owner is the passed GitOpsConfig.
+func ownedCronJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha1.GitOpsConfig) ([]batchv1beta1.CronJob, error) {
+	cronJobs := batchv1beta1.CronJobList{}
+	err := kube.List(ctx, &client.ListOptions{
+		Namespace: owner.Namespace,
+	}, &cronJobs)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list cronjobs in namespace %s: %w", owner.Namespace, err)
+	}
+
+	owned := []batchv1beta1.CronJob{}
+	for _, cronJob := range cronJobs.Items {
+		ownerRefs := cronJob.GetOwnerReferences()
+		for _, ownerRef := range ownerRefs {
+			if *ownerRef.Controller == true &&
+				ownerRef.APIVersion == owner.APIVersion &&
+				ownerRef.Kind == owner.Kind &&
+				ownerRef.Name == owner.ObjectMeta.Name {
+				owned = append(owned, cronJob)
+				break
+			}
+		}
+	}
+	return owned, nil
 }
 
 // ownedJobs retrieves all jobs in namespace owner.Namespace with value of label tagJobOwner equal to owner.Name.
