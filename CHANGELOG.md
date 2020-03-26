@@ -1,4 +1,13 @@
-## v0.1.6 (Unreleased)
+## v0.1.6 (March 26, 2020)
+FEATURES:
+* N/A
+
+CHANGES:
+* Refactor e2e tests [GH-325](https://github.com/KohlsTechnology/eunomia/pull/325)
+
+BUG FIXES:
+* Delete CronJob when periodic trigger is removed [GH-322](https://github.com/KohlsTechnology/eunomia/pull/322)
+* Fix Job not starting after initialization [GH-324](https://github.com/KohlsTechnology/eunomia/pull/324)
 
 ## v0.1.5 (March 12, 2020)
 FEATURES:
