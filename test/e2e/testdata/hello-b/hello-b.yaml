@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hello-status-test-b
+  name: hello-test-b
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: hello-status-test-b
+      name: hello-test-b
   template:
     metadata:
       labels:
-        name: hello-status-test-b
+        name: hello-test-b
     spec:
       containers:
-        - name: hello-status-test-b
+        - name: hello-test-b
           image: gcr.io/google-samples/hello-app:1.0
           imagePullPolicy: IfNotPresent

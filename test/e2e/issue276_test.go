@@ -19,9 +19,7 @@ limitations under the License.
 package e2e
 
 import (
-	"context"
 	"fmt"
-	"os"
 	"strings"
 	"testing"
 	"time"
@@ -31,7 +29,6 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 
-	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 )
 
@@ -50,31 +47,11 @@ func TestIssue276NoTemplatesDir(t *testing.T) {
 		t.Skip("This test currently takes minutes to run, because of exponential backoff in kubernetes")
 	}
 
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatalf("could not get namespace: %v", err)
-	}
-	if err = SetupRbacInNamespace(namespace); err != nil {
-		t.Error(err)
-	}
-
-	defer DumpJobsLogsOnError(t, framework.Global, namespace)
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
-	if !found {
-		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
-	}
-	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
-	if !found {
-		eunomiaRef = "master"
-	}
+	defer ctx.Cleanup()
 
 	// Step 1: create a CR with a nonexistent TemplateSource ContextDir
 
@@ -86,20 +63,20 @@ func TestIssue276NoTemplatesDir(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-issue276",
-			Namespace: namespace,
+			Namespace: ctx.namespace,
 			Finalizers: []string{
 				"gitopsconfig.eunomia.kohls.io/finalizer",
 			},
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: noDir,
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/empty-yaml",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
@@ -111,9 +88,8 @@ func TestIssue276NoTemplatesDir(t *testing.T) {
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
-	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -122,7 +98,7 @@ func TestIssue276NoTemplatesDir(t *testing.T) {
 
 	const name = "gitopsconfig-gitops-issue276-"
 	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		pod, err := GetPod(namespace, name, "quay.io/kohlstechnology/eunomia-base:dev", framework.Global.KubeClient)
+		pod, err := GetPod(ctx.namespace, name, "quay.io/kohlstechnology/eunomia-base:dev", framework.Global.KubeClient)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Waiting for availability of %s pod", name)
@@ -153,13 +129,13 @@ func TestIssue276NoTemplatesDir(t *testing.T) {
 	// Step 3: Delete GitOpsConfig and make sure that the deletion succeeded
 
 	t.Logf("Deleting CR")
-	err = framework.Global.Client.Delete(context.TODO(), gitops)
+	err = framework.Global.Client.Delete(ctx, gitops)
 	if err != nil {
 		t.Fatal(err)
 	}
 
 	// Three minutes timeout.
-	err = WaitForPodAbsence(t, framework.Global, namespace, name, "quay.io/kohlstechnology/eunomia-base:dev", retryInterval, 3*time.Minute)
+	err = WaitForPodAbsence(t, framework.Global, ctx.namespace, name, "quay.io/kohlstechnology/eunomia-base:dev", retryInterval, 3*time.Minute)
 	if err != nil {
 		t.Error(err)
 	}
@@ -169,31 +145,11 @@ func TestIssue276NoTemplatesDir(t *testing.T) {
 // passes a TemplateSource directory containing no resource files, but
 // only a single ".gitkeep" file
 func TestIssue276EmptyTemplatesDir(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatalf("could not get namespace: %v", err)
-	}
-	if err = SetupRbacInNamespace(namespace); err != nil {
-		t.Error(err)
-	}
-
-	defer DumpJobsLogsOnError(t, framework.Global, namespace)
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
-	if !found {
-		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
-	}
-	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
-	if !found {
-		eunomiaRef = "master"
-	}
+	defer ctx.Cleanup()
 
 	// Step 1: create a CR with a TemplateSource ContextDir containing only a ".gitkeep" file
 
@@ -204,20 +160,20 @@ func TestIssue276EmptyTemplatesDir(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-issue276",
-			Namespace: namespace,
+			Namespace: ctx.namespace,
 			Finalizers: []string{
 				"gitopsconfig.eunomia.kohls.io/finalizer",
 			},
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/empty-directory",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/empty-yaml",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
@@ -229,9 +185,8 @@ func TestIssue276EmptyTemplatesDir(t *testing.T) {
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
-	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -240,7 +195,7 @@ func TestIssue276EmptyTemplatesDir(t *testing.T) {
 
 	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		const name = "gitopsconfig-gitops-issue276-"
-		pod, err := GetPod(namespace, name, "quay.io/kohlstechnology/eunomia-base:dev", framework.Global.KubeClient)
+		pod, err := GetPod(ctx.namespace, name, "quay.io/kohlstechnology/eunomia-base:dev", framework.Global.KubeClient)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Waiting for availability of %s pod", name)

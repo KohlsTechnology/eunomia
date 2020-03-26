@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: hello-events-test-a
+  name: hello-test-a
 spec:
   replicas: 1
   selector:
     matchLabels:
-      name: hello-events-test-a
+      name: hello-test-a
   template:
     metadata:
       labels:
-        name: hello-events-test-a
+        name: hello-test-a
     spec:
       containers:
-        - name: hello-events-test-a
+        - name: hello-test-a
           image: gcr.io/google-samples/hello-app:1.0
           imagePullPolicy: IfNotPresent

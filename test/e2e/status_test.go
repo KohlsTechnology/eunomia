@@ -19,8 +19,6 @@ limitations under the License.
 package e2e
 
 import (
-	"context"
-	"os"
 	"testing"
 	"time"
 
@@ -28,37 +26,16 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/wait"
 
-	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 func TestStatusSuccess(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatalf("could not get namespace: %v", err)
-	}
-	if err = SetupRbacInNamespace(namespace); err != nil {
-		t.Error(err)
-	}
-
-	defer DumpJobsLogsOnError(t, framework.Global, namespace)
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
-	if !found {
-		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
-	}
-	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
-	if !found {
-		eunomiaRef = "master"
-	}
+	defer ctx.Cleanup()
 
 	// Step 1: create a simple CR with a single Pod
 
@@ -69,17 +46,17 @@ func TestStatusSuccess(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-status-hello-success",
-			Namespace: namespace,
+			Namespace: ctx.namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/testdata/status/test-a",
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
+				ContextDir: "test/e2e/testdata/hello-a",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/empty-yaml",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
@@ -91,10 +68,9 @@ func TestStatusSuccess(t *testing.T) {
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	start := time.Now().Truncate(time.Second) // Note: kubernetes returns times with only 1s precision, so truncate for comparisons
-	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -103,7 +79,7 @@ func TestStatusSuccess(t *testing.T) {
 
 	err = wait.Poll(retryInterval, 25*time.Second, func() (done bool, err error) {
 		fresh := gitopsv1alpha1.GitOpsConfig{}
-		err = framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), &fresh)
+		err = framework.Global.Client.Get(ctx, util.GetNN(gitops), &fresh)
 		if err != nil {
 			return false, err
 		}
@@ -137,7 +113,7 @@ func TestStatusSuccess(t *testing.T) {
 
 	// Step 3: verify that the pod exists
 
-	pod, err := GetPod(namespace, "hello-status-test-a", "hello-app:1.0", framework.Global.KubeClient)
+	pod, err := GetPod(ctx.namespace, "hello-test-a", "hello-app:1.0", framework.Global.KubeClient)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -147,31 +123,11 @@ func TestStatusSuccess(t *testing.T) {
 }
 
 func TestStatusPeriodicJobSuccess(t *testing.T) {
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatalf("could not get namespace: %v", err)
-	}
-	if err = SetupRbacInNamespace(namespace); err != nil {
-		t.Error(err)
-	}
-
-	defer DumpJobsLogsOnError(t, framework.Global, namespace)
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
-	if !found {
-		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
-	}
-	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
-	if !found {
-		eunomiaRef = "master"
-	}
+	defer ctx.Cleanup()
 
 	// Step 1: create a simple CR with a single Pod
 
@@ -182,17 +138,17 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-status-periodic-success",
-			Namespace: namespace,
+			Namespace: ctx.namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
-				ContextDir: "test/e2e/testdata/status/test-b",
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
+				ContextDir: "test/e2e/testdata/hello-b",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/empty-yaml",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
@@ -207,10 +163,9 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	start := time.Now().Truncate(time.Second) // Note: kubernetes returns times with only 1s precision, so truncate for comparisons
-	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -219,7 +174,7 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 
 	err = wait.Poll(retryInterval, 2*time.Minute, func() (done bool, err error) {
 		fresh := gitopsv1alpha1.GitOpsConfig{}
-		err = framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), &fresh)
+		err = framework.Global.Client.Get(ctx, util.GetNN(gitops), &fresh)
 		if err != nil {
 			return false, err
 		}
@@ -233,7 +188,7 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 
 	err = wait.Poll(retryInterval, 2*time.Minute, func() (done bool, err error) {
 		fresh := gitopsv1alpha1.GitOpsConfig{}
-		err = framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), &fresh)
+		err = framework.Global.Client.Get(ctx, util.GetNN(gitops), &fresh)
 		if err != nil {
 			return false, err
 		}
@@ -267,7 +222,7 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 
 	// Step 3: verify that the pod exists
 
-	pod, err := GetPod(namespace, "hello-status-test-b", "hello-app:1.0", framework.Global.KubeClient)
+	pod, err := GetPod(ctx.namespace, "hello-test-b", "hello-app:1.0", framework.Global.KubeClient)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -287,31 +242,11 @@ func TestStatusFailure(t *testing.T) {
 		t.Skip("This test currently takes minutes to run, because of exponential backoff in kubernetes")
 	}
 
-	ctx := framework.NewTestCtx(t)
-	defer ctx.Cleanup()
-
-	namespace, err := ctx.GetNamespace()
-	if err != nil {
-		t.Fatalf("could not get namespace: %v", err)
-	}
-	if err = SetupRbacInNamespace(namespace); err != nil {
-		t.Error(err)
-	}
-
-	defer DumpJobsLogsOnError(t, framework.Global, namespace)
-	err = framework.AddToFrameworkScheme(apis.AddToScheme, &gitopsv1alpha1.GitOpsConfigList{})
+	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
 	}
-
-	eunomiaURI, found := os.LookupEnv("EUNOMIA_URI")
-	if !found {
-		eunomiaURI = "https://github.com/kohlstechnology/eunomia"
-	}
-	eunomiaRef, found := os.LookupEnv("EUNOMIA_REF")
-	if !found {
-		eunomiaRef = "master"
-	}
+	defer ctx.Cleanup()
 
 	// Step 1: create a CR with an invalid URI
 
@@ -322,17 +257,17 @@ func TestStatusFailure(t *testing.T) {
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-status-hello-failed",
-			Namespace: namespace,
+			Namespace: ctx.namespace,
 		},
 		Spec: gitopsv1alpha1.GitOpsConfigSpec{
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        "https://INVALID!!!",
-				Ref:        eunomiaRef,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "URI is already invalid so this value should be irrelevant",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
-				URI:        eunomiaURI,
-				Ref:        eunomiaRef,
+				URI:        ctx.eunomiaURI,
+				Ref:        ctx.eunomiaRef,
 				ContextDir: "test/e2e/testdata/empty-yaml",
 			},
 			Triggers: []gitopsv1alpha1.GitOpsTrigger{
@@ -344,10 +279,9 @@ func TestStatusFailure(t *testing.T) {
 			ServiceAccountRef:      "eunomia-operator",
 		},
 	}
-	gitops.Annotations = map[string]string{"gitopsconfig.eunomia.kohls.io/initialized": "true"}
 
 	start := time.Now().Truncate(time.Second) // Note: kubernetes returns times with only 1s precision, so truncate for comparisons
-	err = framework.Global.Client.Create(context.TODO(), gitops, &framework.CleanupOptions{TestContext: ctx, Timeout: timeout, RetryInterval: retryInterval})
+	err = framework.Global.Client.Create(ctx, gitops, &framework.CleanupOptions{TestContext: ctx.TestCtx, Timeout: timeout, RetryInterval: retryInterval})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -356,7 +290,7 @@ func TestStatusFailure(t *testing.T) {
 
 	err = wait.Poll(retryInterval, 3*time.Minute, func() (done bool, err error) {
 		fresh := gitopsv1alpha1.GitOpsConfig{}
-		err = framework.Global.Client.Get(context.TODO(), util.GetNN(gitops), &fresh)
+		err = framework.Global.Client.Get(ctx, util.GetNN(gitops), &fresh)
 		if err != nil {
 			return false, err
 		}

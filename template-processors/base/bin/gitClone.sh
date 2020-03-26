@@ -38,7 +38,7 @@ function pullFromTemplatesRepo() {
         export http_proxy
         export https_proxy
         export no_proxy
-        git clone -b "$TEMPLATE_GIT_REF" "$TEMPLATE_GIT_URI" "$TEMPLATE_GIT_DIR"
+        git clone --depth 1 --shallow-submodules -b "$TEMPLATE_GIT_REF" "$TEMPLATE_GIT_URI" "$TEMPLATE_GIT_DIR"
     )
 }
 
@@ -64,7 +64,7 @@ function pullFromParametersRepo() {
         export http_proxy
         export https_proxy
         export no_proxy
-        git clone -b "$PARAMETER_GIT_REF" "$PARAMETER_GIT_URI" "$PARAMETER_GIT_DIR"
+        git clone --depth 1 --shallow-submodules -b "$PARAMETER_GIT_REF" "$PARAMETER_GIT_URI" "$PARAMETER_GIT_DIR"
     )
 }
 
