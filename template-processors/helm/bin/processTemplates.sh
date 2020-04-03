@@ -19,10 +19,6 @@ set -euxo pipefail
 ## we assume in $CLONED_TEMPLATE_GIT_DIR there is a helm chart
 ## the helm chart may need updating
 
-echo "Initializing helm"
-helm init --client-only
-helm repo update "${CLONED_TEMPLATE_GIT_DIR}"
-
 echo "Generating manifest files"
 # shellcheck disable=SC2086
 helm template \
