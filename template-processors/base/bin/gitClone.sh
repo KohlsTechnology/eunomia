@@ -39,6 +39,10 @@ function pullFromTemplatesRepo() {
         export https_proxy
         export no_proxy
         git clone --depth 1 --shallow-submodules -b "$TEMPLATE_GIT_REF" "$TEMPLATE_GIT_URI" "$TEMPLATE_GIT_DIR"
+        pushd "$TEMPLATE_GIT_DIR"
+        git submodule init
+        git submodule update --recursive --remote
+        popd
     )
 }
 
@@ -65,6 +69,10 @@ function pullFromParametersRepo() {
         export https_proxy
         export no_proxy
         git clone --depth 1 --shallow-submodules -b "$PARAMETER_GIT_REF" "$PARAMETER_GIT_URI" "$PARAMETER_GIT_DIR"
+        pushd "$PARAMETER_GIT_DIR"
+        git submodule init
+        git submodule update --recursive --remote
+        popd
     )
 }
 

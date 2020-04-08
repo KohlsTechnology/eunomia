@@ -133,6 +133,29 @@ If a secret is provided, then it is assumed that the connection to Git requires 
 
 If the `uri` is not specified in the `parameterSource` section, then it will default to the `uri` specified under `templateSource`.
 
+### Git Submodules
+
+Some helm charts might require the configuration to be part of the chart itself (you can't read files from outside the chart). Loading files into a configmap is one example of this. 
+
+Separating the charts (templateSource) from the actual configuration (parameterSource) is a best practice. This allows you to separate your code (templates) from your configuration, which helps tremendously with change management.
+
+The best way to go about this is to use the config repo as a submodule and point to the master branch. During development you can of course point against another branch, just make sure you correct it in `.gitmodules` before the PR gets merged.
+
+#### Add submodule to track master branch
+
+```
+git submodule add -b master <repo-url>
+```
+
+#### Checking out a repo with submodules
+
+```
+git clone <repo-url>
+cd <repo>
+git submodule init
+git submodule update --recursive --remote
+```
+
 ### parameterSource processing
 Eunomia uses the [yq command](http://mikefarah.github.io/yq/) to merge all yaml files in the specified folder. You have to be careful, if you have the same variable name in multiple files. Dictionaries will merge, lists will get overwritten.
 

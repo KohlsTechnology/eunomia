@@ -243,6 +243,31 @@ hello_world_hierarchy_cr1
 # Delete namespaces after Testing hello-world-hierarchy example
 kubectl delete namespace eunomia-hello-world-demo eunomia-hello-world-demo-hierarchy
 
+#Test git_submodules
+git_submodules() {
+    timeout=60
+    kubectl apply -f test/e2e/testdata/submodule/hello-world-submodule-cr.yaml -n eunomia-hello-world-yaml-demo
+    while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running" ]]; do
+        echo "waiting for hello-world-yaml-cr1 deployment: remaining $timeout sec..."
+        sleep 1
+    done
+    if [[ $timeout == 0 ]]; then
+        echo "git_submodules Test FAILED"
+        exit 1
+    fi
+    echo "git_submodules Test Passed"
+}
+
+# Create new namespace
+kubectl create namespace eunomia-hello-world-yaml-demo
+# Create new service account for the runners
+kubectl apply -f examples/hello-world-yaml/eunomia-runner-sa.yaml -n eunomia-hello-world-yaml-demo
+
+git_submodules
+
+# Delete namespaces after Testing hello-world-yaml example
+kubectl delete namespace eunomia-hello-world-yaml-demo
+
 # Eunomia teardown
 helm template deploy/helm/eunomia-operator/ \
     --set eunomia.operator.image.tag=dev \
