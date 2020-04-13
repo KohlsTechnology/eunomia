@@ -1,0 +1,18 @@
+apiVersion: eunomia.kohls.io/v1alpha1
+kind: GitOpsConfig
+metadata:
+  name: hello-world-yaml
+spec:
+  templateSource:
+    uri: https://github.com/KohlsTechnology/eunomia-test-submodules
+    ref: master
+    contextDir: eunomia/examples/hello-world-yaml/template1
+  parameterSource:
+    ref: master
+    contextDir: eunomia/examples/hello-world-yaml/parameters
+  triggers:
+  - type: Change
+  serviceAccountRef: eunomia-runner-yaml
+  templateProcessorImage: quay.io/kohlstechnology/eunomia-base:latest
+  resourceHandlingMode: Apply
+  resourceDeletionMode: Delete
