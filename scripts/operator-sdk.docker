@@ -1,6 +1,6 @@
-FROM golang:1.12
+FROM golang:1.13
 
-ENV OPERATOR_SDK_VERSION="v0.8.1"
+ENV OPERATOR_SDK_VERSION="v0.10.0"
 
 RUN curl -L https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk-${OPERATOR_SDK_VERSION}-x86_64-linux-gnu -o /usr/bin/operator-sdk && \
     chmod +x /usr/bin/operator-sdk

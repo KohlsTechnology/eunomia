@@ -169,7 +169,13 @@ func main() {
 
 	// Create Service object to expose the metrics port.
 	// commented because service is generated via a manifest at deploy time.
-	// _, err = metrics.ExposeMetricsPort(ctx, metricsPort)
+	// servicePorts := []v1.ServicePort{
+	// 	{Port: metricsPort, Name: metrics.OperatorPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: metricsPort}},
+	// 	{Port: operatorMetricsPort, Name: metrics.CRPortName, Protocol: v1.ProtocolTCP, TargetPort: intstr.IntOrString{Type: intstr.Int, IntVal: operatorMetricsPort}},
+	// }
+	//
+	// _, err = metrics.CreateMetricsService(ctx, servicePorts)
+	//
 	// if err != nil {
 	// 	log.Info(err.Error())
 	// }
