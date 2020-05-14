@@ -15,6 +15,7 @@ export GITHUB_PAGES_BRANCH ?= gh-pages
 export GITHUB_PAGES_REPO ?= KohlsTechnology/eunomia
 export HELM_CHARTS_SOURCE ?= deploy/helm/eunomia-operator
 export HELM_CHART_DEST ?= $(GITHUB_PAGES_DIR)
+export TEST_ENV ?= minikube
 
 .PHONY: all
 all: build

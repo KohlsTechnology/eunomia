@@ -14,9 +14,9 @@ env:
   # NOTE: We can add 200 items to the build matrix, but only 3 run in parallel. So having more than three
   # items in the build matrix will cause the tests to wait in a queue. We will need to select the k8s versions
   # that we want to test carefully, or we risk having the tests run for a very long time.
-  - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.15.10 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1
-  - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.16.7 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1
-  - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.11.0 OPENSHIFT_VERSION=3.11.0 SHFMT_VERSION=v3.0.1
+  - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.15.10 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1 TEST_ENV=minikube
+  - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.16.7 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1 TEST_ENV=minikube
+  - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.11.0 MINISHIFT_VERSION=3.11.0 SHFMT_VERSION=v3.0.1 TEST_ENV=minishift
 
 before_install:
   - travis_retry go mod vendor
@@ -56,9 +56,9 @@ before_script:
   if [[ "$MINIKUBE_VERSION" ]]; then
     sudo minikube start --vm-driver=none --kubernetes-version=${KUBE_VERSION}
     minikube update-context
-  elif [[ "$OPENSHIFT_VERSION" ]]; then
+  elif [[ "$MINISHIFT_VERSION" ]]; then
     bash -x ci/prepare-host minishift
-    bash -x ci/start-cluster minishift ${OPENSHIFT_VERSION}
+    bash -x ci/start-cluster minishift ${MINISHIFT_VERSION}
   fi
 - JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'; until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
 

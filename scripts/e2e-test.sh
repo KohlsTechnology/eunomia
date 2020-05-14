@@ -16,10 +16,38 @@
 
 set -euxo pipefail
 
+usage() {
+    cat <<EOT
+e2e-test.sh minikube|minishift
+
+Execute the end-to-end tests on a local minikube or minishift.
+
+Instead of specifying minikube or minishift, you can also set the
+environment variable TEST_ENV with the respective value.
+
+Current Value of TEST_ENV is '${TEST_ENV:-}'
+EOT
+}
+
 EUNOMIA_PATH=$(
     cd "${0%/*}/.."
     pwd
 )
+
+if [[ "${1:-}" ]]; then
+    export TEST_ENV="${1}"
+fi
+
+case "${TEST_ENV:-}" in
+minikube) ;;
+minishift) ;;
+*)
+    usage
+    exit 1
+    ;;
+esac
+
+echo "Test environment set to : '${TEST_ENV}'"
 
 export JOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/job.yaml
 export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/cronjob.yaml
@@ -37,13 +65,13 @@ echo "EUNOMIA_URI=${EUNOMIA_URI:-}"
 echo "EUNOMIA_REF=${EUNOMIA_REF:-}"
 
 # Check if minikube is running
-if [[ "${MINIKUBE_VERSION:-}" ]]; then
+if [[ "${TEST_ENV}" == "minikube" ]]; then
     minikube status || {
         echo "Minikube is not running, aborting tests"
         exit 1
     }
 # Check if minishift is running
-elif [[ "${OPENSHIFT_VERSION:-}" ]]; then
+elif [[ "${TEST_ENV}" == "minishift" ]]; then
     minishift status || {
         echo "Minishift is not running, aborting tests"
         exit 1
@@ -57,18 +85,18 @@ fi
 
 # Pre-populate the Docker registry in minikube/minishift with images built from the current commit
 # See also: https://stackoverflow.com/q/42564058
-if [[ "${MINIKUBE_VERSION:-}" ]]; then
+if [[ "${TEST_ENV}" == "minikube" ]]; then
     eval "$(minikube docker-env)"
-elif [[ "${OPENSHIFT_VERSION:-}" ]]; then
+elif [[ "${TEST_ENV}" == "minishift" ]]; then
     eval "$(minishift docker-env)"
 fi
 GOOS=linux make e2e-test-images
 
 # Get minikube/minishift IP address
 # shellcheck disable=SC2155
-if [[ "${MINIKUBE_VERSION:-}" ]]; then
+if [[ "${TEST_ENV}" == "minikube" ]]; then
     export MINIKUBE_IP=$(minikube ip)
-elif [[ "${OPENSHIFT_VERSION:-}" ]]; then
+elif [[ "${TEST_ENV}" == "minishift" ]]; then
     export MINIKUBE_IP=$(minishift ip)
 fi
 
@@ -98,7 +126,7 @@ operator-sdk test local ./test/e2e \
     --namespaced-manifest /dev/null \
     --global-manifest /dev/null \
     --verbose \
-    --go-test-flags "-tags e2e -timeout 20m"
+    --go-test-flags "-tags e2e -timeout 40m"
 
 ## Testing hello-world-yaml example
 # Create new namespace
