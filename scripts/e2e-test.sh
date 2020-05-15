@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-set -euxo pipefail
+set -euo pipefail
 
 usage() {
     cat <<EOT
@@ -29,6 +29,56 @@ Current Value of TEST_ENV is '${TEST_ENV:-}'
 EOT
 }
 
+function pause() {
+    if [[ "${TEST_PAUSE:-}" == "yes" ]]; then
+        read -s -n 1 -p "Press any key to continue . . ."
+        echo ""
+    fi
+}
+
+# Makes sure that all gitopsconfig jobs complete, before moving on to the next test
+# Requires the namespace name as the only parameter
+function wait_for_gitopsconfig_completion() {
+    NAMESPACE="${1}"
+    timeout=60
+    JOBS=$(kubectl get jobs -n ${NAMESPACE} -o name | sed 's/job.batch\///g')
+    ALL_GOOD=0
+    while ((--timeout)) && [[ "${ALL_GOOD}" == "0" ]]; do
+        for JOB in $JOBS
+        do
+          STATUS=$(kubectl get job -n ${NAMESPACE} ${JOB} -o=jsonpath="{.status.conditions[*].type}{'\n'}")
+          ALL_GOOD=1
+          if [ "${STATUS}" == "Complete" ] ; then
+            echo "Job ${JOB} is finished"
+          else
+            echo "Job ${JOB} is still running"
+            ALL_GOOD=0
+          fi
+        done
+        echo "waiting for GitOpsConfig jobs to finish: remaining $timeout sec..."
+        sleep 1
+    done
+    if [[ $timeout == 0 ]]; then
+        echo "Timeout waiting for GitOpsConfig jobs to finish"
+        exit 1
+    fi
+
+}
+
+# Checks how many gitopsconfig jobs where created and compares it to the expected number
+# Usage: wait_for_gitopsconfig_completion <namespace> <expected-number>
+function validate_job_count() {
+    NAMESPACE="${1}"
+    EXPECTED="${2}"
+    COUNT=$(kubectl get jobs -n ${NAMESPACE} | grep gitopsconfig | wc -l)
+    if [ ${COUNT} -ne ${EXPECTED} ]; then
+      echo "Error, found ${COUNT} gitopsconfig jobs instead of ${EXPECTED}"
+      echo "Found the following jobs in namespace ${NAMESPACE}"
+      kubectl get jobs -n ${NAMESPACE} -o=jsonpath="{range .items[*]}{.metadata.name}{': '}{.status.conditions[*].type}{'\n'}{end}"
+      exit 1
+    fi
+}
+
 EUNOMIA_PATH=$(
     cd "${0%/*}/.."
     pwd
@@ -36,6 +86,10 @@ EUNOMIA_PATH=$(
 
 if [[ "${1:-}" ]]; then
     export TEST_ENV="${1}"
+fi
+
+if [[ "${2:-}" == "yes" ]]; then
+    export TEST_PAUSE="yes"
 fi
 
 case "${TEST_ENV:-}" in
@@ -48,6 +102,7 @@ minishift) ;;
 esac
 
 echo "Test environment set to : '${TEST_ENV}'"
+echo "Pausing between tests: ${TEST_PAUSE:-no}"
 
 export JOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/job.yaml
 export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/cronjob.yaml
@@ -105,6 +160,7 @@ fi
 # livenessProbe and readinessProbe ports in deploy/helm/eunomia-operator/templates/deployment.yaml
 export OPERATOR_WEBHOOK_PORT=8080
 
+echo "Installing Eunomia Operator"
 # Eunomia setup
 helm template deploy/helm/eunomia-operator/ \
     --set eunomia.operator.image.tag=dev \
@@ -121,12 +177,15 @@ else
     exit 1
 fi
 
+pause
+
 # End-to-end tests
 operator-sdk test local ./test/e2e \
     --namespaced-manifest /dev/null \
     --global-manifest /dev/null \
     --verbose \
     --go-test-flags "-tags e2e -timeout 40m"
+pause
 
 ## Testing hello-world-yaml example
 # Create new namespace
@@ -180,8 +239,22 @@ hello_world_yaml_cr_3() {
 }
 
 hello_world_yaml_cr_1
+wait_for_gitopsconfig_completion eunomia-hello-world-yaml-demo
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+#validate_job_count eunomia-hello-world-yaml-demo 1
+pause
+
 hello_world_yaml_cr_2
+wait_for_gitopsconfig_completion eunomia-hello-world-yaml-demo
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+#validate_job_count eunomia-hello-world-yaml-demo 2
+pause
+
 hello_world_yaml_cr_3
+wait_for_gitopsconfig_completion eunomia-hello-world-yaml-demo
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+#validate_job_count eunomia-hello-world-yaml-demo 3
+pause
 
 # Delete namespaces after Testing hello-world-yaml example
 kubectl delete namespace eunomia-hello-world-yaml-demo
@@ -239,8 +312,13 @@ hello_world_helm_cr3() {
 }
 
 hello_world_helm_cr1
+pause
+
 hello_world_helm_cr2
+pause
+
 hello_world_helm_cr3
+pause
 
 # Delete namespaces after Testing hello-world-helm example
 kubectl delete namespace eunomia-hello-world-demo
@@ -267,6 +345,7 @@ hello_world_hierarchy_cr1() {
 }
 
 hello_world_hierarchy_cr1
+pause
 
 # Delete namespaces after Testing hello-world-hierarchy example
 kubectl delete namespace eunomia-hello-world-demo eunomia-hello-world-demo-hierarchy
@@ -292,9 +371,12 @@ kubectl create namespace eunomia-hello-world-yaml-demo
 kubectl apply -f examples/hello-world-yaml/eunomia-runner-sa.yaml -n eunomia-hello-world-yaml-demo
 
 git_submodules
+pause
 
 # Delete namespaces after Testing hello-world-yaml example
 kubectl delete namespace eunomia-hello-world-yaml-demo
+
+echo "Deleting Eunomia Operator"
 
 # Eunomia teardown
 helm template deploy/helm/eunomia-operator/ \
