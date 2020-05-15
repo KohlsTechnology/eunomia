@@ -31,7 +31,7 @@ EOT
 
 function pause() {
     if [[ "${TEST_PAUSE:-}" == "yes" ]]; then
-        read -s -n 1 -p "Press any key to continue . . ."
+        read -r -s -n 1 -p "Press any key to continue . . ."
         echo ""
     fi
 }
@@ -41,19 +41,18 @@ function pause() {
 function wait_for_gitopsconfig_completion() {
     NAMESPACE="${1}"
     timeout=60
-    JOBS=$(kubectl get jobs -n ${NAMESPACE} -o name | sed 's/job.batch\///g')
+    JOBS=$(kubectl get jobs -n "${NAMESPACE}" -o name | sed 's/job.batch\///g')
     ALL_GOOD=0
     while ((--timeout)) && [[ "${ALL_GOOD}" == "0" ]]; do
-        for JOB in $JOBS
-        do
-          STATUS=$(kubectl get job -n ${NAMESPACE} ${JOB} -o=jsonpath="{.status.conditions[*].type}{'\n'}")
-          ALL_GOOD=1
-          if [ "${STATUS}" == "Complete" ] ; then
-            echo "Job ${JOB} is finished"
-          else
-            echo "Job ${JOB} is still running"
-            ALL_GOOD=0
-          fi
+        for JOB in $JOBS; do
+            STATUS=$(kubectl get job -n "${NAMESPACE}" "${JOB}" -o=jsonpath="{.status.conditions[*].type}{'\n'}")
+            ALL_GOOD=1
+            if [ "${STATUS}" == "Complete" ]; then
+                echo "Job ${JOB} is finished"
+            else
+                echo "Job ${JOB} is still running"
+                ALL_GOOD=0
+            fi
         done
         echo "waiting for GitOpsConfig jobs to finish: remaining $timeout sec..."
         sleep 1
@@ -70,12 +69,12 @@ function wait_for_gitopsconfig_completion() {
 function validate_job_count() {
     NAMESPACE="${1}"
     EXPECTED="${2}"
-    COUNT=$(kubectl get jobs -n ${NAMESPACE} | grep gitopsconfig | wc -l)
-    if [ ${COUNT} -ne ${EXPECTED} ]; then
-      echo "Error, found ${COUNT} gitopsconfig jobs instead of ${EXPECTED}"
-      echo "Found the following jobs in namespace ${NAMESPACE}"
-      kubectl get jobs -n ${NAMESPACE} -o=jsonpath="{range .items[*]}{.metadata.name}{': '}{.status.conditions[*].type}{'\n'}{end}"
-      exit 1
+    COUNT=$(kubectl get jobs -n "${NAMESPACE}" | grep -c gitopsconfig)
+    if [ "${COUNT}" -ne "${EXPECTED}" ]; then
+        echo "Error, found ${COUNT} gitopsconfig jobs instead of ${EXPECTED}"
+        echo "Found the following jobs in namespace ${NAMESPACE}"
+        kubectl get jobs -n "${NAMESPACE}" -o=jsonpath="{range .items[*]}{.metadata.name}{': '}{.status.conditions[*].type}{'\n'}{end}"
+        exit 1
     fi
 }
 
