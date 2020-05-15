@@ -250,12 +250,12 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	err = cl.Create(context.Background(), &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
-			APIVersion: "eunomia.kohls.io/v1alpha1",
+			APIVersion: batchv1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-operator-delete",
 			Namespace: namespace,
-			Labels:    map[string]string{"action": "delete"},
+			Labels:    map[string]string{"action": "delete", tagJobOwner: "gitops-operator"},
 			OwnerReferences: []metav1.OwnerReference{
 				{
 					APIVersion:         "eunomia.kohls.io/v1alpha1",

@@ -455,6 +455,8 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		return reconcile.Result{}, fmt.Errorf("GitOpsConfig finalizer unable to list owned jobs for %q: %w", instance.Name, err)
 	}
 
+	log.Info("Active Jobs", "n", len(jobs), "instance", instance.Name)
+
 	// If exactly 1 job exists, but it's blocked because of bad image, we
 	// assume the GitOpsConfig never managed to successfully deploy, so we can
 	// just delete the job, remove the finalizer, and be done (#216). It may be
@@ -487,6 +489,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 			deleters = append(deleters, j)
 		}
 	}
+	log.Info("Delete Jobs", "n", len(deleters), "instance", instance.Name)
 	if len(deleters) > 0 {
 		if len(deleters) > 1 {
 			log.Error(nil, "too many delete jobs found (expected 1)", "n", len(deleters), "instance", instance.Name)
@@ -554,6 +557,7 @@ func ownedCronJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha
 				ownerRef.Kind == owner.Kind &&
 				ownerRef.Name == owner.ObjectMeta.Name {
 				owned = append(owned, cronJob)
+				log.Info("ownedCronJobs", "Name", cronJob.Name, "Owner", owner.Name, "Namespace", owner.Namespace)
 				break
 			}
 		}
@@ -575,6 +579,9 @@ func ownedJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha1.Gi
 	}, &jobs)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list jobs for jobOwner==%q (ns: %s): %w", owner.Name, owner.Namespace, err)
+	}
+	for _, j := range jobs.Items {
+		log.Info("ownedJobs", "Name", j.Name, "Owner", owner.Name, "Namespace", owner.Namespace)
 	}
 	return jobs.Items, nil
 }
