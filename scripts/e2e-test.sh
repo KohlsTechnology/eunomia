@@ -41,10 +41,15 @@ function pause() {
 function wait_for_gitopsconfig_completion() {
     NAMESPACE="${1}"
     timeout=60
-    JOBS=$(kubectl get jobs -n "${NAMESPACE}" -o name | sed 's/job.batch\///g')
     ALL_GOOD=0
+    JOBS=""
     while ((--timeout)) && [[ "${ALL_GOOD}" == "0" ]]; do
-        for JOB in $JOBS; do
+        JOBS=$(kubectl get jobs -n "${NAMESPACE}" -o name | sed 's/job.batch\///g')
+        if [ -z "${JOBS}" ]; then
+            echo "Something went wrong, received an empty list for jobs in namespace '${NAMESPACE}'"
+            exit 1
+        fi
+        for JOB in ${JOBS}; do
             STATUS=$(kubectl get job -n "${NAMESPACE}" "${JOB}" -o=jsonpath="{.status.conditions[*].type}{'\n'}")
             ALL_GOOD=1
             if [ "${STATUS}" == "Complete" ]; then
@@ -60,6 +65,9 @@ function wait_for_gitopsconfig_completion() {
     if [[ $timeout == 0 ]]; then
         echo "Timeout waiting for GitOpsConfig jobs to finish"
         exit 1
+    else
+        echo "All GitOpsConfig jobs finished. List of jobs:"
+        echo "${JOBS}"
     fi
 
 }
@@ -76,6 +84,16 @@ function validate_job_count() {
         kubectl get jobs -n "${NAMESPACE}" -o=jsonpath="{range .items[*]}{.metadata.name}{': '}{.status.conditions[*].type}{'\n'}{end}"
         exit 1
     fi
+}
+
+# Returns the active replicas for hello-world
+# Usage get_replica_count <namespace> <image> <labelname>
+# Example: get_replica_count "eunomia-hello-world-yaml-demo" "gcr.io/google-samples/hello-app:2.0" "hello-world"
+function get_replica_count() {
+    NAMESPACE="${1}"
+    IMAGE="${2}"
+    NAME="${3}"
+    kubectl get replicaset -n "${NAMESPACE}" -l name="${NAME}" -o=jsonpath="{range .items[?(@.spec.template.spec.containers[*].image=='${IMAGE}')]}{.status.readyReplicas}{'\n'}{end}"
 }
 
 EUNOMIA_PATH=$(
@@ -167,7 +185,7 @@ helm template deploy/helm/eunomia-operator/ \
     --set eunomia.operator.namespace=$OPERATOR_NAMESPACE | kubectl apply -f -
 
 # Deployment test
-kubectl wait --for=condition=available --timeout=30s deployment/eunomia-operator -n $OPERATOR_NAMESPACE
+kubectl wait --for=condition=available --timeout=60s deployment/eunomia-operator -n $OPERATOR_NAMESPACE
 podname=$(kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' -n $OPERATOR_NAMESPACE)
 if kubectl exec "${podname}" date -n $OPERATOR_NAMESPACE; then
     echo "Eunomia deployment successful"
@@ -196,7 +214,7 @@ kubectl apply -f examples/hello-world-yaml/eunomia-runner-sa.yaml -n eunomia-hel
 hello_world_yaml_cr_1() {
     timeout=60
     kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr1.yaml -n eunomia-hello-world-yaml-demo
-    while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running" ]]; do
+    while ((--timeout)) && [[ "$(get_replica_count 'eunomia-hello-world-yaml-demo' 'gcr.io/google-samples/hello-app:1.0' "hello-world")" -ne "1" ]]; do
         echo "waiting for hello-world-yaml-cr1 deployment: remaining $timeout sec..."
         sleep 1
     done
@@ -209,9 +227,9 @@ hello_world_yaml_cr_1() {
 
 #Test hello_world_yaml_cr_2
 hello_world_yaml_cr_2() {
-    timeout=30
+    timeout=60
     kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr2.yaml -n eunomia-hello-world-yaml-demo
-    while ((--timeout)) && [[ "$(kubectl get replicaset -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.readyReplicas}{'\n'}{end}")" != "3" ]]; do
+    while ((--timeout)) && [[ "$(get_replica_count 'eunomia-hello-world-yaml-demo' 'gcr.io/google-samples/hello-app:1.0' "hello-world")" -ne "3" ]]; do
         echo "waiting for hello-world-yaml-cr2 deployment: remaining $timeout sec..."
         sleep 1
     done
@@ -224,9 +242,9 @@ hello_world_yaml_cr_2() {
 
 #Test hello_world_yaml_cr_3
 hello_world_yaml_cr_3() {
-    timeout=30
+    timeout=60
     kubectl apply -f examples/hello-world-yaml/cr/hello-world-cr3.yaml -n eunomia-hello-world-yaml-demo
-    while ((--timeout)) && [[ "$(kubectl get deployment -n eunomia-hello-world-yaml-demo -o=jsonpath="{range .items[*]}{.status.observedGeneration}{'\n'}{end}")" != "3" ]]; do
+    while ((--timeout)) && [[ "$(get_replica_count 'eunomia-hello-world-yaml-demo' 'gcr.io/google-samples/hello-app:2.0' "hello-world")" -ne "3" ]]; do
         echo "waiting for hello-world-yaml-cr3 deployment: remaining $timeout sec..."
         sleep 1
     done
@@ -238,6 +256,8 @@ hello_world_yaml_cr_3() {
 }
 
 hello_world_yaml_cr_1
+echo "Waiting 15 to verify no other gitopsconfig gets started"
+sleep 15
 wait_for_gitopsconfig_completion eunomia-hello-world-yaml-demo
 # don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
 #validate_job_count eunomia-hello-world-yaml-demo 1
@@ -269,7 +289,7 @@ kubectl apply -f examples/hello-world-helm/service_account_runner.yaml -n eunomi
 hello_world_helm_cr1() {
     timeout=60
     kubectl apply -f examples/hello-world-helm/cr/hello-world-cr1.yaml -n eunomia-hello-world-demo
-    while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running" ]]; do
+    while ((--timeout)) && [[ "$(get_replica_count 'eunomia-hello-world-demo' 'gcr.io/google-samples/hello-app:1.0' "hello-world")" -ne "1" ]]; do
         echo "waiting for hello-world-helm-cr1 deployment: remaining $timeout sec..."
         sleep 1
     done
@@ -284,7 +304,7 @@ hello_world_helm_cr1() {
 hello_world_helm_cr2() {
     timeout=60
     kubectl apply -f examples/hello-world-helm/cr/hello-world-cr2.yaml -n eunomia-hello-world-demo
-    while ((--timeout)) && [[ "$(kubectl get replicaset -n eunomia-hello-world-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.readyReplicas}{'\n'}{end}")" != "3" ]]; do
+    while ((--timeout)) && [[ "$(get_replica_count 'eunomia-hello-world-demo' 'gcr.io/google-samples/hello-app:1.0' "hello-world")" -ne "3" ]]; do
         echo "waiting for hello-world-helm-cr2 deployment: remaining $timeout sec..."
         sleep 1
     done
@@ -299,7 +319,7 @@ hello_world_helm_cr2() {
 hello_world_helm_cr3() {
     timeout=60
     kubectl apply -f examples/hello-world-helm/cr/hello-world-cr3.yaml -n eunomia-hello-world-demo
-    while ((--timeout)) && [[ "$(kubectl get deployment -n eunomia-hello-world-demo -o=jsonpath="{range .items[*]}{.status.observedGeneration}{'\n'}{end}")" != "3" ]]; do
+    while ((--timeout)) && [[ "$(get_replica_count 'eunomia-hello-world-demo' 'gcr.io/google-samples/hello-app:2.0' "hello-world")" -ne "3" ]]; do
         echo "waiting for hello-world-helm-cr3 deployment: remaining $timeout sec..."
         sleep 1
     done
@@ -311,12 +331,23 @@ hello_world_helm_cr3() {
 }
 
 hello_world_helm_cr1
+echo "Waiting 15 to verify no other gitopsconfig gets started"
+sleep 15
+wait_for_gitopsconfig_completion eunomia-hello-world-demo
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+#validate_job_count eunomia-hello-world-demo 1
 pause
 
 hello_world_helm_cr2
+wait_for_gitopsconfig_completion eunomia-hello-world-demo
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+#validate_job_count eunomia-hello-world-demo 1
 pause
 
 hello_world_helm_cr3
+wait_for_gitopsconfig_completion eunomia-hello-world-demo
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+#validate_job_count eunomia-hello-world-demo 1
 pause
 
 # Delete namespaces after Testing hello-world-helm example
@@ -330,9 +361,9 @@ kubectl apply -f examples/hello-world-helm/service_account_runner.yaml -n eunomi
 
 #Test hello_world_hierarchy_cr1
 hello_world_hierarchy_cr1() {
-    timeout=100
+    timeout=60
     kubectl apply -f examples/hello-world-hierarchy/cr/hello-world-cr.yaml -n eunomia-hello-world-demo
-    while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-demo-hierarchy -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running" ]]; do
+    while ((--timeout)) && [[ "$(get_replica_count 'eunomia-hello-world-demo-hierarchy' 'gcr.io/google-samples/hello-app:1.0' "hello-world-hierarchy")" -ne "1" ]]; do
         echo "waiting for hello-world-hierarchy-cr1 deployment: remaining $timeout sec..."
         sleep 1
     done
@@ -344,6 +375,11 @@ hello_world_hierarchy_cr1() {
 }
 
 hello_world_hierarchy_cr1
+echo "Waiting 15 to verify no other gitopsconfig gets started"
+sleep 15
+wait_for_gitopsconfig_completion eunomia-hello-world-demo
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+#validate_job_count eunomia-hello-world-demo 1
 pause
 
 # Delete namespaces after Testing hello-world-hierarchy example
@@ -353,8 +389,8 @@ kubectl delete namespace eunomia-hello-world-demo eunomia-hello-world-demo-hiera
 git_submodules() {
     timeout=60
     kubectl apply -f test/e2e/testdata/submodule/hello-world-submodule-cr.yaml -n eunomia-hello-world-yaml-demo
-    while ((--timeout)) && [[ "$(kubectl get po -n eunomia-hello-world-yaml-demo -l name=hello-world -o=jsonpath="{range .items[*]}{.status.phase}{'\n'}{end}")" != "Running" ]]; do
-        echo "waiting for hello-world-yaml-cr1 deployment: remaining $timeout sec..."
+    while ((--timeout)) && [[ "$(get_replica_count 'eunomia-hello-world-yaml-demo' 'gcr.io/google-samples/hello-app:1.0' "hello-world")" -ne "1" ]]; do
+        echo "waiting for hello-world-submodule-cr deployment: remaining $timeout sec..."
         sleep 1
     done
     if [[ $timeout == 0 ]]; then
