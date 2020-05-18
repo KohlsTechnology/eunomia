@@ -9,7 +9,7 @@ spec:
     listKind: GitOpsConfigList
     plural: gitopsconfigs
     singular: gitopsconfig
-  scope: Namespaced
+  scope: Namespaces
   subresources:
     status: {}
   validation:

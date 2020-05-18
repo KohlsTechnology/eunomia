@@ -9,7 +9,7 @@ import (
 
 // GitConfig represents all the information necessary to
 type GitConfig struct {
-	//+kubebuilder:validation:Pattern=(^$|(((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)))?
+	//+kubebuilder:validation:Pattern=`(^$|(((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)))?`
 	URI        string `json:"uri,omitempty"`
 	Ref        string `json:"ref,omitempty"`
 	HTTPProxy  string `json:"httpProxy,omitempty"`
@@ -77,7 +77,7 @@ type GitOpsConfigStatus struct {
 
 // GitOpsConfig is the Schema for the gitopsconfigs API
 // +k8s:openapi-gen=true
-// +kubebuilder:resource:scope=Namespaced
+// +kubebuilder:resource:scope=Namespaces
 // +kubebuilder:subresource:status
 type GitOpsConfig struct {
 	metav1.TypeMeta   `json:",inline"`
