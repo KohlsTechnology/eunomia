@@ -210,8 +210,8 @@ make test-unit
 ```shell
 # Optional: Set the environment variable $EUNOMIA_URI to point to a specific git url for testing
 # Optional: Set the environment variable $EUNOMIA_REF to point to a specific git reference for testing
-# Optional: Set the environment variable $TEST_ENV to minishift (default is minikube)
-# Optional: Set the environment variable $TEST_PAUSE to yes (default is no)
+# Optional: Set the environment variable $EUNOMIA_TEST_ENV to minishift (default is minikube)
+# Optional: Set the environment variable $EUNOMIA_TEST_PAUSE to yes (default is no)
 make test-e2e
 ```
 
