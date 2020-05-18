@@ -25,7 +25,7 @@ import (
 	"github.com/KohlsTechnology/eunomia/pkg/controller/gitopsconfig"
 	"github.com/google/go-github/github"
 	k8sevent "sigs.k8s.io/controller-runtime/pkg/event"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var log = logf.Log.WithName("handler")

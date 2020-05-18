@@ -34,10 +34,10 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/client/config"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
+	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
-	"sigs.k8s.io/controller-runtime/pkg/runtime/signals"
 
 	"github.com/KohlsTechnology/eunomia/pkg/apis"
 	"github.com/KohlsTechnology/eunomia/pkg/controller"
@@ -192,7 +192,7 @@ func main() {
 	// there is access to Kubernetes API, and there are no errors when calling it.
 	mux.HandleFunc("/readyz", func(w http.ResponseWriter, _ *http.Request) {
 		namespaces := corev1.NamespaceList{}
-		err = mgr.GetClient().List(ctx, &client.ListOptions{}, &namespaces)
+		err = mgr.GetClient().List(ctx, &namespaces, []client.ListOption{}...)
 		if err != nil {
 			log.Error(err, "namespaces listing for /readyz endpoint failed")
 			w.WriteHeader(http.StatusInternalServerError)

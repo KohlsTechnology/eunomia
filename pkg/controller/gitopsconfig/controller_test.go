@@ -560,9 +560,10 @@ func TestCreateJob(t *testing.T) {
 func findJobList(cl client.Client) ([]batchv1.Job, error) {
 	// Looking up all jobs
 	jobs := batchv1.JobList{}
-	err := cl.List(context.Background(), &client.ListOptions{
-		Namespace: namespace,
-	}, &jobs)
+	listOpts := []client.ListOption{
+		client.InNamespace(namespace),
+	}
+	err := cl.List(context.Background(), &jobs, listOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to list the running jobs: %w", err)
 	}

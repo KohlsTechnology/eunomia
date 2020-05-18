@@ -27,7 +27,7 @@ import (
 	"github.com/ghodss/yaml"
 	batch "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var jobTemplate *template.Template
