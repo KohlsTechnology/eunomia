@@ -18,19 +18,22 @@ set -euo pipefail
 
 usage() {
     cat <<EOT
-e2e-test.sh minikube|minishift
+e2e-test.sh [-e|--env=(minikube|minishift)] [-p|--pause]
 
 Execute the end-to-end tests on a local minikube or minishift.
 
-Instead of specifying minikube or minishift, you can also set the
-environment variable TEST_ENV with the respective value.
+-e|--env=(minikube|minishift) sets the environment the tests will be run under
+-p|--pause Pauses after each test step to help with debugging
 
-Current Value of TEST_ENV is '${TEST_ENV:-}'
+You can also specify the settings via environment variables (command line parameters take precedence).
+EUNOMIA_TEST_ENV=(minikube|minishift)
+EUNOMIA_TEST_PAUSE=yes
+
 EOT
 }
 
 function pause() {
-    if [[ "${TEST_PAUSE:-}" == "yes" ]]; then
+    if [[ "${EUNOMIA_TEST_PAUSE:-}" == "yes" ]]; then
         read -r -s -n 1 -p "Press any key to continue . . ."
         echo ""
     fi
@@ -101,25 +104,68 @@ EUNOMIA_PATH=$(
     pwd
 )
 
-if [[ "${1:-}" ]]; then
-    export TEST_ENV="${1}"
-fi
+# Process the command line parameters
+PARAMS=""
+while (("$#")); do
+    case "$1" in
+    -p | --pause) # pause between tests
+        export EUNOMIA_TEST_PAUSE=yes
+        shift
+        ;;
+    -e | --env) # set the test environment
+        if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+            EUNOMIA_TEST_ENV=$2
+            shift 2
+        else
+            echo "Error: Argument for $1 is missing" >&2
+            exit 1
+        fi
+        ;;
+    -h | --help) # help
+        usage
+        exit 1
+        ;;
+    --* | -*) # unsupported flags
+        echo "Error: Unsupported flag $1" >&2
+        usage
+        exit 1
+        ;;
+    *) # preserve positional arguments
+        PARAMS="$PARAMS $1"
+        shift
+        ;;
+    esac
+done
+# set positional arguments in their proper place
+eval set -- "$PARAMS"
 
-if [[ "${2:-}" == "yes" ]]; then
-    export TEST_PAUSE="yes"
-fi
+# Default settings
+export EUNOMIA_TEST_ENV=${EUNOMIA_TEST_ENV:-minikube}
+export EUNOMIA_TEST_PAUSE=${EUNOMIA_TEST_PAUSE:-no}
 
-case "${TEST_ENV:-}" in
+case "${EUNOMIA_TEST_ENV:-}" in
 minikube) ;;
 minishift) ;;
 *)
+    echo "Error: invalid test environment '${EUNOMIA_TEST_ENV}' specified"
     usage
     exit 1
     ;;
 esac
 
-echo "Test environment set to : '${TEST_ENV}'"
-echo "Pausing between tests: ${TEST_PAUSE:-no}"
+case "${EUNOMIA_TEST_PAUSE:-}" in
+yes) ;;
+no) ;;
+*)
+    echo "Error: invalid setting for pause: '${EUNOMIA_TEST_ENV}' specified"
+    echo "It must be yes or no (or undefined)"
+    usage
+    exit 1
+    ;;
+esac
+
+echo "Test environment set to : '${EUNOMIA_TEST_ENV}'"
+echo "Pausing between tests: ${EUNOMIA_TEST_PAUSE}"
 
 export JOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/job.yaml
 export CRONJOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/cronjob.yaml
@@ -137,13 +183,13 @@ echo "EUNOMIA_URI=${EUNOMIA_URI:-}"
 echo "EUNOMIA_REF=${EUNOMIA_REF:-}"
 
 # Check if minikube is running
-if [[ "${TEST_ENV}" == "minikube" ]]; then
+if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
     minikube status || {
         echo "Minikube is not running, aborting tests"
         exit 1
     }
 # Check if minishift is running
-elif [[ "${TEST_ENV}" == "minishift" ]]; then
+elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
     minishift status || {
         echo "Minishift is not running, aborting tests"
         exit 1
@@ -157,18 +203,18 @@ fi
 
 # Pre-populate the Docker registry in minikube/minishift with images built from the current commit
 # See also: https://stackoverflow.com/q/42564058
-if [[ "${TEST_ENV}" == "minikube" ]]; then
+if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
     eval "$(minikube docker-env)"
-elif [[ "${TEST_ENV}" == "minishift" ]]; then
+elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
     eval "$(minishift docker-env)"
 fi
 GOOS=linux make e2e-test-images
 
 # Get minikube/minishift IP address
 # shellcheck disable=SC2155
-if [[ "${TEST_ENV}" == "minikube" ]]; then
+if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
     export MINIKUBE_IP=$(minikube ip)
-elif [[ "${TEST_ENV}" == "minishift" ]]; then
+elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
     export MINIKUBE_IP=$(minishift ip)
 fi
 
