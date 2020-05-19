@@ -16,11 +16,11 @@
 
 set -euo pipefail
 
-export OPERATOR_SDK_VERSION="v0.12.0"
+export OPERATOR_SDK_VERSION="v0.17.1"
 
 usage() {
     cat <<EOT
-e2e-test.sh [-e|--env=(minikube|minishift|kind)] [-p|--pause] [-n|--noimages] 
+e2e-test.sh [-e|--env=(minikube|minishift|kind)] [-p|--pause] [-n|--noimages]
             [-d|--nodeployment] [-r|--run=<test name>]
 
 Execute the end-to-end tests on a local minikube, minishift, or kind.

@@ -14,9 +14,9 @@ env:
   # NOTE: We can add 200 items to the build matrix, but only 3 run in parallel. So having more than three
   # items in the build matrix will cause the tests to wait in a queue. We will need to select the k8s versions
   # that we want to test carefully, or we risk having the tests run for a very long time.
-  - OPERATOR_SDK_VERSION=v0.12.0 KUBE_VERSION=v1.15.10 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
-  - OPERATOR_SDK_VERSION=v0.12.0 KUBE_VERSION=v1.16.7 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
-  - OPERATOR_SDK_VERSION=v0.12.0 KUBE_VERSION=v1.11.0 MINISHIFT_VERSION=3.11.0 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minishift
+  - OPERATOR_SDK_VERSION=v0.17.1 KUBE_VERSION=v1.16.15 MINIKUBE_VERSION=v1.15.1 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
+  - OPERATOR_SDK_VERSION=v0.17.1 KUBE_VERSION=v1.17.14 MINIKUBE_VERSION=v1.15.1 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
+  - OPERATOR_SDK_VERSION=v0.17.1 KUBE_VERSION=v1.18.2 MINIKUBE_VERSION=v1.15.1 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
 
 before_install:
   - travis_retry go mod vendor
@@ -70,11 +70,11 @@ jobs:
   include:
     - stage: deploy
       env:
-        - OPERATOR_SDK_VERSION=v0.12.0 KUBE_VERSION=v1.15.10 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
+        - OPERATOR_SDK_VERSION=v0.17.1 KUBE_VERSION=v1.18.2 MINIKUBE_VERSION=v1.15.1 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
       script: make travis-deploy-images
     - stage: deploy-release
       env:
-        - OPERATOR_SDK_VERSION=v0.12.0 KUBE_VERSION=v1.15.10 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
+        - OPERATOR_SDK_VERSION=v0.17.1 KUBE_VERSION=v1.18.2 MINIKUBE_VERSION=v1.15.1 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
       script: make travis-release
 
 stages:

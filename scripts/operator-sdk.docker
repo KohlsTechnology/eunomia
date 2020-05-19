@@ -1,6 +1,6 @@
 FROM golang:1.13
 
-ENV OPERATOR_SDK_VERSION="v0.12.0"
+ENV OPERATOR_SDK_VERSION="v0.17.1"
 
 RUN curl -L https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk-${OPERATOR_SDK_VERSION}-x86_64-linux-gnu -o /usr/bin/operator-sdk && \
     chmod +x /usr/bin/operator-sdk
@@ -15,8 +15,17 @@ VOLUME /gopath/src/github.com/KohlsTechnology/eunomia
 WORKDIR /gopath/src/github.com/KohlsTechnology/eunomia
 
 CMD \
-    echo "generating openapi..." && \
-    operator-sdk --verbose generate openapi && \
+    go build -o /tmp/openapi-gen k8s.io/kube-openapi/cmd/openapi-gen && \
+    /tmp/openapi-gen --logtostderr=true \
+                  -i ./pkg/apis/eunomia/v1alpha1 \
+                  -o "" \
+                  -O zz_generated.openapi \
+                  -p ./pkg/apis/eunomia/v1alpha1 \
+                  -h ./scripts/boilerplate_go.txt \
+                  -r "-" \
+                  -v 2 && \
+    echo "generating crds..." && \
+    operator-sdk --verbose generate crds && \
     echo "generating k8s..." && \
     operator-sdk --verbose generate k8s
 
