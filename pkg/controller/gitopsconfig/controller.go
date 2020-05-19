@@ -431,7 +431,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 
 	// To avoid a deadlock situation let's check if the namespace in which we are is maybe being deleted
 	ns := &corev1.Namespace{}
-	err := r.client.Get(context.TODO(), util.NN{Name: instance.GetNamespace()}, ns)
+	err := r.client.Get(context.TODO(), util.NN{Name: instance.GetNamespace(), Namespace: instance.GetNamespace()}, ns)
 	if err != nil {
 		log.Error(err, "GitOpsConfig finalizer unable to lookup instance's namespace", "instance", instance.Name)
 		return reconcile.Result{}, fmt.Errorf("GitOpsConfig finalizer unable to lookup instance's namespace for %q: %w", instance.Name, err)

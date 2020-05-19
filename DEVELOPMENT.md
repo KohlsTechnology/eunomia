@@ -45,7 +45,7 @@ Tools to build:
 - [Git](https://git-scm.com/downloads)
 - [Go 1.13+](https://golang.org/dl/)
 - [Docker](https://docs.docker.com/install/)
-- [Operator SDK v0.8.1](https://github.com/operator-framework/operator-sdk/blob/v0.8.1/doc/user/install-operator-sdk.md)
+- [Operator SDK v0.17.1](https://github.com/operator-framework/operator-sdk/blob/v0.17.1/doc/user/install-operator-sdk.md)
 
 Tools to test:
 
@@ -55,7 +55,7 @@ Tools to test:
 
 #### Installing on a Mac
 
-Again, all the components (except operator-sdk v0.8.1 and golint) can be easily installed via Homebrew:
+Again, all the components (except operator-sdk v10.17.1 and golint) can be easily installed via Homebrew:
 
 ```shell
 brew install git
@@ -67,7 +67,7 @@ brew install shfmt
 
 #### Installing on a Linux
 
-The components (except operator-sdk v0.8.1 and golint) can be installed via a distro-specific package manager. You can also download a binary, or install from source.
+The components (except operator-sdk v10.17.1 and golint) can be installed via a distro-specific package manager. You can also download a binary, or install from source.
 
 Here are vendor instructions on how to install the necessary components on Linux:
 
@@ -77,9 +77,14 @@ Here are vendor instructions on how to install the necessary components on Linux
 - [make](http://ftp.gnu.org/gnu/make/) (a tarball to download)
 - [shfmt](https://github.com/mvdan/sh#shfmt)
 
-#### Installing operator-sdk v0.8.1 from GitHub release
+#### Installing operator-sdk v10.17.1 from GitHub release
 
-Unfortunately, operator-sdk version 0.8.1 isn't available via package managers, so you have to install it from the GitHub release as described in the [documentation](https://github.com/operator-framework/operator-sdk/blob/v0.8.1/doc/user/install-operator-sdk.md).
+Unfortunately, operator-sdk version 10.17.1 isn't available via package managers, so you have to install it from the GitHub release as described in the [documentation](https://github.com/operator-framework/operator-sdk/blob/v10.17.1/doc/user/install-operator-sdk.md).
+
+The script `scripts/install-operator-sdk.sh ` will do this for you on Linux and MacOs:
+```
+scripts/install-operator-sdk.sh v0.17.1 /your/target/path
+```
 
 #### Installing golint
 

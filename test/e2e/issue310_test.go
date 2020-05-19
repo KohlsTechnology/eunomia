@@ -33,7 +33,7 @@ func TestIssue310UninitializedStart(t *testing.T) {
 	ctx := framework.NewTestCtx(t)
 	defer ctx.Cleanup()
 
-	namespace, err := ctx.GetNamespace()
+	namespace, err := ctx.GetOperatorNamespace()
 	if err != nil {
 		t.Fatalf("could not get namespace: %v", err)
 	}

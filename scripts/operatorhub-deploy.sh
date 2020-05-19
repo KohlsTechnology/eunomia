@@ -68,7 +68,7 @@ eunomia_root=$(
 )
 
 # "operator-sdk olm-catalog gen-csv" command requires a specific project layout:
-# https://github.com/operator-framework/operator-sdk/blob/v0.8.1/doc/user/olm-catalog/generating-a-csv.md#configuration
+# https://github.com/operator-framework/operator-sdk/blob/v10.17.1/doc/user/olm-catalog/generating-a-csv.md#configuration
 echo -e "${WHITE}Creating directory structure to satisfy operator-sdk"
 echo -e "\n- Generating operator.yaml and role.yaml${NC}"
 # Create temporary directory to store intermediate helm-generated files

@@ -380,7 +380,7 @@ Prometheus collects metrics from monitored targets by scraping metrics HTTP endp
 
 By default, the metrics in Operator SDK are exposed on `0.0.0.0:8383/metrics`
 
-For more information, see [Metrics in Operator SDK](https://github.com/operator-framework/operator-sdk/blob/v0.8.1/doc/user/metrics/README.md)
+For more information, see [Metrics in Operator SDK](https://github.com/operator-framework/operator-sdk/blob/v10.17.1/doc/user/metrics/README.md)
 
 #### Usage:
 
