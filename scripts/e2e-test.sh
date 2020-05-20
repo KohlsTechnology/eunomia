@@ -46,6 +46,7 @@ function wait_for_gitopsconfig_completion() {
     timeout=60
     ALL_GOOD=0
     JOBS=""
+    # Count down `timeout` to 0, then fail to avoid locking situations
     while ((--timeout)) && [[ "${ALL_GOOD}" == "0" ]]; do
         JOBS=$(kubectl get jobs -n "${NAMESPACE}" -o name | sed 's/job.batch\///g')
         if [ -z "${JOBS}" ]; then
@@ -89,7 +90,7 @@ function validate_job_count() {
     fi
 }
 
-# Returns the active replicas for hello-world
+# Returns the active replicas count
 # Usage get_replica_count <namespace> <image> <labelname>
 # Example: get_replica_count "eunomia-hello-world-yaml-demo" "gcr.io/google-samples/hello-app:2.0" "hello-world"
 function get_replica_count() {
