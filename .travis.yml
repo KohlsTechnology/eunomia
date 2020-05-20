@@ -39,7 +39,7 @@ before_script:
 - curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
 - sudo chmod +x kubectl && sudo mv kubectl /usr/local/bin/
 - |
-  if [[ "$MINIKUBE_VERSION" ]]; then
+  if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
     curl -Lo minikube https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-amd64
     sudo chmod +x minikube
     sudo mv minikube /usr/local/bin/
@@ -53,10 +53,10 @@ before_script:
 - curl -Lo shfmt https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64
 - sudo chmod +x shfmt && sudo mv shfmt /usr/local/bin/
 - |
-  if [[ "$MINIKUBE_VERSION" ]]; then
+  if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
     sudo minikube start --vm-driver=none --kubernetes-version=${KUBE_VERSION}
     minikube update-context
-  elif [[ "$MINISHIFT_VERSION" ]]; then
+  elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
     bash -x ci/prepare-host minishift
     bash -x ci/start-cluster minishift ${MINISHIFT_VERSION}
   fi
