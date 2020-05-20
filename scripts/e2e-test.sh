@@ -303,22 +303,22 @@ hello_world_yaml_cr_3() {
 }
 
 hello_world_yaml_cr_1
-echo "Waiting 15 to verify no other gitopsconfig gets started"
+echo "Waiting 15s to verify no other gitopsconfig gets started"
 sleep 15
 wait_for_gitopsconfig_completion eunomia-hello-world-yaml-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-yaml-demo 1
 pause
 
 hello_world_yaml_cr_2
 wait_for_gitopsconfig_completion eunomia-hello-world-yaml-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-yaml-demo 2
 pause
 
 hello_world_yaml_cr_3
 wait_for_gitopsconfig_completion eunomia-hello-world-yaml-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-yaml-demo 3
 pause
 
@@ -378,22 +378,22 @@ hello_world_helm_cr3() {
 }
 
 hello_world_helm_cr1
-echo "Waiting 15 to verify no other gitopsconfig gets started"
+echo "Waiting 15s to verify no other gitopsconfig gets started"
 sleep 15
 wait_for_gitopsconfig_completion eunomia-hello-world-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-demo 1
 pause
 
 hello_world_helm_cr2
 wait_for_gitopsconfig_completion eunomia-hello-world-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-demo 1
 pause
 
 hello_world_helm_cr3
 wait_for_gitopsconfig_completion eunomia-hello-world-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-demo 1
 pause
 
@@ -422,10 +422,10 @@ hello_world_hierarchy_cr1() {
 }
 
 hello_world_hierarchy_cr1
-echo "Waiting 15 to verify no other gitopsconfig gets started"
+echo "Waiting 15s to verify no other gitopsconfig gets started"
 sleep 15
 wait_for_gitopsconfig_completion eunomia-hello-world-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-demo 1
 pause
 
