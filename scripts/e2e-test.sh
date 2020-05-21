@@ -16,6 +16,8 @@
 
 set -euo pipefail
 
+export OPERATOR_SDK_VERSION="v0.8.1"
+
 usage() {
     cat <<EOT
 e2e-test.sh [-e|--env=(minikube|minishift)] [-p|--pause]
@@ -104,6 +106,11 @@ EUNOMIA_PATH=$(
     cd "${0%/*}/.."
     pwd
 )
+
+if ! operator-sdk version | grep "${OPERATOR_SDK_VERSION}"; then
+    echo "Error: Operator-SDK ${OPERATOR_SDK_VERSION} not found"
+    exit 1
+fi
 
 # Process the command line parameters
 PARAMS=""
