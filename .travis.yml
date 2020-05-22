@@ -70,11 +70,11 @@ jobs:
   include:
     - stage: deploy
       env:
-        - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.15.10 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1
+        - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.15.10 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
       script: make travis-deploy-images
     - stage: deploy-release
       env:
-        - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.15.10 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1
+        - OPERATOR_SDK_VERSION=v0.8.1 KUBE_VERSION=v1.15.10 MINIKUBE_VERSION=v1.6.2 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
       script: make travis-release
 
 stages:
