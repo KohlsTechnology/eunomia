@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-export OPERATOR_SDK_VERSION="v0.8.1"
+export OPERATOR_SDK_VERSION="v0.17.0"
 
 usage() {
     cat <<EOT
