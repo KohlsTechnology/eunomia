@@ -28,6 +28,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -431,7 +432,8 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 
 	// To avoid a deadlock situation let's check if the namespace in which we are is maybe being deleted
 	ns := &corev1.Namespace{}
-	err := r.client.Get(context.TODO(), util.NN{Name: instance.GetNamespace(), Namespace: instance.GetNamespace()}, ns)
+	// Do not use GetNN here, it will cause problems pulling the namespaces on different k8s versions
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.GetNamespace()}, ns)
 	if err != nil {
 		log.Error(err, "GitOpsConfig finalizer unable to lookup instance's namespace", "instance", instance.Name)
 		return reconcile.Result{}, fmt.Errorf("GitOpsConfig finalizer unable to lookup instance's namespace for %q: %w", instance.Name, err)
