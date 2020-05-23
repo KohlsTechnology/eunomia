@@ -108,8 +108,9 @@ EUNOMIA_PATH=$(
 )
 
 if ! operator-sdk version | grep "${OPERATOR_SDK_VERSION}"; then
-    echo "Error: Operator-SDK ${OPERATOR_SDK_VERSION} not found"
-    exit 1
+    echo
+    echo "Warning: Operator-SDK ${OPERATOR_SDK_VERSION} not found"
+    echo
 fi
 
 # Process the command line parameters
