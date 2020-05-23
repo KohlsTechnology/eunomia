@@ -87,7 +87,7 @@ func defaultNamespace() *corev1.Namespace {
 	return &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      namespace,
-			Namespace: namespace,
+			Namespace: "",
 		},
 	}
 }
