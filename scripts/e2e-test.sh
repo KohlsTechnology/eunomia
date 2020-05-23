@@ -332,6 +332,9 @@ pause
 # Delete namespaces after Testing hello-world-yaml example
 kubectl delete namespace eunomia-hello-world-yaml-demo
 
+# Let things settle down just a bit more
+sleep 15
+
 ## Testing hello-world-helm example
 # Create new namespace
 kubectl create namespace eunomia-hello-world-demo
@@ -406,6 +409,9 @@ pause
 
 # Delete namespaces after Testing hello-world-helm example
 kubectl delete namespace eunomia-hello-world-demo
+
+# Let things settle down just a bit more
+sleep 15
 
 ## Testing hello-world-hierarchy example
 # Create new namespace
