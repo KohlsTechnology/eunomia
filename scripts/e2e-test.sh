@@ -16,8 +16,6 @@
 
 set -euo pipefail
 
-export OPERATOR_SDK_VERSION="v0.17.1"
-
 usage() {
     cat <<EOT
 e2e-test.sh [-e|--env=(minikube|minishift)] [-p|--pause]
@@ -106,15 +104,6 @@ EUNOMIA_PATH=$(
     cd "${0%/*}/.."
     pwd
 )
-
-OSDK_VERSION="$(operator-sdk version)"
-# shellcheck disable=SC2143
-if [ -n "$(echo "${OSDK_VERSION}" | grep "${OPERATOR_SDK_VERSION}")" ]; then
-    echo
-    echo "Warning: You should be using Operator-SDK ${OPERATOR_SDK_VERSION}."
-    echo "Found: ${OSDK_VERSION}"
-    echo
-fi
 
 # Process the command line parameters
 PARAMS=""
