@@ -108,7 +108,8 @@ EUNOMIA_PATH=$(
 )
 
 OSDK_VERSION="$(operator-sdk version)"
-if ! echo "${OSDK_VERSION}" | grep "${OPERATOR_SDK_VERSION}"; then
+# shellcheck disable=SC2143
+if [ -n "$(echo "${OSDK_VERSION}" | grep "${OPERATOR_SDK_VERSION}")" ]; then
     echo
     echo "Warning: You should be using Operator-SDK ${OPERATOR_SDK_VERSION}."
     echo "Found: ${OSDK_VERSION}"
