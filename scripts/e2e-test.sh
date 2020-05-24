@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-export OPERATOR_SDK_VERSION="v0.17.0"
+export OPERATOR_SDK_VERSION="v0.17.1"
 
 usage() {
     cat <<EOT
@@ -107,9 +107,11 @@ EUNOMIA_PATH=$(
     pwd
 )
 
-if ! operator-sdk version | grep "${OPERATOR_SDK_VERSION}"; then
+OSDK_VERSION="$(operator-sdk version)"
+if ! echo "${OSDK_VERSION}" | grep "${OPERATOR_SDK_VERSION}"; then
     echo
-    echo "Warning: Operator-SDK ${OPERATOR_SDK_VERSION} not found"
+    echo "Warning: You should be using Operator-SDK ${OPERATOR_SDK_VERSION}."
+    echo "Found: ${OSDK_VERSION}"
     echo
 fi
 
