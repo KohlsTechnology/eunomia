@@ -15,7 +15,9 @@ VOLUME /gopath/src/github.com/KohlsTechnology/eunomia
 WORKDIR /gopath/src/github.com/KohlsTechnology/eunomia
 
 CMD \
+    echo "building openapi-gen" && \
     go build -o /tmp/openapi-gen k8s.io/kube-openapi/cmd/openapi-gen && \
+    echo "generating openapi" && \
     /tmp/openapi-gen --logtostderr=true \
                   -i ./pkg/apis/eunomia/v1alpha1 \
                   -o "" \

@@ -9,7 +9,7 @@ spec:
     listKind: GitOpsConfigList
     plural: gitopsconfigs
     singular: gitopsconfig
-  scope: Namespaces
+  scope: Namespaced
   subresources:
     status: {}
   validation:
@@ -129,7 +129,7 @@ spec:
                     type: string
                 type: object
               type: array
-              x-kubernetes-list-type: set
+              x-kubernetes-list-type: atomic
           type: object
         status:
           description: GitOpsConfigStatus defines the observed state of GitOpsConfig

@@ -81,7 +81,7 @@ Here are vendor instructions on how to install the necessary components on Linux
 
 Unfortunately, operator-sdk version 0.17.1 isn't available via package managers, so you have to install it from the GitHub release as described in the [documentation](https://github.com/operator-framework/operator-sdk/blob/v0.17.1/doc/user/install-operator-sdk.md).
 
-The script `scripts/install-operator-sdk.sh ` will do this for you on Linux and MacOs:
+The script `scripts/install-operator-sdk.sh ` will do this for you on Linux and MacOS:
 ```
 scripts/install-operator-sdk.sh v0.17.1 /your/target/path
 ```

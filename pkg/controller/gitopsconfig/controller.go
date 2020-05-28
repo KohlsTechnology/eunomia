@@ -579,8 +579,8 @@ func ownedJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha1.Gi
 	if err != nil {
 		return nil, fmt.Errorf("failed to list jobs for jobOwner==%q (ns: %s): %w", owner.Name, owner.Namespace, err)
 	}
-	for _, j := range jobs.Items {
-		log.Info("ownedJobs", "Name", j.Name, "Owner", owner.Name, "Namespace", owner.Namespace)
+	for _, job := range jobs.Items {
+		log.Info("ownedJobs", "Name", job.Name, "Owner", owner.Name, "Namespace", owner.Namespace)
 	}
 	return jobs.Items, nil
 }
