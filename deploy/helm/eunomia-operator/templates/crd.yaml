@@ -1,3 +1,3 @@
 {{- if not (or .Values.eunomia.operator.deployment.nsRbacOnly .Values.eunomia.operator.deployment.operatorHub) -}}
-{{- .Files.Get "crds/eunomia.kohls.io_gitopsconfigs_crd.yaml" }}
+{{- .Files.Get "crds/eunomia.kohls.io_gitopsconfigs_crd-k8s-pre-1.16.yaml" }}
 {{- end }}
