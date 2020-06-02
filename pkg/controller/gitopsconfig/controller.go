@@ -28,6 +28,7 @@ import (
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -431,10 +432,11 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 
 	// To avoid a deadlock situation let's check if the namespace in which we are is maybe being deleted
 	ns := &corev1.Namespace{}
-	err := r.client.Get(context.TODO(), util.NN{Name: instance.GetNamespace()}, ns)
+	// Cluster-scoped objects, like namespaces, have to specify Namespace: ""
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.GetNamespace(), Namespace: ""}, ns)
 	if err != nil {
-		log.Error(err, "GitOpsConfig finalizer unable to lookup instance's namespace", "instance", instance.Name)
-		return reconcile.Result{}, fmt.Errorf("GitOpsConfig finalizer unable to lookup instance's namespace for %q: %w", instance.Name, err)
+		log.Error(err, "GitOpsConfig finalizer unable to lookup instance's namespace", "instance", instance.Name, "namespace", instance.GetNamespace())
+		return reconcile.Result{}, fmt.Errorf("GitOpsConfig finalizer unable to lookup namespace '%q' for instance '%q': %w", instance.GetNamespace(), instance.Name, err)
 	}
 	if !ns.DeletionTimestamp.IsZero() {
 		// Namespace is being deleted. The best we can do in this situation is
@@ -577,8 +579,8 @@ func ownedJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha1.Gi
 	if err != nil {
 		return nil, fmt.Errorf("failed to list jobs for jobOwner==%q (ns: %s): %w", owner.Name, owner.Namespace, err)
 	}
-	for _, j := range jobs.Items {
-		log.Info("ownedJobs", "Name", j.Name, "Owner", owner.Name, "Namespace", owner.Namespace)
+	for _, job := range jobs.Items {
+		log.Info("ownedJobs", "Name", job.Name, "Owner", owner.Name, "Namespace", owner.Namespace)
 	}
 	return jobs.Items, nil
 }

@@ -16,6 +16,8 @@
 
 set -euo pipefail
 
+export OPERATOR_SDK_VERSION="v0.12.0"
+
 usage() {
     cat <<EOT
 e2e-test.sh [-e|--env=(minikube|minishift)] [-p|--pause]
@@ -46,6 +48,7 @@ function wait_for_gitopsconfig_completion() {
     timeout=60
     ALL_GOOD=0
     JOBS=""
+    # Count down `timeout` to 0, then fail to avoid locking situations
     while ((--timeout)) && [[ "${ALL_GOOD}" == "0" ]]; do
         JOBS=$(kubectl get jobs -n "${NAMESPACE}" -o name | sed 's/job.batch\///g')
         if [ -z "${JOBS}" ]; then
@@ -89,7 +92,7 @@ function validate_job_count() {
     fi
 }
 
-# Returns the active replicas for hello-world
+# Returns the active replica count
 # Usage get_replica_count <namespace> <image> <labelname>
 # Example: get_replica_count "eunomia-hello-world-yaml-demo" "gcr.io/google-samples/hello-app:2.0" "hello-world"
 function get_replica_count() {
@@ -103,6 +106,13 @@ EUNOMIA_PATH=$(
     cd "${0%/*}/.."
     pwd
 )
+
+OSDK_VERSION="$(operator-sdk version)"
+if ! echo "${OSDK_VERSION}" | grep "${OPERATOR_SDK_VERSION}"; then
+    echo "Error: You should be using Operator-SDK ${OPERATOR_SDK_VERSION}."
+    echo "Found: ${OSDK_VERSION}"
+    exit 1
+fi
 
 # Process the command line parameters
 PARAMS=""
@@ -302,27 +312,30 @@ hello_world_yaml_cr_3() {
 }
 
 hello_world_yaml_cr_1
-echo "Waiting 15 to verify no other gitopsconfig gets started"
+echo "Waiting 15s to verify no other gitopsconfig gets started"
 sleep 15
 wait_for_gitopsconfig_completion eunomia-hello-world-yaml-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-yaml-demo 1
 pause
 
 hello_world_yaml_cr_2
 wait_for_gitopsconfig_completion eunomia-hello-world-yaml-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-yaml-demo 2
 pause
 
 hello_world_yaml_cr_3
 wait_for_gitopsconfig_completion eunomia-hello-world-yaml-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-yaml-demo 3
 pause
 
 # Delete namespaces after Testing hello-world-yaml example
 kubectl delete namespace eunomia-hello-world-yaml-demo
+
+# Let things settle down just a bit more
+sleep 15
 
 ## Testing hello-world-helm example
 # Create new namespace
@@ -377,27 +390,30 @@ hello_world_helm_cr3() {
 }
 
 hello_world_helm_cr1
-echo "Waiting 15 to verify no other gitopsconfig gets started"
+echo "Waiting 15s to verify no other gitopsconfig gets started"
 sleep 15
 wait_for_gitopsconfig_completion eunomia-hello-world-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-demo 1
 pause
 
 hello_world_helm_cr2
 wait_for_gitopsconfig_completion eunomia-hello-world-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-demo 1
 pause
 
 hello_world_helm_cr3
 wait_for_gitopsconfig_completion eunomia-hello-world-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-demo 1
 pause
 
 # Delete namespaces after Testing hello-world-helm example
 kubectl delete namespace eunomia-hello-world-demo
+
+# Let things settle down just a bit more
+sleep 15
 
 ## Testing hello-world-hierarchy example
 # Create new namespace
@@ -421,10 +437,10 @@ hello_world_hierarchy_cr1() {
 }
 
 hello_world_hierarchy_cr1
-echo "Waiting 15 to verify no other gitopsconfig gets started"
+echo "Waiting 15s to verify no other gitopsconfig gets started"
 sleep 15
 wait_for_gitopsconfig_completion eunomia-hello-world-demo
-# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started
+# don't enable validate_job_count until somebody fixes the bug for multiple jobs being started (issue #343)
 #validate_job_count eunomia-hello-world-demo 1
 pause
 

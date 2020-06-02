@@ -87,7 +87,7 @@ func defaultNamespace() *corev1.Namespace {
 	return &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      namespace,
-			Namespace: namespace,
+			Namespace: "",
 		},
 	}
 }
@@ -157,9 +157,8 @@ func TestChangeTrigger(t *testing.T) {
 		NamespacedName: util.GetNN(gitops),
 	})
 
-	// Check if the CRD has been created
-	job := &batchv1.Job{}
-	err := cl.Get(context.Background(), util.NN{Namespace: namespace}, job)
+	// Check if the job has been created
+	job, err := findRunningJob(cl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,8 +187,7 @@ func TestWebhookTrigger(t *testing.T) {
 	})
 
 	// Check if the Job has been created
-	job := &batchv1.Job{}
-	err := cl.Get(context.Background(), util.NN{Namespace: namespace}, job)
+	job, err := findRunningJob(cl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -286,7 +284,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 
 	// Check the status
 	crd = &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.Background(), util.NN{Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), util.GetNN(gitops), crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -487,7 +485,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 
 	// Check the status
 	crd = &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.Background(), util.NN{Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), util.GetNN(gitops), crd)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -26,6 +26,7 @@ clean:
 
 generate:
 	docker build ./scripts -f ./scripts/operator-sdk.docker -t 'operator-sdk:old'
+	# Future Item: remove the use of `go mod vendor`
 	go mod vendor
 	cp go.mod go.mod.bak
 	docker run \
@@ -39,6 +40,7 @@ generate:
 # Build binary
 .PHONY: build
 build:
+	# Future Item: remove the use of `go mod vendor`
 	go mod vendor
 	go build -o build/_output/bin/eunomia -ldflags $(LDFLAGS) github.com/KohlsTechnology/eunomia/cmd/manager
 

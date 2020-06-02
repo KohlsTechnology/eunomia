@@ -43,7 +43,7 @@ type GitOpsConfigSpec struct {
 	// ParameterSource is the location of the parameters, only contextDir is mandatory, if other filed are left blank they are assumed to be the same as ParameterSource
 	ParameterSource GitConfig `json:"parameterSource,omitempty"`
 	// Triggers is an array of triggers that will launch this configuration
-	// +listType=set
+	// +listType=atomic
 	Triggers []GitOpsTrigger `json:"triggers,omitempty"`
 	// ServiceAccountRef references to the service account under which the template engine job will run, it must exists in the namespace in which this CR is created
 	ServiceAccountRef string `json:"serviceAccountRef,omitempty"`
@@ -77,7 +77,7 @@ type GitOpsConfigStatus struct {
 
 // GitOpsConfig is the Schema for the gitopsconfigs API
 // +k8s:openapi-gen=true
-// +kubebuilder:resource:scope=Namespaces
+// +kubebuilder:resource:scope=Namespaced
 // +kubebuilder:subresource:status
 type GitOpsConfig struct {
 	metav1.TypeMeta   `json:",inline"`
