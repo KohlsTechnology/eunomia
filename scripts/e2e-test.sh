@@ -16,7 +16,7 @@
 
 set -euo pipefail
 
-export OPERATOR_SDK_VERSION="v0.8.1"
+export OPERATOR_SDK_VERSION="v0.12.0"
 
 usage() {
     cat <<EOT
@@ -92,7 +92,7 @@ function validate_job_count() {
     fi
 }
 
-# Returns the active replicas count
+# Returns the active replica count
 # Usage get_replica_count <namespace> <image> <labelname>
 # Example: get_replica_count "eunomia-hello-world-yaml-demo" "gcr.io/google-samples/hello-app:2.0" "hello-world"
 function get_replica_count() {
@@ -107,8 +107,10 @@ EUNOMIA_PATH=$(
     pwd
 )
 
-if ! operator-sdk version | grep "${OPERATOR_SDK_VERSION}"; then
-    echo "Error: Operator-SDK ${OPERATOR_SDK_VERSION} not found"
+OSDK_VERSION="$(operator-sdk version)"
+if ! echo "${OSDK_VERSION}" | grep "${OPERATOR_SDK_VERSION}"; then
+    echo "Error: You should be using Operator-SDK ${OPERATOR_SDK_VERSION}."
+    echo "Found: ${OSDK_VERSION}"
     exit 1
 fi
 
@@ -332,6 +334,9 @@ pause
 # Delete namespaces after Testing hello-world-yaml example
 kubectl delete namespace eunomia-hello-world-yaml-demo
 
+# Let things settle down just a bit more
+sleep 15
+
 ## Testing hello-world-helm example
 # Create new namespace
 kubectl create namespace eunomia-hello-world-demo
@@ -406,6 +411,9 @@ pause
 
 # Delete namespaces after Testing hello-world-helm example
 kubectl delete namespace eunomia-hello-world-demo
+
+# Let things settle down just a bit more
+sleep 15
 
 ## Testing hello-world-hierarchy example
 # Create new namespace

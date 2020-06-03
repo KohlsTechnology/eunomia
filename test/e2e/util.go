@@ -221,7 +221,7 @@ func debugJSON(v interface{}) string {
 //
 // This function is needed because the function which normally handles
 // per-namespace recource creation in operator-sdk framework
-// https://github.com/operator-framework/operator-sdk/blob/v0.8.1/pkg/test/resource_creator.go#L108
+// https://github.com/operator-framework/operator-sdk/blob/v0.12.0/pkg/test/resource_creator.go#L108
 // does not do the job in eunomia's case. It returns a call to a function
 // CreateFromYAML (defined just above it) which uses SetNamespace method which
 // sets a namespace in the yaml provided with "operator-sdk test local

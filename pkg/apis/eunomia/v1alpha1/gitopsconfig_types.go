@@ -4,12 +4,11 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-// EDIT THIS FILE!  THIS IS SCAFFOLDING FOR YOU TO OWN!
 // NOTE: json tags are required.  Any new fields you add must have json tags for the fields to be serialized.
 
-// GitConfig represents all the infomration necessary to
+// GitConfig represents all the information necessary to
 type GitConfig struct {
-	//+kubebuilder:validation:Pattern=(^$|(((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)))?
+	//+kubebuilder:validation:Pattern=`(^$|(((git|ssh|http(s)?)|(git@[\w\.]+))(:(//)?)([\w\.@\:/\-~]+)(\.git)(/)))?`
 	URI        string `json:"uri,omitempty"`
 	Ref        string `json:"ref,omitempty"`
 	HTTPProxy  string `json:"httpProxy,omitempty"`
@@ -23,7 +22,7 @@ type GitConfig struct {
 // If token is used the object must be labeled with the following label: "gitops_config.eunomia.kohls.io/webhook_token: <token>"
 type GitOpsTrigger struct {
 	// Type supported types are Change, Periodic, Webhook
-	// +kubebuilder:validation:Enum=Change,Periodic,Webhook
+	// +kubebuilder:validation:Enum=Change;Periodic;Webhook
 	Type string `json:"type,omitempty"`
 	// cron expression only valid with the Periodic type
 	Cron string `json:"cron,omitempty"`
@@ -43,16 +42,17 @@ type GitOpsConfigSpec struct {
 	// ParameterSource is the location of the parameters, only contextDir is mandatory, if other filed are left blank they are assumed to be the same as ParameterSource
 	ParameterSource GitConfig `json:"parameterSource,omitempty"`
 	// Triggers is an array of triggers that will launch this configuration
+	// +listType=atomic
 	Triggers []GitOpsTrigger `json:"triggers,omitempty"`
 	// ServiceAccountRef references to the service account under which the template engine job will run, it must exists in the namespace in which this CR is created
 	ServiceAccountRef string `json:"serviceAccountRef,omitempty"`
 	// TemplateEngine, the gitops operator config map contains the list of available template engines, the value used here must exist in that list. Identity (i.e. no resource processing) is the default
 	TemplateProcessorImage string `json:"templateProcessorImage,omitempty"`
 	// ResourceHandlingMode represents how resource creation/update should be handled. Supported values are Apply,Create,Delete,Patch,Replace,None. Default is Apply.
-	// +kubebuilder:validation:Enum=Apply,Create,Delete,Patch,Replace,None
+	// +kubebuilder:validation:Enum=Apply;Create;Delete;Patch;Replace;None
 	ResourceHandlingMode string `json:"resourceHandlingMode,omitempty"`
 	// ResourceDeletionMode represents how resource deletion should be handled. Supported values are Retain,Delete,None. Default is Delete
-	// +kubebuilder:validation:Enum=Retain,Delete,None
+	// +kubebuilder:validation:Enum=Retain;Delete;None
 	ResourceDeletionMode string `json:"resourceDeletionMode,omitempty"`
 	// TemplateProcessorArgs references to the run time parameters, we can pass additional arguments/flags to the template processor.
 	TemplateProcessorArgs string `json:"templateProcessorArgs,omitempty"`
@@ -76,6 +76,7 @@ type GitOpsConfigStatus struct {
 
 // GitOpsConfig is the Schema for the gitopsconfigs API
 // +k8s:openapi-gen=true
+// +kubebuilder:resource:scope=Namespaced
 // +kubebuilder:subresource:status
 type GitOpsConfig struct {
 	metav1.TypeMeta   `json:",inline"`

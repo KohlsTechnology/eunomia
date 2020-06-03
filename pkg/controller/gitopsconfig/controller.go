@@ -27,18 +27,17 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/apimachinery/pkg/labels"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/selection"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 	"sigs.k8s.io/controller-runtime/pkg/event"
 	"sigs.k8s.io/controller-runtime/pkg/handler"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 	"sigs.k8s.io/controller-runtime/pkg/source"
 
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
@@ -119,7 +118,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	// done only once, it's not such a big problem)
 	_, err = addJobWatch(mgr.GetConfig(), &jobCompletionEmitter{
 		client:        mgr.GetClient(),
-		eventRecorder: mgr.GetRecorder(controllerName),
+		eventRecorder: mgr.GetEventRecorderFor(controllerName),
 	})
 	if err != nil {
 		return fmt.Errorf("cannot create watch job for jobCompletionEmitter handler: %w", err)
@@ -337,7 +336,9 @@ func (r *Reconciler) createCronJob(instance *gitopsv1alpha1.GitOpsConfig) error 
 // GetAll retrieves all the gitops config in the cluster
 func (r *Reconciler) GetAll() (gitopsv1alpha1.GitOpsConfigList, error) {
 	instanceList := &gitopsv1alpha1.GitOpsConfigList{}
-	err := r.client.List(context.TODO(), &client.ListOptions{}, instanceList)
+
+	err := r.client.List(context.TODO(), instanceList, []client.ListOption{}...)
+
 	if err != nil {
 		log.Error(err, "unable to retrieve list of all GitOpsConfig in the cluster")
 		return *instanceList, fmt.Errorf("unable to retrieve list of all GitOpsConfig in the cluster: %w", err)
@@ -431,10 +432,11 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 
 	// To avoid a deadlock situation let's check if the namespace in which we are is maybe being deleted
 	ns := &corev1.Namespace{}
-	err := r.client.Get(context.TODO(), util.NN{Name: instance.GetNamespace()}, ns)
+	// Cluster-scoped objects, like namespaces, have to specify Namespace: ""
+	err := r.client.Get(context.TODO(), types.NamespacedName{Name: instance.GetNamespace(), Namespace: ""}, ns)
 	if err != nil {
-		log.Error(err, "GitOpsConfig finalizer unable to lookup instance's namespace", "instance", instance.Name)
-		return reconcile.Result{}, fmt.Errorf("GitOpsConfig finalizer unable to lookup instance's namespace for %q: %w", instance.Name, err)
+		log.Error(err, "GitOpsConfig finalizer unable to lookup instance's namespace", "instance", instance.Name, "namespace", instance.GetNamespace())
+		return reconcile.Result{}, fmt.Errorf("GitOpsConfig finalizer unable to lookup namespace '%q' for instance '%q': %w", instance.GetNamespace(), instance.Name, err)
 	}
 	if !ns.DeletionTimestamp.IsZero() {
 		// Namespace is being deleted. The best we can do in this situation is
@@ -454,6 +456,8 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 		log.Error(err, "GitOpsConfig finalizer unable to list owned jobs", "instance", instance.Name)
 		return reconcile.Result{}, fmt.Errorf("GitOpsConfig finalizer unable to list owned jobs for %q: %w", instance.Name, err)
 	}
+
+	log.Info("Active Jobs", "n", len(jobs), "instance", instance.Name)
 
 	// If exactly 1 job exists, but it's blocked because of bad image, we
 	// assume the GitOpsConfig never managed to successfully deploy, so we can
@@ -487,6 +491,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 			deleters = append(deleters, j)
 		}
 	}
+	log.Info("Delete Jobs", "n", len(deleters), "instance", instance.Name)
 	if len(deleters) > 0 {
 		if len(deleters) > 1 {
 			log.Error(nil, "too many delete jobs found (expected 1)", "n", len(deleters), "instance", instance.Name)
@@ -538,9 +543,10 @@ func (r *Reconciler) removeFinalizer(ctx context.Context, instance *gitopsv1alph
 // ownedCronJobs retrieves all cronjobs in namespace owner.Namespace whose owner is the passed GitOpsConfig.
 func ownedCronJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha1.GitOpsConfig) ([]batchv1beta1.CronJob, error) {
 	cronJobs := batchv1beta1.CronJobList{}
-	err := kube.List(ctx, &client.ListOptions{
-		Namespace: owner.Namespace,
-	}, &cronJobs)
+	listOpts := []client.ListOption{
+		client.InNamespace(owner.Namespace),
+	}
+	err := kube.List(ctx, &cronJobs, listOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list cronjobs in namespace %s: %w", owner.Namespace, err)
 	}
@@ -554,6 +560,7 @@ func ownedCronJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha
 				ownerRef.Kind == owner.Kind &&
 				ownerRef.Name == owner.ObjectMeta.Name {
 				owned = append(owned, cronJob)
+				log.Info("ownedCronJobs", "Name", cronJob.Name, "Owner", owner.Name, "Namespace", owner.Namespace)
 				break
 			}
 		}
@@ -563,18 +570,17 @@ func ownedCronJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha
 
 // ownedJobs retrieves all jobs in namespace owner.Namespace with value of label tagJobOwner equal to owner.Name.
 func ownedJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha1.GitOpsConfig) ([]batchv1.Job, error) {
-	jobs := batchv1.JobList{}
-	// FIXME: Equals or DoubleEquals?
-	filter, err := labels.NewRequirement(tagJobOwner, selection.DoubleEquals, []string{owner.Name})
-	if err != nil {
-		return nil, fmt.Errorf("cannot create job filter for jobOwner==%q (ns: %s): %w", owner.Name, owner.Namespace, err)
+	jobs := &batchv1.JobList{}
+	listOpts := []client.ListOption{
+		client.InNamespace(owner.Namespace),
+		client.MatchingLabels{tagJobOwner: owner.Name},
 	}
-	err = kube.List(ctx, &client.ListOptions{
-		LabelSelector: labels.NewSelector().Add(*filter),
-		Namespace:     owner.Namespace,
-	}, &jobs)
+	err := kube.List(ctx, jobs, listOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list jobs for jobOwner==%q (ns: %s): %w", owner.Name, owner.Namespace, err)
+	}
+	for _, job := range jobs.Items {
+		log.Info("ownedJobs", "Name", job.Name, "Owner", owner.Name, "Namespace", owner.Namespace)
 	}
 	return jobs.Items, nil
 }
@@ -585,15 +591,14 @@ func ownedJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha1.Gi
 // controls no pods, nil is returned.
 func jobContainerStatus(ctx context.Context, kube client.Client, job *batchv1.Job) (*corev1.ContainerState, error) {
 	// Find pod(s) of the job
-	pods := corev1.PodList{}
-	filter, err := labels.NewRequirement("job-name", selection.DoubleEquals, []string{job.Name})
-	if err != nil {
-		return nil, fmt.Errorf("unable to create pod filter for job %q: %w", job.Name, err)
+	pods := &corev1.PodList{}
+
+	listOpts := []client.ListOption{
+		client.InNamespace(job.Namespace),
+		client.MatchingLabels{"job-name": job.Name},
 	}
-	err = kube.List(ctx, &client.ListOptions{
-		LabelSelector: labels.NewSelector().Add(*filter),
-		Namespace:     job.Namespace,
-	}, &pods)
+	err := kube.List(ctx, pods, listOpts...)
+
 	if err != nil {
 		return nil, fmt.Errorf("unable to list pods for job %q: %w", job.Name, err)
 	}
