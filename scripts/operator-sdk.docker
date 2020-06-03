@@ -13,5 +13,10 @@ VOLUME /gobase
 VOLUME /gocache
 VOLUME /gopath/src/github.com/KohlsTechnology/eunomia
 WORKDIR /gopath/src/github.com/KohlsTechnology/eunomia
-CMD echo "generating openapi..." && operator-sdk --verbose generate openapi && echo "generating k8s..." && operator-sdk --verbose generate k8s
+
+CMD \
+    echo "generating openapi..." && \
+    operator-sdk --verbose generate openapi && \
+    echo "generating k8s..." && \
+    operator-sdk --verbose generate k8s
 

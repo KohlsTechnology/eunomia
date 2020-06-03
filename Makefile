@@ -28,14 +28,12 @@ generate:
 	docker build ./scripts -f ./scripts/operator-sdk.docker -t 'operator-sdk:old'
 	# Future Item: remove the use of `go mod vendor`
 	go mod vendor
-	cp go.mod go.mod.bak
 	docker run \
 		-u "$(shell id -u)" \
 		-v "$(shell go env GOCACHE):/gocache" \
 		-v "$(PWD):/gopath/src/github.com/KohlsTechnology/eunomia" \
 		-v "$(shell go env GOPATH | sed 's/:.*//' )/pkg:/gopath/pkg" \
 		operator-sdk:old
-	cp go.mod.bak go.mod  # undo changes made by go1.12 required for ancient operator-sdk.docker
 
 # Build binary
 .PHONY: build
