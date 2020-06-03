@@ -67,12 +67,8 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopscon
 			targetList := gitopsv1alpha1.GitOpsConfigList{
 				TypeMeta: list.TypeMeta,
 				ListMeta: list.ListMeta,
-				Items:    make([]gitopsv1alpha1.GitOpsConfig, len(list.Items)),
+				Items:    make([]gitopsv1alpha1.GitOpsConfig, 0, len(list.Items)),
 			}
-
-			// The targetList.Items is initialized with an empty GitOpsConfig at index 0
-			// We are dropping this item to ensure we do not try to start a reconsiliation job for an "empty" GitOpsConfig resource
-			targetList.Items = targetList.Items[1:]
 
 			for _, instance := range list.Items {
 				if !gitopsconfig.ContainsTrigger(&instance, "Webhook") {
