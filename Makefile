@@ -79,7 +79,7 @@ check-fmt:
 
 .PHONY: lint
 lint:
-	LINT_INPUT="$(shell go list ./... | grep -v /vendor/)"; golint -set_exit_status $$LINT_INPUT
+	LINT_INPUT="$(shell find . -type f -name \*.go | grep -v /vendor/ | grep -v zz_generated)"; golint -set_exit_status $$LINT_INPUT
 
 # Run go vet against code
 .PHONY: vet
