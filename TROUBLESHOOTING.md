@@ -32,5 +32,5 @@ More fun with the finalizer most likely. Use the below commands to clean it up.
 kubectl patch crd/gitopsconfigs.eunomia.kohls.io -p '{"metadata":{"finalizers":[]}}' --type=merge
 
 # now delete it
-kubectl delete -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
+kubectl delete -f ./deploy/crds/eunomia.kohls.io_gitopsconfigs_crd.yaml
 ```

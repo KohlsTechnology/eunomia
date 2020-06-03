@@ -27,7 +27,7 @@ watch_ns="${1:-}"
 # if minikube is not running, start it
 minikube status || minikube start
 
-kubectl apply -f ./deploy/crds/eunomia_v1alpha1_gitopsconfig_crd.yaml
+kubectl apply -f ./deploy/crds/eunomia.kohls.io_gitopsconfigs_crd.yaml
 export JOB_TEMPLATE=./build/job-templates/job.yaml
 export CRONJOB_TEMPLATE=./build/job-templates/cronjob.yaml
 export OPERATOR_NAME=eunomia-operator
