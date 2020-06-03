@@ -34,32 +34,32 @@ var log = logf.Log.WithName("handler")
 func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopsconfig.Reconciler) {
 	log.Info("received webhook call")
 	if r.Method != "POST" {
+		log.Info("webhook handler only accepts the POST method", "sent_method", r.Method)
 		w.WriteHeader(405)
 		return
 	}
-	//log.Info("webhook is of type post")
+
 	payload, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		log.Error(err, "error reading request body")
 		return
 	}
 	defer r.Body.Close()
-	//log.Info("parsed body")
+
 	event, err := github.ParseWebHook(github.WebHookType(r), payload)
 	if err != nil {
-		log.Error(err, "could not parse webhook")
+		log.Error(err, "error parsing webhook event payload")
 		return
 	}
-	//log.Info("parsed body, found event", "event", event)
+
 	switch e := event.(type) {
 	case *github.PushEvent:
-		// this is a commit push, do something with it
+		// A commit push was received, determine if there is are GitOpsConfigs that match the event
+		// The repository url and Git ref must match for the templateSource or parameterSource
 		{
-			//find the list of CR that have this url.
-			//log.Info("event is of type push")
 			list, err := reconciler.GetAll()
 			if err != nil {
-				log.Error(err, "unable to get the list of GitOpsCionfig")
+				log.Error(err, "error getting the list of GitOpsConfigs")
 				w.WriteHeader(500)
 				return
 			}
@@ -70,18 +70,35 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopscon
 				Items:    make([]gitopsv1alpha1.GitOpsConfig, len(list.Items)),
 			}
 
+			// The targetList.Items is initialized with an empty GitOpsConfig at index 0
+			// We are dropping this item to ensure we do not try to start a reconsiliation job for an "empty" GitOpsConfig resource
+			targetList.Items = targetList.Items[1:]
+
 			for _, instance := range list.Items {
-				// if does not have the webhook trigger continue
 				if !gitopsconfig.ContainsTrigger(&instance, "Webhook") {
+					log.Info("skip instance without webhook trigger", "instance_name", &instance.Name)
 					continue
 				}
-				// if the repo URL do not correspond continue
+
+				log.Info("comparing instance and event metadata", "event_name", e.Repo.GetFullName(), "event_ref", e.GetRef(),
+					"template_uri", instance.Spec.TemplateSource.URI, "template_ref", instance.Spec.TemplateSource.Ref,
+					"parameter_uri", instance.Spec.ParameterSource.URI, "parameter_ref", instance.Spec.ParameterSource.Ref)
+
 				if !repoURLAndRefMatch(&instance, e) {
+					log.Info("skip instance without matching repo url or git ref of the event", "instance_name", &instance.Name)
 					continue
 				}
+
+				log.Info("found matching instance", "instance_name", &instance.Name)
 				targetList.Items = append(targetList.Items, instance)
 			}
-			//log.Info("event is applicable to the following instances", "instances", targetList)
+
+			if len(targetList.Items) == 0 {
+				log.Info("no gitopsconfigs match the webhook event", "event_repo", e.Repo.GetFullName(), "event_ref", strings.TrimPrefix(e.GetRef(), "refs/heads/"))
+				return
+			}
+
+			log.Info("event is applicable to the following instances", "matching_instance_count", len(targetList.Items), "matching_instances", targetList.Items)
 
 			for _, instance := range targetList.Items {
 				//if secured discard those that do not validate
