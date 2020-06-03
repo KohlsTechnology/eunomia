@@ -72,7 +72,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopscon
 
 			for _, instance := range list.Items {
 				if !gitopsconfig.ContainsTrigger(&instance, "Webhook") {
-					log.Info("skip instance without webhook trigger", "instance_name", &instance.Name)
+					log.Info("skip instance without webhook trigger", "instance_name", instance.Name)
 					continue
 				}
 
@@ -81,11 +81,11 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopscon
 					"parameter_uri", instance.Spec.ParameterSource.URI, "parameter_ref", instance.Spec.ParameterSource.Ref)
 
 				if !repoURLAndRefMatch(&instance, e) {
-					log.Info("skip instance without matching repo url or git ref of the event", "instance_name", &instance.Name)
+					log.Info("skip instance without matching repo url or git ref of the event", "instance_name", instance.Name)
 					continue
 				}
 
-				log.Info("found matching instance", "instance_name", &instance.Name)
+				log.Info("found matching instance", "instance_name", instance.Name)
 				targetList.Items = append(targetList.Items, instance)
 			}
 
