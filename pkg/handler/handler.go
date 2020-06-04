@@ -41,7 +41,7 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopscon
 
 	payload, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		log.Error(err, "error reading request body")
+		log.Error(err, "error reading webhook request body")
 		return
 	}
 	defer r.Body.Close()
