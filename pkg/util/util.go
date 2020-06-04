@@ -32,7 +32,7 @@ import (
 
 var jobTemplate *template.Template
 var cronJobTemplate *template.Template
-var log = logf.Log.WithName("util")
+var log = logf.Log.WithName("util").WithValues("filename", "util.go")
 
 // JobMergeData is the structs that will be used to merge with the job template
 type JobMergeData struct {

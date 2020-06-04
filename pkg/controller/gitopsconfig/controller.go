@@ -44,7 +44,7 @@ import (
 	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
-var log = logf.Log.WithName(controllerName)
+var log = logf.Log.WithName(controllerName).WithValues("filename", "controller.go")
 
 const (
 	tagInitialized string = "gitopsconfig.eunomia.kohls.io/initialized"

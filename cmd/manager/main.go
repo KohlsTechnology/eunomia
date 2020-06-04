@@ -52,7 +52,7 @@ var (
 	metricsHost       = "0.0.0.0"
 	metricsPort int32 = 8383
 )
-var log = logf.Log.WithName("cmd")
+var log = logf.Log.WithName("cmd").WithValues("filename", "main.go")
 
 func printVersion() {
 	log.Info(fmt.Sprintf("Eunomia version: %s (build date: %s, branch: %s, git SHA1: %s)", version.Version, version.BuildDate, version.Branch, version.GitSHA1))

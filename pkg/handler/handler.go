@@ -28,7 +28,7 @@ import (
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
-var log = logf.Log.WithName("handler")
+var log = logf.Log.WithName("handler").WithValues("filename", "handler.go")
 
 // WebhookHandler manages the calls from github
 func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopsconfig.Reconciler) {
