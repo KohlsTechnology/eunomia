@@ -57,6 +57,10 @@ function addLabels() {
 # deleteByOldLabels OWNER [TIMESTAMP] - deletes all kubernetes resources which have
 # the OWNER label as provided [optional: but TIMESTAMP label different than provided].
 function deleteByOldLabels() {
+  if [ "$DELETE_MODE" == "None" ]; then
+      echo "DELETE_MODE is set to None; Skipping deletion by old labels step."
+      exit 0
+  else
     local owner="$1"
     local timestamp="${2:-}"
     local allKinds="$(kube api-resources --verbs=list,delete -o name | paste -sd, -)"
@@ -74,6 +78,7 @@ function deleteByOldLabels() {
         filter="${filter},${TAG_APPLIED}!=${timestamp}"
     fi
     kube delete --wait=false "${ownedKinds}" -l "${filter}"
+  fi
 }
 
 function createUpdateResources() {
@@ -110,10 +115,10 @@ function createUpdateResources() {
     esac
 }
 
-if [ "$CREATE_MODE" == "None" ] || [ "$DELETE_MODE" == "None" ]; then
-    echo "CREATE_MODE and/or DELETE_MODE is set to None; This means that the template processor already applied the resources. Skipping the Manage Resources step."
-    exit 0
-fi
+#if [ "$CREATE_MODE" == "None" ] || [ "$DELETE_MODE" == "None" ]; then
+#    echo "CREATE_MODE and/or DELETE_MODE is set to None; This means that the template processor already applied the resources. Skipping the Manage Resources step."
+#    exit 0
+#fi
 
 echo "Managing Resources"
 setContext
