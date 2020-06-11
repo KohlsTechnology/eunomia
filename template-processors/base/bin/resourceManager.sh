@@ -115,11 +115,6 @@ function createUpdateResources() {
     esac
 }
 
-#if [ "$CREATE_MODE" == "None" ] || [ "$DELETE_MODE" == "None" ]; then
-#    echo "CREATE_MODE and/or DELETE_MODE is set to None; This means that the template processor already applied the resources. Skipping the Manage Resources step."
-#    exit 0
-#fi
-
 echo "Managing Resources"
 setContext
 # NOTE: Kubernetes currently requires that first *and last* character of
