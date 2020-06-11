@@ -6,6 +6,7 @@ metadata:
   name: eunomia-operator
   namespace: {{ .namespace }}
 spec:
+  progressDeadlineSeconds: 600
   replicas: {{ .replicas }}
   strategy:
     rollingUpdate:
