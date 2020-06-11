@@ -241,9 +241,7 @@ helm template deploy/helm/eunomia-operator/ \
     --set eunomia.operator.namespace=$OPERATOR_NAMESPACE | kubectl apply -f -
 
 # Deployment test
-kubectl wait --for=condition=available --timeout=60s deployment/eunomia-operator -n $OPERATOR_NAMESPACE
-podname=$(kubectl get pods -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}{end}' -n $OPERATOR_NAMESPACE)
-if kubectl exec "${podname}" date -n $OPERATOR_NAMESPACE; then
+if kubectl rollout status deployment/eunomia-operator -n $OPERATOR_NAMESPACE; then
     echo "Eunomia deployment successful"
 else
     echo "Eunomia deployment failed"
