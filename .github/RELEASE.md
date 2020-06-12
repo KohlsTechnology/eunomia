@@ -15,7 +15,7 @@ This document provides the high level steps for releasing a new version of eunom
 
 For the release script to run successfully, you'll need the following:
 - account on GitHub
-- [operator-sdk](https://github.com/operator-framework/operator-sdk/blob/v0.8.1/doc/user/install-operator-sdk.md)
+- [operator-sdk](https://github.com/operator-framework/operator-sdk/blob/v0.12.0/doc/user/install-operator-sdk.md)
 - [operator-courier](https://github.com/operator-framework/operator-courier#installation)
 - [helm](https://helm.sh/docs/intro/install/)
 - [hub](https://github.com/github/hub#installation)

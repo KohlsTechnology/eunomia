@@ -87,7 +87,7 @@ func defaultNamespace() *corev1.Namespace {
 	return &corev1.Namespace{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      namespace,
-			Namespace: namespace,
+			Namespace: "",
 		},
 	}
 }
@@ -157,9 +157,8 @@ func TestChangeTrigger(t *testing.T) {
 		NamespacedName: util.GetNN(gitops),
 	})
 
-	// Check if the CRD has been created
-	job := &batchv1.Job{}
-	err := cl.Get(context.Background(), util.NN{Namespace: namespace}, job)
+	// Check if the job has been created
+	job, err := findRunningJob(cl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -188,8 +187,7 @@ func TestWebhookTrigger(t *testing.T) {
 	})
 
 	// Check if the Job has been created
-	job := &batchv1.Job{}
-	err := cl.Get(context.Background(), util.NN{Namespace: namespace}, job)
+	job, err := findRunningJob(cl)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -250,12 +248,12 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	err = cl.Create(context.Background(), &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
 			Kind:       "Job",
-			APIVersion: "eunomia.kohls.io/v1alpha1",
+			APIVersion: batchv1.SchemeGroupVersion.String(),
 		},
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      "gitops-operator-delete",
 			Namespace: namespace,
-			Labels:    map[string]string{"action": "delete"},
+			Labels:    map[string]string{"action": "delete", tagJobOwner: "gitops-operator"},
 			OwnerReferences: []metav1.OwnerReference{
 				{
 					APIVersion:         "eunomia.kohls.io/v1alpha1",
@@ -286,7 +284,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 
 	// Check the status
 	crd = &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.Background(), util.NN{Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), util.GetNN(gitops), crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -487,7 +485,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 
 	// Check the status
 	crd = &gitopsv1alpha1.GitOpsConfig{}
-	err = cl.Get(context.Background(), util.NN{Namespace: namespace}, crd)
+	err = cl.Get(context.Background(), util.GetNN(gitops), crd)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -560,9 +558,10 @@ func TestCreateJob(t *testing.T) {
 func findJobList(cl client.Client) ([]batchv1.Job, error) {
 	// Looking up all jobs
 	jobs := batchv1.JobList{}
-	err := cl.List(context.Background(), &client.ListOptions{
-		Namespace: namespace,
-	}, &jobs)
+	listOpts := []client.ListOption{
+		client.InNamespace(namespace),
+	}
+	err := cl.List(context.Background(), &jobs, listOpts...)
 	if err != nil {
 		return nil, fmt.Errorf("unable to list the running jobs: %w", err)
 	}

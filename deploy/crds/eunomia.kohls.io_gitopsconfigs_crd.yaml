@@ -14,6 +14,7 @@ spec:
     status: {}
   validation:
     openAPIV3Schema:
+      description: GitOpsConfig is the Schema for the gitopsconfigs API
       properties:
         apiVersion:
           description: 'APIVersion defines the versioned schema of this representation
@@ -28,6 +29,7 @@ spec:
         metadata:
           type: object
         spec:
+          description: GitOpsConfigSpec defines the desired state of GitOpsConfig
           properties:
             parameterSource:
               description: ParameterSource is the location of the parameters, only
@@ -107,6 +109,10 @@ spec:
               description: Triggers is an array of triggers that will launch this
                 configuration
               items:
+                description: 'GitOpsTrigger represents a trigger, possible type values
+                  are change, periodic, webhook. If token is used the object must
+                  be labeled with the following label: "gitops_config.eunomia.kohls.io/webhook_token:
+                  <token>"'
                 properties:
                   cron:
                     description: cron expression only valid with the Periodic type
@@ -125,6 +131,7 @@ spec:
               type: array
           type: object
         status:
+          description: GitOpsConfigStatus defines the observed state of GitOpsConfig
           properties:
             completionTime:
               format: date-time
@@ -140,6 +147,7 @@ spec:
             state:
               type: string
           type: object
+      type: object
   version: v1alpha1
   versions:
   - name: v1alpha1
