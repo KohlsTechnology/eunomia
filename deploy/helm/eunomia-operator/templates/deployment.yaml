@@ -7,6 +7,11 @@ metadata:
   namespace: {{ .namespace }}
 spec:
   replicas: {{ .replicas }}
+  strategy:
+    rollingUpdate:
+      maxUnavailable: {{ .replicas }}
+      maxSurge: 100%
+    type: RollingUpdate
   selector:
     matchLabels:
       name: eunomia-operator
