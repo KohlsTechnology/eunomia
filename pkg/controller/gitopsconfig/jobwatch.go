@@ -42,7 +42,7 @@ func addJobWatch(kubecfg *rest.Config, handler cache.ResourceEventHandler) (func
 	if err != nil {
 		return nil, fmt.Errorf("cannot create Job watcher from config: %w", err)
 	}
-	watchlist := cache.NewListWatchFromClient(clientset.Batch().RESTClient(), "jobs", corev1.NamespaceAll, fields.Everything())
+	watchlist := cache.NewListWatchFromClient(clientset.BatchV1().RESTClient(), "jobs", corev1.NamespaceAll, fields.Everything())
 	// https://stackoverflow.com/a/49231503/98528
 	// TODO: what is the difference vs. NewSharedInformer? -> https://stackoverflow.com/q/59544139
 	_, controller := cache.NewInformer(watchlist, &batchv1.Job{}, 0, handler)

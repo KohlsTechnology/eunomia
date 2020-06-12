@@ -27,12 +27,12 @@ import (
 	"github.com/ghodss/yaml"
 	batch "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
+	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
 var jobTemplate *template.Template
 var cronJobTemplate *template.Template
-var log = logf.Log.WithName("util")
+var log = logf.Log.WithName("util").WithValues("filename", "util.go")
 
 // JobMergeData is the structs that will be used to merge with the job template
 type JobMergeData struct {

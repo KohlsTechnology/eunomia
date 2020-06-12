@@ -26,19 +26,19 @@ clean:
 
 generate:
 	docker build ./scripts -f ./scripts/operator-sdk.docker -t 'operator-sdk:old'
+	# Future Item: remove the use of `go mod vendor`
 	go mod vendor
-	cp go.mod go.mod.bak
 	docker run \
 		-u "$(shell id -u)" \
 		-v "$(shell go env GOCACHE):/gocache" \
 		-v "$(PWD):/gopath/src/github.com/KohlsTechnology/eunomia" \
 		-v "$(shell go env GOPATH | sed 's/:.*//' )/pkg:/gopath/pkg" \
 		operator-sdk:old
-	cp go.mod.bak go.mod  # undo changes made by go1.12 required for ancient operator-sdk.docker
 
 # Build binary
 .PHONY: build
 build:
+	# Future Item: remove the use of `go mod vendor`
 	go mod vendor
 	go build -o build/_output/bin/eunomia -ldflags $(LDFLAGS) github.com/KohlsTechnology/eunomia/cmd/manager
 
@@ -77,7 +77,7 @@ check-fmt:
 
 .PHONY: lint
 lint:
-	LINT_INPUT="$(shell go list ./... | grep -v /vendor/)"; golint -set_exit_status $$LINT_INPUT
+	LINT_INPUT="$(shell find . -type f -name \*.go | grep -v /vendor/ | grep -v zz_generated)"; golint -set_exit_status $$LINT_INPUT
 
 # Run go vet against code
 .PHONY: vet
