@@ -29,7 +29,7 @@ import (
 	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
-func TestModesCreateReplaceDelete(t *testing.T) {
+func TestIssue311DeleteModeNone(t *testing.T) {
 	ctx, err := NewContext(t)
 	if err != nil {
 		t.Fatal(err)
