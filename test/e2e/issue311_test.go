@@ -26,7 +26,9 @@ import (
 
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 )
-
+// This issue was due to no creation of resources when the ResourceDeletionMode
+// was set to None.  They should be independent of each other.  This test case
+// attempts to deploy resources with the ResourceDeletionMode set to none
 func TestIssue311DeleteModeNone(t *testing.T) {
 	ctx, err := NewContext(t)
 	if err != nil {
@@ -34,7 +36,7 @@ func TestIssue311DeleteModeNone(t *testing.T) {
 	}
 	defer ctx.Cleanup()
 
-	// Step 1: create initial CR with "Create" mode, check that pods are started
+	// Step 1: create initial CR with "ResourceDeletionMode" mode set to "None", check that pods are started
 
 	gitops := &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{

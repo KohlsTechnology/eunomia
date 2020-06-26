@@ -112,7 +112,8 @@ function createUpdateResources() {
     Replace)
         kube replace -R -f "$MANIFEST_DIR"
         ;;
-    None) ;;
+    None)
+        ;;
     esac
 }
 
