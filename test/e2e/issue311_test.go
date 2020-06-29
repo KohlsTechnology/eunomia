@@ -27,6 +27,8 @@ import (
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 )
 
+// The error that this tests for is the case where Deletion mode is set to "None" but changes need to me made.
+// Prior to the fix, when the deletion mode was set to "None" nothing would get created.
 func TestIssue311DeleteModeNone(t *testing.T) {
 	ctx, err := NewContext(t)
 	if err != nil {
@@ -34,7 +36,8 @@ func TestIssue311DeleteModeNone(t *testing.T) {
 	}
 	defer ctx.Cleanup()
 
-	// Step 1: create initial CR with "ResourceDeletionMode" mode set to "None", check that pods are started
+	// Create initial CR with "ResourceDeletionMode" mode set to "None", check that pods are started
+	// prior to this fix, the pods would not get created.
 
 	gitops := &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
