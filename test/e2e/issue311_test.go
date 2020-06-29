@@ -36,8 +36,8 @@ func TestIssue311DeleteModeNone(t *testing.T) {
 	}
 	defer ctx.Cleanup()
 
-	// Create initial CR with "ResourceDeletionMode" mode set to "None" and "ResourceHandlingMode" set to something other than "None",
-	// check that pods are started. Prior to this fix, the pods would not get created.
+	// Create initial CR with "ResourceDeletionMode" mode set to "None" and "ResourceHandlingMode" set to
+	// something other than "None", check that pods are started. Prior to this fix, the pods would not get created.
 
 	gitops := &gitopsv1alpha1.GitOpsConfig{
 		TypeMeta: metav1.TypeMeta{
