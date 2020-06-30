@@ -57,23 +57,28 @@ function addLabels() {
 # deleteByOldLabels OWNER [TIMESTAMP] - deletes all kubernetes resources which have
 # the OWNER label as provided [optional: but TIMESTAMP label different than provided].
 function deleteByOldLabels() {
-    local owner="$1"
-    local timestamp="${2:-}"
-    local allKinds="$(kube api-resources --verbs=list,delete -o name | paste -sd, -)"
-    local ownedKinds="$(kube get "$allKinds" --ignore-not-found \
-        -l "$TAG_OWNER==$owner" \
-        -o jsonpath="{range .items[*]}{.kind} {.apiVersion}{'\n'}{end}" | # e.g. "Pod v1" OR "StorageClass storage.k8s.io/v1"
-        sort -u |
-        awk -F'[ /]' '{if (NF==2) {print $1} else {print $1"."$3"."$2}}' | # e.g. "Pod" OR "StorageClass.v1.storage.k8s.io"
-        paste -sd, -)"
-    if [ -z "$ownedKinds" ]; then
-        return
+    if [ "$DELETE_MODE" == "None" ]; then
+        echo "DELETE_MODE is set to None; Skipping deletion by old labels step."
+        exit 0
+    else
+        local owner="$1"
+        local timestamp="${2:-}"
+        local allKinds="$(kube api-resources --verbs=list,delete -o name | paste -sd, -)"
+        local ownedKinds="$(kube get "$allKinds" --ignore-not-found \
+            -l "$TAG_OWNER==$owner" \
+            -o jsonpath="{range .items[*]}{.kind} {.apiVersion}{'\n'}{end}" | # e.g. "Pod v1" OR "StorageClass storage.k8s.io/v1"
+            sort -u |
+            awk -F'[ /]' '{if (NF==2) {print $1} else {print $1"."$3"."$2}}' | # e.g. "Pod" OR "StorageClass.v1.storage.k8s.io"
+            paste -sd, -)"
+        if [ -z "$ownedKinds" ]; then
+            return
+        fi
+        local filter="${TAG_OWNER}==${owner}"
+        if [[ "${timestamp}" ]]; then
+            filter="${filter},${TAG_APPLIED}!=${timestamp}"
+        fi
+        kube delete --wait=false "${ownedKinds}" -l "${filter}"
     fi
-    local filter="${TAG_OWNER}==${owner}"
-    if [[ "${timestamp}" ]]; then
-        filter="${filter},${TAG_APPLIED}!=${timestamp}"
-    fi
-    kube delete --wait=false "${ownedKinds}" -l "${filter}"
 }
 
 function createUpdateResources() {
@@ -107,13 +112,9 @@ function createUpdateResources() {
     Replace)
         kube replace -R -f "$MANIFEST_DIR"
         ;;
+    None) ;;
     esac
 }
-
-if [ "$CREATE_MODE" == "None" ] || [ "$DELETE_MODE" == "None" ]; then
-    echo "CREATE_MODE and/or DELETE_MODE is set to None; This means that the template processor already applied the resources. Skipping the Manage Resources step."
-    exit 0
-fi
 
 echo "Managing Resources"
 setContext
