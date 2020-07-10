@@ -42,9 +42,14 @@ import (
 	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
+type podWatchList struct {
+	name  string
+	image string
+}
+
 // GetPod retrieves a given pod based on namespace, the pod name prefix, and the image used
 // Original Source https://github.com/jaegertracing/jaeger-operator/blob/master/test/e2e/utils.go
-func GetPod(namespace, namePrefix, containsImage string, kubeclient kubernetes.Interface) (*v1.Pod, error) {
+func GetPod(t *testing.T, namespace, namePrefix, containsImage string, kubeclient kubernetes.Interface) (*v1.Pod, error) {
 	pods, err := kubeclient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve pods in namespace %q: %w", namespace, err)
@@ -52,9 +57,11 @@ func GetPod(namespace, namePrefix, containsImage string, kubeclient kubernetes.I
 	for _, pod := range pods.Items {
 		if strings.HasPrefix(pod.Name, namePrefix) {
 			for _, c := range pod.Spec.Containers {
-				fmt.Printf("Found pod %s %q\n", c.Image, pod.Name)
 				if strings.Contains(c.Image, containsImage) {
+					t.Logf("Found pod %q with correct image %s and status %s", pod.Name, c.Image, pod.Status.Phase)
 					return &pod, nil
+				} else {
+					t.Logf("Found pod %q with different image %s", pod.Name, c.Image)
 				}
 			}
 		}
@@ -103,21 +110,23 @@ func WaitForPod(t *testing.T, f *framework.Framework, namespace, name string, re
 	return nil
 }
 
-// WaitForPodWithImage retrieves a pod using GetPod and waits for it to be running and available
-func WaitForPodWithImage(t *testing.T, f *framework.Framework, namespace, name, image string, retryInterval, timeout time.Duration) error {
+// WaitForPodWithImageAndStatus retrieves a pod using GetPod and waits for it to be running and available
+func WaitForPodWithImageAndStatus(t *testing.T, f *framework.Framework, namespace, name, image string, status string, retryInterval, timeout time.Duration) error {
+	t.Logf("Waiting for pod %s with status %s", name, status)
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		// Check if the CRD has been created
-		pod, err := GetPod(namespace, name, image, f.KubeClient)
+		pod, err := GetPod(t, namespace, name, image, f.KubeClient)
 		switch {
 		case apierrors.IsNotFound(err):
-			t.Logf("Waiting for availability of %s pod", name)
+			t.Logf("Waiting for pod %s to show up", name)
 			return false, nil
 		case err != nil:
 			return false, fmt.Errorf("client failed to retrieve pod %q with image %q in namespace %q: %w", name, image, namespace, err)
-		case pod != nil && pod.Status.Phase == "Running":
+		case pod != nil && string(pod.Status.Phase) == status:
+			t.Logf("pod %s in namespace %s found with status %s", name, namespace, status)
 			return true, nil
 		default:
-			t.Logf("Waiting for full availability of %s pod", name)
+			t.Logf("Waiting for pod %s with status %s", name, status)
 			return false, nil
 		}
 	})
@@ -131,18 +140,23 @@ func WaitForPodWithImage(t *testing.T, f *framework.Framework, namespace, name, 
 			}
 			pods = append(pods, fmt.Sprintf(`"%s" (%s)`, p.Name, strings.Join(images, " ")))
 		}
-		t.Logf("the following pods were found: %s", strings.Join(pods, ", "))
-		return fmt.Errorf("pod %q in namespace %q with image %q cannot be retrieved or is not yet available: %w", name, namespace, image, err)
+		t.Logf("the following pods were found: %s with status %s", strings.Join(pods, ", "), status)
+		return fmt.Errorf("pod %q in namespace %q with image %q and status %s cannot be retrieved or is not yet available: %w", name, namespace, image, status, err)
 	}
-	t.Logf("pod %s in namespace %s is available", name, namespace)
+	t.Logf("pod %s in namespace %s found with status %s", name, namespace, status)
 	return nil
+}
+
+// WaitForPodWithImage retrieves a pod using GetPod and waits for it to be running and available
+func WaitForPodWithImage(t *testing.T, f *framework.Framework, namespace, name, image string, retryInterval, timeout time.Duration) error {
+	return WaitForPodWithImageAndStatus(t, f, namespace, name, image, "Running", retryInterval, timeout)
 }
 
 // WaitForPodAbsence waits until a pod with specified name (including namespace) and image is not found, or is Terminated.
 func WaitForPodAbsence(t *testing.T, f *framework.Framework, namespace, name, image string, retryInterval, timeout time.Duration) error {
 	err := wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		// Check that there's *no* pod with specified name
-		pod, err := GetPod(namespace, name, image, f.KubeClient)
+		pod, err := GetPod(t, namespace, name, image, f.KubeClient)
 		switch {
 		case apierrors.IsNotFound(err):
 			return true, nil
@@ -159,6 +173,17 @@ func WaitForPodAbsence(t *testing.T, f *framework.Framework, namespace, name, im
 		return fmt.Errorf("pod %q in namespace %q with image %q is still present: %w", name, namespace, image, err)
 	}
 	t.Logf("pod %s in namespace %s is absent", name, namespace)
+	return nil
+}
+
+// WaitForPodWithImageAndStatus retrieves a pod using GetPod and waits for it to be running and available
+func WaitForPodsWithStatus(t *testing.T, f *framework.Framework, namespace string, pods []podWatchList, status string, retryInterval, timeout time.Duration) error {
+	for _, pod := range pods {
+		err := WaitForPodWithImageAndStatus(t, f, namespace, pod.name, pod.image, status, retryInterval, timeout)
+		if err != nil {
+			t.Error(err)
+		}
+	}
 	return nil
 }
 

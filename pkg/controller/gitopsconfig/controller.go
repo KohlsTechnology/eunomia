@@ -53,9 +53,6 @@ const (
 	controllerName string = "gitopsconfig-controller"
 )
 
-// PushEvents channel on which we get the github webhook push events
-var PushEvents = make(chan event.GenericEvent)
-
 // Add creates a new GitOpsConfig Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -104,14 +101,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 	)
 	if err != nil {
 		return fmt.Errorf("controller watch for changes to primary resource GitOpsConfig failed: %w", err)
-	}
-
-	err = c.Watch(
-		&source.Channel{Source: PushEvents},
-		&handler.EnqueueRequestForObject{},
-	)
-	if err != nil {
-		return fmt.Errorf("controller watch for PushEvents failed: %w", err)
 	}
 
 	// TODO: we should somehow detect when Reconciler is stopped, and run the

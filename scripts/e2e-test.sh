@@ -20,16 +20,20 @@ export OPERATOR_SDK_VERSION="v0.12.0"
 
 usage() {
     cat <<EOT
-e2e-test.sh [-e|--env=(minikube|minishift)] [-p|--pause]
+e2e-test.sh [-e|--env=(minikube|minishift)] [-p|--pause] [-n|--noimages] [-d|--nodeployment]
 
 Execute the end-to-end tests on a local minikube or minishift.
 
 -e|--env=(minikube|minishift) sets the environment the tests will be run under
 -p|--pause Pauses after each test step to help with debugging
+-d|--nodeployment Skip the deployment of the operator
+-n|--noimages Skip building the images
 
 You can also specify the settings via environment variables (command line parameters take precedence).
 EUNOMIA_TEST_ENV=(minikube|minishift)
 EUNOMIA_TEST_PAUSE=yes
+EUNOMIA_TEST_SKIP_IMAGES=yes
+EUNOMIA_TEST_SKIP_DEPLOYMENT=yes
 
 EOT
 }
@@ -131,6 +135,14 @@ while (("$#")); do
             exit 1
         fi
         ;;
+    -n | --noimages) # skip building images
+        export EUNOMIA_TEST_SKIP_IMAGES=yes
+        shift
+        ;;
+    -d | --nodeployment) # skip deploying the operator
+        export EUNOMIA_TEST_SKIP_DEPLOYMENT=yes
+        shift
+        ;;
     -h | --help) # help
         usage
         exit 1
@@ -152,6 +164,8 @@ eval set -- "$PARAMS"
 # Default settings
 export EUNOMIA_TEST_ENV=${EUNOMIA_TEST_ENV:-minikube}
 export EUNOMIA_TEST_PAUSE=${EUNOMIA_TEST_PAUSE:-no}
+export EUNOMIA_TEST_SKIP_IMAGES=${EUNOMIA_TEST_SKIP_IMAGES:-no}
+export EUNOMIA_TEST_SKIP_DEPLOYMENT=${EUNOMIA_TEST_SKIP_DEPLOYMENT:-no}
 
 case "${EUNOMIA_TEST_ENV:-}" in
 minikube) ;;
@@ -207,8 +221,10 @@ elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
 fi
 
 # Ensure clean workspace
-if [[ $(kubectl get namespace $OPERATOR_NAMESPACE) ]]; then
-    kubectl delete namespace $OPERATOR_NAMESPACE
+if [[ "${EUNOMIA_TEST_SKIP_DEPLOYMENT:-}" == "no" ]]; then
+    if [[ $(kubectl get namespace $OPERATOR_NAMESPACE) ]]; then
+        kubectl delete namespace $OPERATOR_NAMESPACE
+    fi
 fi
 
 # Pre-populate the Docker registry in minikube/minishift with images built from the current commit
@@ -218,7 +234,10 @@ if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
 elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
     eval "$(minishift docker-env)"
 fi
-GOOS=linux make e2e-test-images
+
+if [[ "${EUNOMIA_TEST_SKIP_IMAGES:-}" == "no" ]]; then
+    GOOS=linux make e2e-test-images
+fi
 
 # Get minikube/minishift IP address
 # shellcheck disable=SC2155
@@ -233,22 +252,24 @@ fi
 # livenessProbe and readinessProbe ports in deploy/helm/eunomia-operator/templates/deployment.yaml
 export OPERATOR_WEBHOOK_PORT=8080
 
-echo "Installing Eunomia Operator"
-# Eunomia setup
-helm template deploy/helm/eunomia-operator/ \
-    --set eunomia.operator.image.tag=dev \
-    --set eunomia.operator.image.pullPolicy=Never \
-    --set eunomia.operator.namespace=$OPERATOR_NAMESPACE | kubectl apply -f -
+if [[ "${EUNOMIA_TEST_SKIP_DEPLOYMENT:-}" == "no" ]]; then
+    echo "Installing Eunomia Operator"
+    # Eunomia setup
+    helm template deploy/helm/eunomia-operator/ \
+        --set eunomia.operator.image.tag=dev \
+        --set eunomia.operator.image.pullPolicy=Never \
+        --set eunomia.operator.namespace=$OPERATOR_NAMESPACE | kubectl apply -f -
 
-# Deployment test
-if kubectl rollout status deployment/eunomia-operator -n $OPERATOR_NAMESPACE; then
-    echo "Eunomia deployment successful"
-else
-    echo "Eunomia deployment failed"
-    exit 1
+    # Deployment test
+    if kubectl rollout status deployment/eunomia-operator -n $OPERATOR_NAMESPACE; then
+        echo "Eunomia deployment successful"
+    else
+        echo "Eunomia deployment failed"
+        exit 1
+    fi
+
+    pause
 fi
-
-pause
 
 # End-to-end tests
 operator-sdk test local ./test/e2e \
@@ -258,7 +279,7 @@ operator-sdk test local ./test/e2e \
     --go-test-flags "-tags e2e -timeout 40m"
 pause
 
-## Testing hello-world-yaml example
+# Testing hello-world-yaml example
 # Create new namespace
 kubectl create namespace eunomia-hello-world-yaml-demo
 # Create new service account for the runners

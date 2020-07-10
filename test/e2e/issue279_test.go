@@ -112,7 +112,7 @@ func TestIssue279CronJobDeletion(t *testing.T) {
 	// Two minutes timeout to give cronjob enought time to kick off
 	err = wait.Poll(retryInterval, time.Second*120, func() (done bool, err error) {
 		const name = "gitopsconfig-gitops-issue279-"
-		pod, err := GetPod(namespace, name, "quay.io/kohlstechnology/eunomia-base:dev", framework.Global.KubeClient)
+		pod, err := GetPod(t, namespace, name, "quay.io/kohlstechnology/eunomia-base:dev", framework.Global.KubeClient)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Waiting for availability of %s pod", name)

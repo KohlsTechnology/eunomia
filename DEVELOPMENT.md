@@ -219,6 +219,9 @@ make test-unit
 # Optional: Set the environment variable $EUNOMIA_REF to point to a specific git reference for testing
 # Optional: Set the environment variable $EUNOMIA_TEST_ENV to minishift (default is minikube)
 # Optional: Set the environment variable $EUNOMIA_TEST_PAUSE to yes (default is no)
+# Optional: Set the environment variable $EUNOMIA_TEST_SKIP_IMAGES to yes to skip building all images
+# Optional: Set the environment variable $EUNOMIA_TEST_SKIP_DEPLOYMENT to yes to skip the Eunomia deployment
+
 make test-e2e
 ```
 
