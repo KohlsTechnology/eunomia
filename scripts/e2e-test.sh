@@ -131,7 +131,7 @@ while (("$#")); do
         ;;
     -e | --env) # set the test environment
         if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
-            EUNOMIA_TEST_ENV=$2
+            export EUNOMIA_TEST_ENV=$2
             shift 2
         else
             echo "Error: Argument for $1 is missing" >&2
@@ -148,7 +148,7 @@ while (("$#")); do
         ;;
     -r | --run) # run specific go e2e test
         if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
-            EUNOMIA_TEST_GO_RUN=$2
+            export EUNOMIA_TEST_GO_RUN=$2
             shift 2
         else
             echo "Error: Argument for $1 is missing" >&2
