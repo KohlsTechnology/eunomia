@@ -20,7 +20,8 @@ export OPERATOR_SDK_VERSION="v0.12.0"
 
 usage() {
     cat <<EOT
-e2e-test.sh [-e|--env=(minikube|minishift)] [-p|--pause] [-n|--noimages] [-d|--nodeployment]
+e2e-test.sh [-e|--env=(minikube|minishift)] [-p|--pause] [-n|--noimages] 
+            [-d|--nodeployment] [-t|--test=<test name>]
 
 Execute the end-to-end tests on a local minikube or minishift.
 
@@ -28,12 +29,14 @@ Execute the end-to-end tests on a local minikube or minishift.
 -p|--pause Pauses after each test step to help with debugging
 -d|--nodeployment Skip the deployment of the operator
 -n|--noimages Skip building the images
+-r|--run=<test name> Only run the specified Go e2e test. This will skip all others.
 
 You can also specify the settings via environment variables (command line parameters take precedence).
 EUNOMIA_TEST_ENV=(minikube|minishift)
 EUNOMIA_TEST_PAUSE=yes
 EUNOMIA_TEST_SKIP_IMAGES=yes
 EUNOMIA_TEST_SKIP_DEPLOYMENT=yes
+EUNOMIA_TEST_GO_RUN=TestGitHubWebhook
 
 EOT
 }
@@ -142,6 +145,15 @@ while (("$#")); do
     -d | --nodeployment) # skip deploying the operator
         export EUNOMIA_TEST_SKIP_DEPLOYMENT=yes
         shift
+        ;;
+    -r | --run) # run specific go e2e test
+        if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
+            EUNOMIA_TEST_GO_RUN=$2
+            shift 2
+        else
+            echo "Error: Argument for $1 is missing" >&2
+            exit 1
+        fi
         ;;
     -h | --help) # help
         usage
@@ -271,12 +283,20 @@ if [[ "${EUNOMIA_TEST_SKIP_DEPLOYMENT:-}" == "no" ]]; then
     pause
 fi
 
+if [ -n "${EUNOMIA_TEST_GO_RUN:-}" ]; then
+    export EXTRA_ARGS="-run ${EUNOMIA_TEST_GO_RUN}"
+    export TIMEOUT="5m"
+else
+    export EXTRA_ARGS=""
+    export TIMEOUT="40m"
+fi
+
 # End-to-end tests
 operator-sdk test local ./test/e2e \
     --namespaced-manifest /dev/null \
     --global-manifest /dev/null \
     --verbose \
-    --go-test-flags "-tags e2e -timeout 40m"
+    --go-test-flags "-tags e2e -timeout ${TIMEOUT} ${EXTRA_ARGS}"
 pause
 
 # Testing hello-world-yaml example

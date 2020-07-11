@@ -221,6 +221,7 @@ make test-unit
 # Optional: Set the environment variable $EUNOMIA_TEST_PAUSE to yes (default is no)
 # Optional: Set the environment variable $EUNOMIA_TEST_SKIP_IMAGES to yes to skip building all images
 # Optional: Set the environment variable $EUNOMIA_TEST_SKIP_DEPLOYMENT to yes to skip the Eunomia deployment
+# Optional: Set the environment variable $EUNOMIA_TEST_GO_RUN to the single test you want to run
 
 make test-e2e
 ```
