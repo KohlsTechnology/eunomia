@@ -102,18 +102,18 @@ The fields of this section are:
     uri: https://github.com/KohlsTechnology/eunomia
     ref: master
     contextDir: simple/templates
-    HTTPProxy: <http proxy>
-    HTTPSProxy: <https proxy>
-    NOProxy: <no Proxy>
+    httpProxy: <http proxy>
+    httpsProxy: <https proxy>
+    noProxy: <no Proxy>
     SecretRef: <gitconfig and credentials secret>
 
   parameterSource:
     uri: https://github.com/KohlsTechnology/eunomia
     ref: master
     contextDir: seed/parameters
-    HTTPProxy: <http proxy>
-    HTTPSProxy: <https proxy>
-    NOProxy: <no Proxy>
+    httpProxy: <http proxy>
+    httpsProxy: <https proxy>
+    noProxy: <no Proxy>
     SecretRef: <gitconfig and credentials secret>
 ```
 
@@ -124,9 +124,9 @@ These are the mandatory constraints and default behaviors of the fields:
 | uri  | yes  | N/A  |
 | ref  | no  | `master`  |
 | contextDir  | no  | `.`  |
-| HTTPProxy  | no  |   |
-| HTTPSProxy  | no  |   |
-| NOProxy  | no  |   |
+| httpProxy  | no  |   |
+| httpsProxy  | no  |   |
+| noProxy  | no  |   |
 | SecretRef  | no  |   |
 
 If a secret is provided, then it is assumed that the connection to Git requires authentication. See the [Git Authentication](#git\ authentication) section below for more details.

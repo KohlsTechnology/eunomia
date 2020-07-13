@@ -52,6 +52,7 @@ Tools to test:
 - [make](https://www.gnu.org/software/make/manual/make.html)
 - [shfmt](https://github.com/mvdan/sh)
 - [golint](https://github.com/golang/lint)
+- [ShellCheck](https://github.com/koalaman/shellcheck#user-content-installing)
 
 #### Installing on a Mac
 
@@ -63,6 +64,7 @@ brew install go@1.13
 brew install docker
 brew install make  # it will be installed as "gmake"; follow the instructions that will appear to use it as "make"
 brew install shfmt
+brew install shellcheck
 ```
 
 #### Installing on a Linux
@@ -76,6 +78,8 @@ Here are vendor instructions on how to install the necessary components on Linux
 - [Docker](https://docs.docker.com/install/)
 - [make](http://ftp.gnu.org/gnu/make/) (a tarball to download)
 - [shfmt](https://github.com/mvdan/sh#shfmt)
+- [ShellCheck](https://github.com/koalaman/shellcheck#user-content-installing)
+
 
 #### Installing operator-sdk v0.12.0 from GitHub release
 
