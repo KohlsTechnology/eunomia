@@ -53,9 +53,6 @@ const (
 	controllerName string = "gitopsconfig-controller"
 )
 
-// PushEvents channel on which we get the github webhook push events
-var PushEvents = make(chan event.GenericEvent)
-
 // Add creates a new GitOpsConfig Controller and adds it to the Manager. The Manager will set fields on the Controller
 // and Start it when the Manager is Started.
 func Add(mgr manager.Manager) error {
@@ -74,6 +71,7 @@ func newReconciler(mgr manager.Manager) reconcile.Reconciler {
 
 // add adds a new Controller to mgr with r as the reconcile.Reconciler
 func add(mgr manager.Manager, r reconcile.Reconciler) error {
+	log.Info("Initializing Controller")
 	// Create a new controller
 	c, err := controller.New(controllerName, mgr, controller.Options{Reconciler: r})
 	if err != nil {
@@ -105,14 +103,6 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return fmt.Errorf("controller watch for changes to primary resource GitOpsConfig failed: %w", err)
 	}
 
-	err = c.Watch(
-		&source.Channel{Source: PushEvents},
-		&handler.EnqueueRequestForObject{},
-	)
-	if err != nil {
-		return fmt.Errorf("controller watch for PushEvents failed: %w", err)
-	}
-
 	// TODO: we should somehow detect when Reconciler is stopped, and run the
 	// stop func returned by addJobWatch, to not leak resources (though if it's
 	// done only once, it's not such a big problem)
@@ -133,6 +123,7 @@ func add(mgr manager.Manager, r reconcile.Reconciler) error {
 		return fmt.Errorf("cannot create watch job for statusUpdater handler: %w", err)
 	}
 
+	log.Info("Controller initialization complete")
 	return nil
 }
 
@@ -221,7 +212,7 @@ func (r *Reconciler) Reconcile(request reconcile.Request) (reconcile.Result, err
 
 	if ContainsTrigger(instance, "Change") || ContainsTrigger(instance, "Webhook") {
 		reqLogger.Info("Instance has a change or Webhook trigger, creating job", "instance", instance.GetName())
-		reconcileResult, err := r.createJob("create", instance)
+		reconcileResult, err := r.CreateJob("create", instance)
 		if err != nil {
 			reqLogger.Error(err, "reconciler failed to create a job, continuing...", "instance", instance.GetName())
 			return reconcileResult, fmt.Errorf("reconciler failed to create a job for GitOpsConfig instance %q: %w", instance.GetName(), err)
@@ -242,8 +233,8 @@ func ContainsTrigger(instance *gitopsv1alpha1.GitOpsConfig, triggeType string) b
 	return false
 }
 
-// createJob creates a new gitops job for the passed instance
-func (r *Reconciler) createJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
+// CreateJob creates a new gitops job for the passed instance
+func (r *Reconciler) CreateJob(jobtype string, instance *gitopsv1alpha1.GitOpsConfig) (reconcile.Result, error) {
 	// looking up for running jobs, to avoid creating duplicate one
 	jobs, err := ownedJobs(context.TODO(), r.client, instance)
 	if err != nil {
@@ -508,7 +499,7 @@ func (r *Reconciler) manageDeletion(instance *gitopsv1alpha1.GitOpsConfig) (reco
 	}
 
 	log.Info("Launching delete job for instance", "instance", instance.Name)
-	_, err = r.createJob("delete", instance)
+	_, err = r.CreateJob("delete", instance)
 	if err != nil {
 		log.Error(err, "unable to create deletion job", "instance", instance.Name)
 		return reconcile.Result{}, err

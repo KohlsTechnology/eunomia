@@ -113,7 +113,7 @@ func TestStatusSuccess(t *testing.T) {
 
 	// Step 3: verify that the pod exists
 
-	pod, err := GetPod(ctx.namespace, "hello-test-a", "hello-app:1.0", framework.Global.KubeClient)
+	pod, err := GetPod(t, ctx.namespace, "hello-test-a", "hello-app:1.0", framework.Global.KubeClient)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -222,7 +222,7 @@ func TestStatusPeriodicJobSuccess(t *testing.T) {
 
 	// Step 3: verify that the pod exists
 
-	pod, err := GetPod(ctx.namespace, "hello-test-b", "hello-app:1.0", framework.Global.KubeClient)
+	pod, err := GetPod(t, ctx.namespace, "hello-test-b", "hello-app:1.0", framework.Global.KubeClient)
 	if err != nil {
 		t.Fatal(err)
 	}

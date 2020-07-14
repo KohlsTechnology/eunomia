@@ -24,7 +24,6 @@ import (
 	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
 	"github.com/KohlsTechnology/eunomia/pkg/controller/gitopsconfig"
 	"github.com/google/go-github/github"
-	k8sevent "sigs.k8s.io/controller-runtime/pkg/event"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
 )
 
@@ -46,13 +45,13 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopscon
 	}
 	defer r.Body.Close()
 
-	event, err := github.ParseWebHook(github.WebHookType(r), payload)
+	webHookEvent, err := github.ParseWebHook(github.WebHookType(r), payload)
 	if err != nil {
 		log.Error(err, "error parsing webhook event payload")
 		return
 	}
 
-	switch e := event.(type) {
+	switch e := webHookEvent.(type) {
 	case *github.PushEvent:
 		// A commit push was received, determine if there is are GitOpsConfigs that match the event
 		// The repository url and Git ref must match for the templateSource or parameterSource
@@ -94,31 +93,21 @@ func WebhookHandler(w http.ResponseWriter, r *http.Request, reconciler gitopscon
 				return
 			}
 
-			log.Info("event is applicable to the following instances", "matching_instance_count", len(targetList.Items), "matching_instances", targetList.Items)
-
 			for _, instance := range targetList.Items {
 				//if secured discard those that do not validate
-				//log.Info("managing instance", "instances", instance)
 				secret := getWebhookSecret(&instance)
 				if secret != "" {
-					//log.Info("validating payload instance")
 					_, err := github.ValidatePayload(r, []byte(secret))
 					if err != nil {
-						log.Error(err, "webhook payload could not be validated with instance secret, ignoring this instance")
+						log.Error(err, "webhook payload could not be validated with instance secret --> ignoring", "instance", instance.GetName(), "namespace", instance.GetNamespace())
 						continue
 					}
 				}
-				//log.Info("payload validated")
-				//log.Info("creating job")
-				gitopsconfig.PushEvents <- k8sevent.GenericEvent{
-					Meta:   instance.GetObjectMeta(),
-					Object: instance.DeepCopyObject(),
+				log.Info("Webhook triggering job", "instance", instance.GetName(), "namespace", instance.GetNamespace())
+				_, err := reconciler.CreateJob("create", &instance)
+				if err != nil {
+					log.Error(err, "Webhook unable to create job for instance", "instance", instance.GetName(), "namespace", instance.GetNamespace())
 				}
-
-				// _, err := reconciler.CreateJob("create", &instance)
-				// if err != nil {
-				// 	log.Error(err, "unable to create job for instance", "instance", instance)
-				// }
 			}
 		}
 	default:

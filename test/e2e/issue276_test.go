@@ -98,7 +98,7 @@ func TestIssue276NoTemplatesDir(t *testing.T) {
 
 	const name = "gitopsconfig-gitops-issue276-"
 	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
-		pod, err := GetPod(ctx.namespace, name, "quay.io/kohlstechnology/eunomia-base:dev", framework.Global.KubeClient)
+		pod, err := GetPod(t, ctx.namespace, name, "quay.io/kohlstechnology/eunomia-base:dev", framework.Global.KubeClient)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Waiting for availability of %s pod", name)
@@ -195,7 +195,7 @@ func TestIssue276EmptyTemplatesDir(t *testing.T) {
 
 	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		const name = "gitopsconfig-gitops-issue276-"
-		pod, err := GetPod(ctx.namespace, name, "quay.io/kohlstechnology/eunomia-base:dev", framework.Global.KubeClient)
+		pod, err := GetPod(t, ctx.namespace, name, "quay.io/kohlstechnology/eunomia-base:dev", framework.Global.KubeClient)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Waiting for availability of %s pod", name)
