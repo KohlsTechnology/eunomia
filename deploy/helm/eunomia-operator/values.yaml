@@ -35,6 +35,14 @@ eunomia:
       #    hosts:
       #      - chart-example.local
 
+    service:
+      # Enable the below setting to expose the service through a cloud load balancer
+      annotations: {}
+        # cloud.google.com/load-balancer-type: "Internal"
+        # service.beta.kubernetes.io/aws-load-balancer-internal: "true"
+        # service.beta.kubernetes.io/azure-load-balancer-internal: "true"
+      #type: LoadBalancer
+
     nodeSelector: {}
 
     tolerations: []
