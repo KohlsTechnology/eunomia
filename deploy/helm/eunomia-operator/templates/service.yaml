@@ -6,6 +6,9 @@ metadata:
   annotations:
     prometheus.io/scrape: 'true'
     prometheus.io/port: '8383'
+    {{- with .service.annotations }}
+      {{- toYaml . | nindent 4 }}
+    {{- end }}
   name: eunomia-operator
   namespace: "{{ .namespace }}"
 spec:
@@ -20,5 +23,9 @@ spec:
     port: 8383
     protocol: TCP
     targetPort: 8383
+  sessionAffinity: None
+{{- if .service.type }}
+  type: {{ .service.type }}
+{{- end }}
 {{- end }}
 {{- end }}
