@@ -62,8 +62,9 @@ func (u *statusUpdater) OnUpdate(oldObj, newObj interface{}) {
 	if newJob == nil {
 		newJob = oldJob
 	}
+
 	if newJob.Status.StartTime == nil {
-		log.Info("unstarted Job found; cannot properly set GitOpsConfig.Status based on it, ignoring", "job", newJob.Name)
+		// Unstarted Job found; cannot properly set GitOpsConfig.Status based on it, ignoring
 		return
 	}
 
