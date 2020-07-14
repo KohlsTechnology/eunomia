@@ -79,6 +79,7 @@ func TestReadinessAndLivelinessProbes(t *testing.T) {
 				{
 					Name:     "webhook",
 					Protocol: corev1.ProtocolTCP,
+					NodePort: 31080,
 					Port:     int32(webHookPortInt),
 					TargetPort: intstr.IntOrString{
 						Type:   intstr.Int,
