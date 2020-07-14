@@ -276,7 +276,6 @@ if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
 elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
     export MINIKUBE_IP=$(minishift ip)
 elif [[ "${EUNOMIA_TEST_ENV}" == "kind" ]]; then
-    export MINIKUBE_IP=192.168.0.187
     export MINIKUBE_IP=127.0.0.1
 fi
 
