@@ -240,18 +240,17 @@ fi
 
 # Ensure clean workspace
 if [[ "${EUNOMIA_TEST_SKIP_DEPLOYMENT:-}" == "no" ]]; then
-    if [[ $(kubectl get namespace $OPERATOR_NAMESPACE) ]]; then
-        kubectl delete namespace $OPERATOR_NAMESPACE
+    if [[ $(kubectl get namespace "${OPERATOR_NAMESPACE}") ]]; then
+        kubectl delete namespace "${OPERATOR_NAMESPACE}"
     fi
 fi
 
 # clean up old gtests
 for NAMESPACE in eunomia-hello-world-demo eunomia-hello-world-demo-hierarchy eunomia-hello-world-yaml-demo; do
-    if [[ $(kubectl get namespace $NAMESPACE) ]]; then
-        kubectl delete namespace $NAMESPACE
+    if [[ $(kubectl get namespace "${NAMESPACE}") ]]; then
+        kubectl delete namespace "${NAMESPACE}"
     fi
 done
-
 
 # Pre-populate the Docker registry in minikube/minishift with images built from the current commit
 # See also: https://stackoverflow.com/q/42564058
@@ -273,7 +272,7 @@ if [[ "${EUNOMIA_TEST_ENV}" == "kind" ]]; then
         exit 1
     fi
     for IMAGE in ${IMAGES}; do
-       kind load docker-image ${IMAGE}
+        kind load docker-image "${IMAGE}"
     done
 fi
 
