@@ -6,10 +6,11 @@
 
 First of all, you will need access to a Kubernetes or an OpenShift cluster. The easiest way is to start a local minimal cluster in a virtual machine with the help of Minikube or Minishift.
 
-- [VirtualBox](https://www.virtualbox.org/wiki/Downloads) - hypervisor to run a local cluster virtual machine in
+- [VirtualBox](https://www.virtualbox.org/wiki/Downloads) - hypervisor to run a local cluster (minikube/minishift) virtual machine in
 - [Minikube](https://kubernetes.io/docs/setup/minikube/) - local Kubernetes cluster
-- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) - command line tool for controlling Kubernetes cluster
 - [Minishift](https://github.com/minishift/minishift/releases) - local OpenShift cluster
+- [Kind](https://kind.sigs.k8s.io/) - local Kubernetes cluster in Docker
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) - command line tool for controlling Kubernetes cluster
 - [openshift-cli](https://docs.openshift.com/container-platform/3.11/cli_reference/get_started_cli.html#installing-the-cli) - command line tool for controlling OpenShift cluster
 
 #### Installing on a Mac
@@ -19,6 +20,7 @@ Every component can be easily installed via [Homebrew](https://brew.sh/):
 ```shell
 brew cask install virtualbox
 brew install minikube
+brew install kind
 brew install kubectl
 brew cask install minishift
 brew install openshift-cli
@@ -35,6 +37,7 @@ Vendor instructions on how to install on Linux:
 - [Minikube](https://kubernetes.io/docs/tasks/tools/install-minikube/)
 - [openshift-cli](https://docs.openshift.com/container-platform/3.11/cli_reference/get_started_cli.html#installing-the-cli)
 - [Minishift](https://github.com/minishift/minishift/releases)
+- [Kind](https://kind.sigs.k8s.io/)
 
 ### Tools to build and test Eunomia
 
@@ -174,6 +177,22 @@ helm template deploy/helm/eunomia-operator/ \
   --set eunomia.operator.image.pullPolicy=Never | kubectl apply -f -
 ```
 
+### <a name="using-kind"></a>Using KIND
+```shell
+# Start kind cluster
+scripts/kind-create-cluster.sh
+
+# Build eunomia-operator (building eunomia-operator binary included) and template-processors
+# images and store load them into the kind node
+scripts/deploy-to-local.sh kind
+
+# Deploy the operator, use your locally-built image
+helm template deploy/helm/eunomia-operator/ \
+  --set eunomia.operator.image.tag=dev \
+  --set eunomia.operator.image.pullPolicy=Never | kubectl apply -f -
+```
+
+
 ### <a name="using-minishift"></a>Using Minishift
 
 ```shell
@@ -217,7 +236,7 @@ make test-unit
 ```shell
 # Optional: Set the environment variable $EUNOMIA_URI to point to a specific git url for testing
 # Optional: Set the environment variable $EUNOMIA_REF to point to a specific git reference for testing
-# Optional: Set the environment variable $EUNOMIA_TEST_ENV to minishift (default is minikube)
+# Optional: Set the environment variable $EUNOMIA_TEST_ENV to minikube|minishift|kind (default is minikube)
 # Optional: Set the environment variable $EUNOMIA_TEST_PAUSE to yes (default is no)
 # Optional: Set the environment variable $EUNOMIA_TEST_SKIP_IMAGES to yes to skip building all images
 # Optional: Set the environment variable $EUNOMIA_TEST_SKIP_DEPLOYMENT to yes to skip the Eunomia deployment
