@@ -245,6 +245,14 @@ if [[ "${EUNOMIA_TEST_SKIP_DEPLOYMENT:-}" == "no" ]]; then
     fi
 fi
 
+# clean up old gtests
+for NAMESPACE in eunomia-hello-world-demo eunomia-hello-world-demo-hierarchy eunomia-hello-world-yaml-demo; do
+    if [[ $(kubectl get namespace $NAMESPACE) ]]; then
+        kubectl delete namespace $NAMESPACE
+    fi
+done
+
+
 # Pre-populate the Docker registry in minikube/minishift with images built from the current commit
 # See also: https://stackoverflow.com/q/42564058
 if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
