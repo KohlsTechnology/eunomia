@@ -266,7 +266,7 @@ fi
 
 if [[ "${EUNOMIA_TEST_ENV}" == "kind" ]]; then
     echo "loading latest images into kind"
-    IMAGES="$(docker images --filter reference='quay.io/kohlstechnology/eunomia*:dev' --format "{{.Repository}}:{{.Tag}}")"
+    IMAGES="$(docker images --filter reference='quay.io/kohlstechnology/eunomia*:latest' --format "{{.Repository}}:{{.Tag}}")"
     if [ -z "${IMAGES}" ]; then
         echo "Something went wrong, could get the list of eunomia images from docker"
         exit 1
