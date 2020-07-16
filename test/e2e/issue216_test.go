@@ -81,7 +81,7 @@ func TestIssue216InvalidImageDeleted(t *testing.T) {
 
 	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		const name = "gitopsconfig-gitops-issue216-"
-		pod, err := GetPod(ctx.namespace, name, "quay.io/kohlstechnology/invalid:bad", framework.Global.KubeClient)
+		pod, err := GetPod(t, ctx.namespace, name, "quay.io/kohlstechnology/invalid:bad", framework.Global.KubeClient)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Waiting for availability of %s pod", name)
@@ -134,7 +134,7 @@ func TestIssue216InvalidImageDeleted(t *testing.T) {
 
 	err = wait.Poll(retryInterval, timeout, func() (done bool, err error) {
 		const name = "gitopsconfig-gitops-issue216-"
-		pod, err := GetPod(ctx.namespace, name, "", framework.Global.KubeClient)
+		pod, err := GetPod(t, ctx.namespace, name, "", framework.Global.KubeClient)
 		switch {
 		case apierrors.IsNotFound(err):
 			t.Logf("Confirmed no more pods found")
