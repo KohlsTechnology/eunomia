@@ -300,9 +300,9 @@ func ExposeOperatorAsService(t *testing.T, ctx *Context) string {
 	if !found {
 		t.Fatal("OPERATOR_NAMESPACE environment value missing")
 	}
-	minikubeIP, found := os.LookupEnv("MINIKUBE_IP")
+	minikubeIP, found := os.LookupEnv("EUNOMIA_TEST_ENV_IP")
 	if !found {
-		t.Fatal("MINIKUBE_IP environment value missing")
+		t.Fatal("EUNOMIA_TEST_ENV_IP environment value missing")
 	}
 	webHookPort, found := os.LookupEnv("OPERATOR_WEBHOOK_PORT")
 	if !found {

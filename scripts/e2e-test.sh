@@ -268,7 +268,7 @@ if [[ "${EUNOMIA_TEST_ENV}" == "kind" ]]; then
     echo "loading latest images into kind"
     IMAGES="$(docker images --filter reference='quay.io/kohlstechnology/eunomia*:latest' --format "{{.Repository}}:{{.Tag}}")"
     if [ -z "${IMAGES}" ]; then
-        echo "Something went wrong, could get the list of eunomia images from docker"
+        echo "Something went wrong, could not get the list of eunomia images from docker"
         exit 1
     fi
     for IMAGE in ${IMAGES}; do
@@ -279,11 +279,11 @@ fi
 # Get minikube/minishift IP address
 # shellcheck disable=SC2155
 if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
-    export MINIKUBE_IP=$(minikube ip)
+    export EUNOMIA_TEST_ENV_IP=$(minikube ip)
 elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
-    export MINIKUBE_IP=$(minishift ip)
+    export EUNOMIA_TEST_ENV_IP=$(minishift ip)
 elif [[ "${EUNOMIA_TEST_ENV}" == "kind" ]]; then
-    export MINIKUBE_IP=127.0.0.1
+    export EUNOMIA_TEST_ENV_IP=127.0.0.1
 fi
 
 # TestReadinessAndLivelinessProbes is accessing operator via newly created service and
