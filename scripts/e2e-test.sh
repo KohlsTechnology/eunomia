@@ -20,19 +20,19 @@ export OPERATOR_SDK_VERSION="v0.12.0"
 
 usage() {
     cat <<EOT
-e2e-test.sh [-e|--env=(minikube|minishift)] [-p|--pause] [-n|--noimages] 
+e2e-test.sh [-e|--env=(minikube|minishift|kind)] [-p|--pause] [-n|--noimages] 
             [-d|--nodeployment] [-r|--run=<test name>]
 
-Execute the end-to-end tests on a local minikube or minishift.
+Execute the end-to-end tests on a local minikube, minishift, or kind.
 
--e|--env=(minikube|minishift) sets the environment the tests will be run under
+-e|--env=(minikube|minishift|kind) sets the environment the tests will be run under
 -p|--pause Pauses after each test step to help with debugging
 -d|--nodeployment Skip the deployment of the operator
 -n|--noimages Skip building the images
 -r|--run=<test name> Only run the specified Go e2e test. This will skip all others.
 
 You can also specify the settings via environment variables (command line parameters take precedence).
-EUNOMIA_TEST_ENV=(minikube|minishift)
+EUNOMIA_TEST_ENV=(minikube|minishift|kind)
 EUNOMIA_TEST_PAUSE=yes
 EUNOMIA_TEST_SKIP_IMAGES=yes
 EUNOMIA_TEST_SKIP_DEPLOYMENT=yes
@@ -182,6 +182,7 @@ export EUNOMIA_TEST_SKIP_DEPLOYMENT=${EUNOMIA_TEST_SKIP_DEPLOYMENT:-no}
 case "${EUNOMIA_TEST_ENV:-}" in
 minikube) ;;
 minishift) ;;
+kind) ;;
 *)
     echo "Error: invalid test environment '${EUNOMIA_TEST_ENV}' specified"
     usage
@@ -193,7 +194,7 @@ case "${EUNOMIA_TEST_PAUSE:-}" in
 yes) ;;
 no) ;;
 *)
-    echo "Error: invalid setting for pause: '${EUNOMIA_TEST_ENV}' specified"
+    echo "Error: invalid setting for pause: '${EUNOMIA_TEST_PAUSE}' specified"
     echo "It must be yes or no (or undefined)"
     usage
     exit 1
@@ -230,14 +231,26 @@ elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
         echo "Minishift is not running, aborting tests"
         exit 1
     }
+elif [[ "${EUNOMIA_TEST_ENV}" == "kind" ]]; then
+    kind export kubeconfig || {
+        echo "KIND is not running, aborting tests"
+        exit 1
+    }
 fi
 
 # Ensure clean workspace
 if [[ "${EUNOMIA_TEST_SKIP_DEPLOYMENT:-}" == "no" ]]; then
-    if [[ $(kubectl get namespace $OPERATOR_NAMESPACE) ]]; then
-        kubectl delete namespace $OPERATOR_NAMESPACE
+    if [[ $(kubectl get namespace "${OPERATOR_NAMESPACE}") ]]; then
+        kubectl delete namespace "${OPERATOR_NAMESPACE}"
     fi
 fi
+
+# clean up old gtests
+for NAMESPACE in eunomia-hello-world-demo eunomia-hello-world-demo-hierarchy eunomia-hello-world-yaml-demo; do
+    if [[ $(kubectl get namespace "${NAMESPACE}") ]]; then
+        kubectl delete namespace "${NAMESPACE}"
+    fi
+done
 
 # Pre-populate the Docker registry in minikube/minishift with images built from the current commit
 # See also: https://stackoverflow.com/q/42564058
@@ -251,12 +264,26 @@ if [[ "${EUNOMIA_TEST_SKIP_IMAGES:-}" == "no" ]]; then
     GOOS=linux make e2e-test-images
 fi
 
+if [[ "${EUNOMIA_TEST_ENV}" == "kind" ]]; then
+    echo "loading latest images into kind"
+    IMAGES="$(docker images --filter reference='quay.io/kohlstechnology/eunomia*:latest' --format "{{.Repository}}:{{.Tag}}")"
+    if [ -z "${IMAGES}" ]; then
+        echo "Something went wrong, could not get the list of eunomia images from docker"
+        exit 1
+    fi
+    for IMAGE in ${IMAGES}; do
+        kind load docker-image "${IMAGE}"
+    done
+fi
+
 # Get minikube/minishift IP address
 # shellcheck disable=SC2155
 if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
-    export MINIKUBE_IP=$(minikube ip)
+    export EUNOMIA_TEST_ENV_IP=$(minikube ip)
 elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
-    export MINIKUBE_IP=$(minishift ip)
+    export EUNOMIA_TEST_ENV_IP=$(minishift ip)
+elif [[ "${EUNOMIA_TEST_ENV}" == "kind" ]]; then
+    export EUNOMIA_TEST_ENV_IP=127.0.0.1
 fi
 
 # TestReadinessAndLivelinessProbes is accessing operator via newly created service and
