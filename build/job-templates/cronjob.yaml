@@ -4,6 +4,8 @@ metadata:
   name: gitopsconfig-{{ .Config.ObjectMeta.Name }}
   namespace: {{ .Config.ObjectMeta.Namespace }}
 spec:
+  concurrencyPolicy: Forbid
+  startingDeadlineSeconds: 60
   schedule: "{{ getCron .Config }}"
   jobTemplate:
     metadata:
