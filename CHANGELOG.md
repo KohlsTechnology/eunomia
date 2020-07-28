@@ -1,4 +1,20 @@
-## v0.1.7 (Unreleased)
+## v0.1.7 (July 28, 2020)
+FEATURES:
+* Add support for git submodules [GH-333](https://github.com/KohlsTechnology/eunomia/pull/333)
+
+CHANGES:
+* Update Helm template processor from Helm v2 to v3 [GH-331](https://github.com/KohlsTechnology/eunomia/pull/331)
+* Update e2e tests to support kind [GH-359](https://github.com/KohlsTechnology/eunomia/pull/359)
+* Update helm to 3.2.4 and yq to 3.3.2 [GH-360](https://github.com/KohlsTechnology/eunomia/pull/360)
+
+BUG FIXES:
+* Fix Travis CI deploy automation [GH-344](https://github.com/KohlsTechnology/eunomia/pull/344)
+* Fix logging in web hook [GH-346](https://github.com/KohlsTechnology/eunomia/pull/346)
+* Fix stuck operator pod deployments [GH-349](https://github.com/KohlsTechnology/eunomia/pull/349)
+* Fix unreliable webhook triggers [GH-354](https://github.com/KohlsTechnology/eunomia/pull/354)
+* Do not allow Eunomia CronJobs to run concurrently [GH-362](https://github.com/KohlsTechnology/eunomia/pull/362)
+* Increase CPU limit to support heavier template processing [GH-361](https://github.com/KohlsTechnology/eunomia/pull/361)
+* [GH-360](https://github.com/KohlsTechnology/eunomia/pull/360)
 
 ## v0.1.6 (March 26, 2020)
 FEATURES:
