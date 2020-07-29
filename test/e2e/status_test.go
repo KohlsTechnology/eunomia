@@ -77,7 +77,7 @@ func TestStatusSuccess(t *testing.T) {
 
 	// Step 2: watch Status till Success & verify Status fields
 
-	err = wait.Poll(retryInterval, 25*time.Second, func() (done bool, err error) {
+	err = wait.Poll(retryInterval, 60*time.Second, func() (done bool, err error) {
 		fresh := gitopsv1alpha1.GitOpsConfig{}
 		err = framework.Global.Client.Get(ctx, util.GetNN(gitops), &fresh)
 		if err != nil {
