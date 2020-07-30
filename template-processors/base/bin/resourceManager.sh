@@ -76,8 +76,30 @@ function deleteByOldLabels() {
         local filter="${TAG_OWNER}==${owner}"
         if [[ "${timestamp}" ]]; then
             filter="${filter},${TAG_APPLIED}!=${timestamp}"
+            # Retrieve all resources owned by the GitOpsConfig that doesn't match the current jobs timestamp
+            # Check the timestamp on all of the resources and ONLY delete the resource if the timestamp label is older than the current job timestamp
+            # shellcheck disable=SC2005
+            echo "$(kube get "${ownedKinds}" -l "${filter}" -o yaml)" >/tmp/check_deletion.yaml
+            local resource_count=$(($(yq -y '.items | length' /tmp/check_deletion.yaml | head -qn 1) - 1))
+            if [[ "$resource_count" -ge "0" ]]; then
+                for i in $(seq 0 $resource_count); do
+                    local resource_timestamp="$(yq -r -y '.items['"$i"'].metadata.labels."'$TAG_APPLIED'"' /tmp/check_deletion.yaml | head -qn 1)"
+                    if [[ "$resource_timestamp" -lt "$timestamp" ]]; then
+                        local delete_name=$(yq -y '.items['"$i"'].metadata.name' /tmp/check_deletion.yaml | head -qn 1)
+                        local delete_kind=$(yq -y '.items['"$i"'].kind' /tmp/check_deletion.yaml | head -qn 1)
+                        local delete_namespace_exists=$(yq -y '.items['"$i"'].metadata | has("namespace")' /tmp/check_deletion.yaml | head -qn 1)
+                        if [[ "$delete_namespace_exists" =~ "false" ]]; then
+                            kube delete --wait=false "$delete_kind" "$delete_name"
+                        else
+                            local delete_namespace=$(yq -y '.items['"$i"'].metadata.namespace' /tmp/check_deletion.yaml | head -qn 1)
+                            kube delete --wait=false "$delete_kind" "$delete_name" -n "$delete_namespace"
+                        fi
+                    fi
+                done
+            fi
+        else
+            kube delete --wait=false "${ownedKinds}" -l "${filter}"
         fi
-        kube delete --wait=false "${ownedKinds}" -l "${filter}"
     fi
 }
 

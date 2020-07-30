@@ -36,6 +36,7 @@ import (
 
 	framework "github.com/operator-framework/operator-sdk/pkg/test"
 	e2eutil "github.com/operator-framework/operator-sdk/pkg/test/e2eutil"
+	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
@@ -206,6 +207,39 @@ func GetCronJob(namespace, namePrefix string, kubeclient kubernetes.Interface) (
 		}
 	}
 	return nil, nil
+}
+
+// GetJob retrieves a given Job based on namespace, and the Job name prefix
+func GetJob(namespace, namePrefix string, kubeclient kubernetes.Interface) (*batchv1.Job, error) {
+	jobs, err := kubeclient.BatchV1().Jobs(namespace).List(metav1.ListOptions{})
+	if err != nil {
+		return nil, fmt.Errorf("cannot retrieve jobs in namespace %q: %w", namespace, err)
+	}
+	for _, job := range jobs.Items {
+		if strings.HasPrefix(job.Name, namePrefix) {
+			fmt.Printf("Found jobs %s\n", job.Name)
+			return &job, nil
+		}
+	}
+	return nil, nil
+}
+
+// WaitForJobCreation looks for the existance of a Job with a job name prefix
+func WaitForJobCreation(namespace, namePrefix string, kubeclient kubernetes.Interface) error {
+	err := wait.Poll(retryInterval, 60*time.Second, func() (done bool, err error) {
+		jobs, err := kubeclient.BatchV1().Jobs(namespace).List(metav1.ListOptions{})
+		if err != nil {
+			return false, err
+		}
+		for _, job := range jobs.Items {
+			if strings.HasPrefix(job.Name, namePrefix) {
+				fmt.Printf("Found job %s\n", job.Name)
+				return true, nil
+			}
+		}
+		return false, nil
+	})
+	return err
 }
 
 // DumpJobsLogsOnError checks if t is marked as failed, and if yes, dumps the logs of all pods in the specified namespace.
