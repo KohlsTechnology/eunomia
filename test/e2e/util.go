@@ -224,6 +224,24 @@ func GetJob(namespace, namePrefix string, kubeclient kubernetes.Interface) (*bat
 	return nil, nil
 }
 
+// WaitForJobCreation looks for the existance of a Job with a job name prefix
+func WaitForJobCreation(namespace, namePrefix string, kubeclient kubernetes.Interface) error {
+	err := wait.Poll(retryInterval, 60*time.Second, func() (done bool, err error) {
+		jobs, err := kubeclient.BatchV1().Jobs(namespace).List(metav1.ListOptions{})
+		if err != nil {
+			return false, err
+		}
+		for _, job := range jobs.Items {
+			if strings.HasPrefix(job.Name, namePrefix) {
+				fmt.Printf("Found job %s\n", job.Name)
+				return true, nil
+			}
+		}
+		return false, nil
+	})
+	return err
+}
+
 // DumpJobsLogsOnError checks if t is marked as failed, and if yes, dumps the logs of all pods in the specified namespace.
 func DumpJobsLogsOnError(t *testing.T, f *framework.Framework, namespace string) {
 	if !t.Failed() {

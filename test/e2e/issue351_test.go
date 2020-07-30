@@ -75,20 +75,7 @@ func TestIssue351MultipleJobRun(t *testing.T) {
 	}
 
 	// When the initial job is created, we will use it as a template to create two additional jobs at the same time
-	err = wait.Poll(retryInterval, 60*time.Second, func() (done bool, err error) {
-		jobs, err := framework.Global.KubeClient.BatchV1().Jobs(ctx.namespace).List(metav1.ListOptions{})
-		if err != nil {
-			return false, err
-		}
-		switch {
-		case len(jobs.Items) == 0:
-			t.Logf("Waiting for job to be created")
-			return false, nil
-		default:
-			t.Logf("Job has been created")
-			return true, nil
-		}
-	})
+	err = WaitForJobCreation(ctx.namespace, "gitopsconfig-gitops-issue351-", framework.Global.KubeClient)
 	if err != nil {
 		t.Error(err)
 	}
