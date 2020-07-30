@@ -52,7 +52,7 @@ func TestIssue351MultipleJobRun(t *testing.T) {
 			TemplateSource: gitopsv1alpha1.GitConfig{
 				URI:        ctx.eunomiaURI,
 				Ref:        ctx.eunomiaRef,
-				ContextDir: "test/e2e/testdata/modes/template1",
+				ContextDir: "test/e2e/testdata/hello-a",
 			},
 			ParameterSource: gitopsv1alpha1.GitConfig{
 				URI:        ctx.eunomiaURI,
@@ -153,9 +153,14 @@ func TestIssue351MultipleJobRun(t *testing.T) {
 		t.Error(err)
 	}
 
-	// Ensure the pod is pod is not deleted when the jobs complete
-	err = WaitForPodWithImage(t, framework.Global, ctx.namespace, "hello-world-modes", "hello-app:1.0", retryInterval, timeout)
+	deploymentList, err := framework.Global.KubeClient.AppsV1().Deployments(ctx.namespace).List(metav1.ListOptions{})
 	if err != nil {
 		t.Error(err)
+	}
+	if len(deploymentList.Items) != 1 {
+		t.Errorf("There was only %d deployments when we were expecting 1", len(deploymentList.Items))
+	}
+	if deploymentList.Items[0].GetDeletionTimestamp() != nil {
+		t.Errorf("The deployment has been marked for deletion")
 	}
 }

@@ -209,7 +209,7 @@ func GetCronJob(namespace, namePrefix string, kubeclient kubernetes.Interface) (
 	return nil, nil
 }
 
-// GetJob retrieves a given cronJob based on namespace, and the cronJob name prefix
+// GetJob retrieves a given Job based on namespace, and the Job name prefix
 func GetJob(namespace, namePrefix string, kubeclient kubernetes.Interface) (*batchv1.Job, error) {
 	jobs, err := kubeclient.BatchV1().Jobs(namespace).List(metav1.ListOptions{})
 	if err != nil {
