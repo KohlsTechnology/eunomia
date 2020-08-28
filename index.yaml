@@ -2,7 +2,17 @@ apiVersion: v1
 entries:
   eunomia-operator:
   - apiVersion: v1
-    created: "2020-07-28T16:13:37.905489017Z"
+    created: "2020-08-28T04:45:04.992801757Z"
+    description: The Eunomia Operator
+    digest: 471c903940621ab7d80d1a3d34100015ca316c3849aa07cb21ddca660385b49f
+    engine: gotpl
+    home: https://github.com/KohlsTechnology/eunomia
+    name: eunomia-operator
+    urls:
+    - https://KohlsTechnology.github.io/eunomia/eunomia-operator/eunomia-operator-v0.1.8.tgz
+    version: v0.1.8
+  - apiVersion: v1
+    created: "2020-08-28T04:45:04.991766939Z"
     description: The Eunomia Operator
     digest: 4864aae031ede14560cbdf127a8e76f5028cacb444e9fd93352a460f84f55bc1
     engine: gotpl
@@ -12,7 +22,7 @@ entries:
     - https://KohlsTechnology.github.io/eunomia/eunomia-operator/eunomia-operator-v0.1.7.tgz
     version: v0.1.7
   - apiVersion: v1
-    created: "2020-07-28T16:13:37.905140638Z"
+    created: "2020-08-28T04:45:04.990949619Z"
     description: The Eunomia Operator
     digest: 3a43263f0b86065b6a06a8b0898d5d2e5a8b30d2ac2be7e20d10791cb58d009f
     engine: gotpl
@@ -22,7 +32,7 @@ entries:
     - https://KohlsTechnology.github.io/eunomia/eunomia-operator/eunomia-operator-v0.1.6.tgz
     version: v0.1.6
   - apiVersion: v1
-    created: "2020-07-28T16:13:37.904839569Z"
+    created: "2020-08-28T04:45:04.990260943Z"
     description: The Eunomia Operator
     digest: 8027ec52eaba91fb0ac40cc581c751b687f256702fab96dd7a47af3ca257b418
     engine: gotpl
@@ -32,7 +42,7 @@ entries:
     - https://KohlsTechnology.github.io/eunomia/eunomia-operator/eunomia-operator-v0.1.5.tgz
     version: v0.1.5
   - apiVersion: v1
-    created: "2020-07-28T16:13:37.904527448Z"
+    created: "2020-08-28T04:45:04.98920916Z"
     description: The Eunomia Operator
     digest: 9b84283d58fcebb60ead03483c13ce80c7f4aa6a48bdef3796a311fadc0709e8
     engine: gotpl
@@ -42,7 +52,7 @@ entries:
     - https://KohlsTechnology.github.io/eunomia/eunomia-operator/eunomia-operator-v0.1.4.tgz
     version: v0.1.4
   - apiVersion: v1
-    created: "2020-07-28T16:13:37.904204208Z"
+    created: "2020-08-28T04:45:04.9888669Z"
     description: The Eunomia Operator
     digest: 33b4de535a4f2718fe0fe7d145f93c3832f99c8a0567ae33fa19065f8697f3a5
     engine: gotpl
@@ -52,7 +62,7 @@ entries:
     - https://KohlsTechnology.github.io/eunomia/eunomia-operator/eunomia-operator-v0.1.3.tgz
     version: v0.1.3
   - apiVersion: v1
-    created: "2020-07-28T16:13:37.903777724Z"
+    created: "2020-08-28T04:45:04.988462794Z"
     description: The Eunomia Operator
     digest: ca747ea93ad3f246104686772414dccd22985d77e347bb1ef2b1d0190c26d9e1
     engine: gotpl
@@ -61,4 +71,4 @@ entries:
     urls:
     - https://KohlsTechnology.github.io/eunomia/eunomia-operator/eunomia-operator-v0.1.2.tgz
     version: v0.1.2
-generated: "2020-07-28T16:13:37.903136895Z"
+generated: "2020-08-28T04:45:04.987944165Z"
