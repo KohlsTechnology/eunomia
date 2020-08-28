@@ -1,3 +1,7 @@
+## v0.1.8 (August 27, 2020)
+BUG FIXES:
+* Improve resource deletion logic [GH-364](https://github.com/KohlsTechnology/eunomia/pull/364)
+
 ## v0.1.7 (July 28, 2020)
 FEATURES:
 * Add support for git submodules [GH-333](https://github.com/KohlsTechnology/eunomia/pull/333)
