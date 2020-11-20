@@ -8,7 +8,6 @@ ENV USER_UID=1001 \
     GOLANG_YQ_VERSION="3.3.2" \
     JQ_VERSION="1.6"
 
-COPY bin /usr/local/bin
 
 RUN yum install -y --disableplugin=subscription-manager git gettext python36-devel gcc python3-pip python3-setuptools && \
     curl https://github.com/stedolan/jq/releases/download/jq-${JQ_VERSION}/jq-linux64 -L -o /usr/bin/jq && \
@@ -17,8 +16,11 @@ RUN yum install -y --disableplugin=subscription-manager git gettext python36-dev
     chmod +x /usr/bin/kubectl && \
     pip3 install yq==${YQ_VERSION} && \
     curl -L https://github.com/mikefarah/yq/releases/download/${GOLANG_YQ_VERSION}/yq_linux_amd64 -o /usr/bin/goyq && \
-    chmod +x /usr/bin/goyq && \
-    /usr/local/bin/user_setup
+    chmod +x /usr/bin/goyq
+
+COPY bin /usr/local/bin
+
+RUN /usr/local/bin/user_setup
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
 
