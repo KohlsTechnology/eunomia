@@ -25,21 +25,11 @@ clean:
 	rm -rf build/_output
 
 generate:
-	docker build ./scripts -f ./scripts/operator-sdk.docker -t 'operator-sdk:old'
-	# Future Item: remove the use of `go mod vendor`
-	go mod vendor
-	docker run \
-		-u "$(shell id -u)" \
-		-v "$(shell go env GOCACHE):/gocache" \
-		-v "$(PWD):/gopath/src/github.com/KohlsTechnology/eunomia" \
-		-v "$(shell go env GOPATH | sed 's/:.*//' )/pkg:/gopath/pkg" \
-		operator-sdk:old
+	./scripts/update-crds.sh
 
 # Build binary
 .PHONY: build
 build:
-	# Future Item: remove the use of `go mod vendor`
-	go mod vendor
 	go build -o build/_output/bin/eunomia -ldflags $(LDFLAGS) github.com/KohlsTechnology/eunomia/cmd/manager
 
 # Run against the configured Kubernetes cluster in ~/.kube/config
@@ -51,6 +41,7 @@ run:
 # which could result in different code being actually compiled than expected based on reading the source.
 .PHONY: test-dirty
 test-dirty: generate
+	go mod vendor
 	git diff --exit-code
 	# TODO: also check that there are no untracked files, e.g. extra .go and .yaml ones
 
