@@ -51,6 +51,12 @@ before_script:
 - rm operator-sdk-${OPERATOR_SDK_VERSION}-x86_64-linux-gnu
 - curl -Lo shfmt https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64
 - sudo chmod +x shfmt && sudo mv shfmt /usr/local/bin/
+# K8S version 1.18.2 requires conntrack to run, otherwise minikube will throw the following error:
+#   Exiting due to GUEST_MISSING_CONNTRACK: Sorry, Kubernetes 1.18.2 requires conntrack to be installed in root's path
+- |
+  if [[ "${KUBE_VERSION}" == "v1.18.2" ]]; then
+    sudo apt-get install conntrack
+  fi
 - |
   if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
     sudo minikube start --vm-driver=none --kubernetes-version=${KUBE_VERSION}
