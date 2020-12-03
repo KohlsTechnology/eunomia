@@ -65,6 +65,7 @@ function appendResourceVersion() {
     mkdir -p "$tmpdir/processed_files/$MANIFEST_DIR"
     # shellcheck disable=SC2044
     for file in $(find "$MANIFEST_DIR" -regextype posix-extended -iregex '.*\.(ya?ml|json)'); do
+        mkdir -p "$tmpdir"/"$(dirname "$file")"
         kube get --ignore-not-found -f "$file" -o yaml >"$tmpdir/$file"
         local kind="$(cat "$tmpdir"/"$file" | yq -y .kind)"
         if [[ "$kind" =~ "List" ]]; then
@@ -81,6 +82,7 @@ function appendResourceVersion() {
                 cat "$tmpdir/labeled" >"$tmpdir/processed_files/$file"
             else
                 echo "NO RESOURCE VERSION TO PATCH"
+                mkdir -p "$tmpdir"/processed_files/"$(dirname "$file")"
                 cat "$file" >"$tmpdir/processed_files/$file"
             fi
         fi
