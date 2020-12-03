@@ -75,7 +75,6 @@ tags
 .vscode/*
 .history
 # End of https://www.gitignore.io/api/go,vim,emacs,visualstudiocode
-vendor
 notes.txt
 image_move.sh
 .DS_Store
@@ -86,3 +85,5 @@ template-processors/ocp-template/Dockerfile
 template-processors/openshift-provision/Dockerfile
 .idea
 coverage.txt
+operator-sdk
+openapi-gen

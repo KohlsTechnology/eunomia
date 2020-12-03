@@ -135,7 +135,7 @@ If the `uri` is not specified in the `parameterSource` section, then it will def
 
 ### Git Submodules
 
-Some helm charts might require the configuration to be part of the chart itself (you can't read files from outside the chart). Loading files into a configmap is one example of this. 
+Some helm charts might require the configuration to be part of the chart itself (you can't read files from outside the chart). Loading files into a configmap is one example of this.
 
 Separating the charts (templateSource) from the actual configuration (parameterSource) is a best practice. This allows you to separate your code (templates) from your configuration, which helps tremendously with change management.
 
@@ -171,7 +171,7 @@ Example `hierarchy.lst`:
 ../development #this is third ... highest priority
 ```
 
-In this case it will load all yaml files from `../defaults`, then merge it with everything in `../marketing`, and lastly merges it with everything in `../development`.  
+In this case it will load all yaml files from `../defaults`, then merge it with everything in `../marketing`, and lastly merges it with everything in `../development`.
 You can also use the relative path `./`, which means it'll also load the variables defined in `contextDir` directly (same folder that as `hierarchy.lst`). You can insert `./` in whatever order you want in the `hierarchy.lst` - it will determine its priority.
 
 #### Upcoming features
@@ -394,7 +394,7 @@ Prometheus collects metrics from monitored targets by scraping metrics HTTP endp
 
 By default, the metrics in Operator SDK are exposed on `0.0.0.0:8383/metrics`
 
-For more information, see [Metrics in Operator SDK](https://github.com/operator-framework/operator-sdk/blob/v0.12.0/doc/user/metrics/README.md)
+For more information, see [Metrics in Operator SDK](https://github.com/operator-framework/operator-sdk/blob/v0.17.1/doc/user/metrics/README.md)
 
 #### Usage:
 

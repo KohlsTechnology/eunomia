@@ -34,7 +34,7 @@ type Context struct {
 //	defer ctx.Cleanup()
 func NewContext(t *testing.T) (*Context, error) {
 	testCtx := framework.NewTestCtx(t)
-	ns, err := testCtx.GetNamespace()
+	ns, err := testCtx.GetOperatorNamespace()
 	if err != nil {
 		return nil, fmt.Errorf("e2e new test context: getting namespace: %w", err)
 	}

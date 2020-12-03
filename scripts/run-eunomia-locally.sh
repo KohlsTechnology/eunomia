@@ -31,5 +31,4 @@ kubectl apply -f ./deploy/crds/eunomia.kohls.io_gitopsconfigs_crd.yaml
 export JOB_TEMPLATE=./build/job-templates/job.yaml
 export CRONJOB_TEMPLATE=./build/job-templates/cronjob.yaml
 export OPERATOR_NAME=eunomia-operator
-go mod vendor
 operator-sdk up local --namespace="${watch_ns}"
