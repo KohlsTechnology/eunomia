@@ -27,6 +27,10 @@ clean:
 generate:
 	./scripts/update-crds.sh
 
+.PHONY: vendor
+vendor:
+	go mod vendor
+
 # Build binary
 .PHONY: build
 build:
@@ -40,8 +44,7 @@ run:
 # Run some stuff that should be run before committing, then verify that there are no accidental modifications in the repo,
 # which could result in different code being actually compiled than expected based on reading the source.
 .PHONY: test-dirty
-test-dirty: generate
-	go mod vendor
+test-dirty: vendor generate
 	git diff --exit-code
 	# TODO: also check that there are no untracked files, e.g. extra .go and .yaml ones
 
