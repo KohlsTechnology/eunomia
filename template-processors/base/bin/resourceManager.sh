@@ -54,41 +54,6 @@ function addLabels() {
     done
 }
 
-# appendResourceVersion - patches the YAML&JSON files in $MANIFEST_DIR,
-# adding the metadata.resourceVersion for each resource being managed.
-# This is intended to serve as a locking mechanism when applying resources
-# in which Kubernetes will fail the apply with a StatusConflict (HTTP status code 409)
-# Ref https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
-function appendResourceVersion() {
-    local tmpdir="$(mktemp -d)"
-    mkdir -p "$tmpdir/$MANIFEST_DIR"
-    mkdir -p "$tmpdir/processed_files/$MANIFEST_DIR"
-    # shellcheck disable=SC2044
-    for file in $(find "$MANIFEST_DIR" -regextype posix-extended -iregex '.*\.(ya?ml|json)'); do
-        mkdir -p "$tmpdir"/"$(dirname "$file")"
-        mkdir -p "$tmpdir"/processed_files/"$(dirname "$file")"
-        kube get --ignore-not-found -f "$file" -o yaml >"$tmpdir/$file"
-        local kind="$(cat "$tmpdir"/"$file" | yq -y .kind)"
-        if [[ "$kind" =~ "List" ]]; then
-            #TODO: figure out how to handle this
-            echo "THIS IS A LIST"
-        else
-            echo "THIS IS A $kind"
-            local resourceVersion="$(cat "$tmpdir"/"$file" | yq -y .metadata.resourceVersion)"
-            if [[ "${resourceVersion}" ]]; then
-                cat "$file" |
-                    yq -y -s "map(select(.!=null)|setpath([\"metadata\",\"resourceVersion\"]; \"$resourceVersion\"))|.[]" \
-                        >"$tmpdir/labeled"
-
-                cat "$tmpdir/labeled" >"$tmpdir/processed_files/$file"
-            else
-                echo "NO RESOURCE VERSION TO PATCH"
-                cat "$file" >"$tmpdir/processed_files/$file"
-            fi
-        fi
-    done
-}
-
 # deleteByOldLabels OWNER [TIMESTAMP] - deletes all kubernetes resources which have
 # the OWNER label as provided [optional: but TIMESTAMP label different than provided].
 function deleteByOldLabels() {
@@ -154,7 +119,7 @@ function createUpdateResources() {
     case "$CREATE_MODE" in
     Apply)
         addLabels "$owner" "$timestamp"
-        appendResourceVersion
+        appendResourceVersion.py
         kube apply -R -f "$MANIFEST_DIR"
         deleteByOldLabels "$owner" "$timestamp"
         ;;

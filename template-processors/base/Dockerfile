@@ -4,7 +4,7 @@ ENV USER_UID=1001 \
     USER_NAME=gitopsjob \
     kubectl=kubectl \
     KUBECTL_VERSION="v1.19.5" \
-    YQ_VERSION="2.7.2" \
+    YQ_VERSION="2.11.1" \
     GOLANG_YQ_VERSION="3.3.2" \
     JQ_VERSION="1.6"
 
