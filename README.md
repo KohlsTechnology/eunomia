@@ -14,6 +14,12 @@ According to Wikipedia:
 
 >Eunomia (Greek: Εὐνομία) was a minor Greek goddess of law and legislation (her name can be translated as "good order", "governance according to good laws"), as well as the spring-time goddess of green pastures (eû means "well, good" in Greek, and νόμος, nómos, means "law", while pasturelands are called nomia).
 
+## How to pronounce it
+
+Eunomia is pronounced: U-NO-ME-AH
+
+You can listen to it [here](https://www.howtopronounce.com/eunomia) and [here](https://www.youtube.com/watch?v=59SItXQe1aM).
+
 ## What is GitOps
 
 GitOps is all about turning day 2 operations into code! Not just that, it means you start thinking about day 2 on day 1. This is a dream come true for any Operations team!
