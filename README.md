@@ -14,7 +14,7 @@ According to Wikipedia:
 
 >Eunomia (Greek: Εὐνομία) was a minor Greek goddess of law and legislation (her name can be translated as "good order", "governance according to good laws"), as well as the spring-time goddess of green pastures (eû means "well, good" in Greek, and νόμος, nómos, means "law", while pasturelands are called nomia).
 
-## How to pronounce it
+## How to Pronounce it
 
 Eunomia is pronounced: U-NO-ME-AH
 
