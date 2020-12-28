@@ -16,7 +16,7 @@ According to Wikipedia:
 
 ## How to Pronounce it
 
-Eunomia is pronounced: U-NO-ME-AH
+Eunomia is pronounced: yuˈnoʊ mi ə. The English phonetic respelling is yoo-noh-mee-uh.
 
 You can listen to it [here](https://www.howtopronounce.com/eunomia) and [here](https://www.youtube.com/watch?v=59SItXQe1aM).
 
