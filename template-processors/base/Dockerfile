@@ -6,7 +6,8 @@ ENV USER_UID=1001 \
     KUBECTL_VERSION="v1.19.5" \
     YQ_VERSION="2.7.2" \
     GOLANG_YQ_VERSION="3.3.2" \
-    JQ_VERSION="1.6"
+    JQ_VERSION="1.6" \
+    HIERARCHY_VERSION="0.1.1"
 
 COPY bin /usr/local/bin
 
@@ -18,6 +19,7 @@ RUN yum install -y --disableplugin=subscription-manager git gettext python36-dev
     pip3 install yq==${YQ_VERSION} && \
     curl -L https://github.com/mikefarah/yq/releases/download/${GOLANG_YQ_VERSION}/yq_linux_amd64 -o /usr/bin/goyq && \
     chmod +x /usr/bin/goyq && \
+    curl -L https://github.com/KohlsTechnology/hierarchy/releases/download/v${HIERARCHY_VERSION}/hierarchy_${HIERARCHY_VERSION}_Linux_x86_64.tar.gz | tar --directory /usr/bin -zxv hierarchy && \
     /usr/local/bin/user_setup
 
 ENTRYPOINT ["/usr/local/bin/entrypoint"]
