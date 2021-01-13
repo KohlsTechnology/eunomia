@@ -59,7 +59,7 @@ if __name__ == "__main__":
                 continue
             if "kind" in data and data["kind"] == "List":
                 logging.info("file {} contains a list".format(filename))
-                if "items" not in data:
+                if "items" in data and len(data["items"]) == 0:
                     logging.info("file {} has list with zero items".format(filename))
                     continue
                 resource_version = {}
