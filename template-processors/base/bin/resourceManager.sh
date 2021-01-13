@@ -119,6 +119,7 @@ function createUpdateResources() {
     case "$CREATE_MODE" in
     Apply)
         addLabels "$owner" "$timestamp"
+        appendResourceVersion.py
         kube apply -R -f "$MANIFEST_DIR"
         deleteByOldLabels "$owner" "$timestamp"
         ;;
