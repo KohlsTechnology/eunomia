@@ -24,7 +24,7 @@ create)
     /usr/local/bin/discoverEnvironment.sh
     # shellcheck disable=SC1090
     source $HOME/envs.sh
-    /usr/local/bin/processParameters.sh
+    hierarchy -b "${CLONED_PARAMETER_GIT_DIR}" -f "hierarchy.lst" -o "/tmp/eunomia_values_processed.yaml"
     /usr/local/bin/processTemplates.sh
     /usr/local/bin/resourceManager.sh
     ;;

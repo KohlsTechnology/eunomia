@@ -268,11 +268,10 @@ The base image provides the following workflow:
     | `SERVICE_CA_BUNDLE`  | Path to the [service-level CA bundle](https://docs.openshift.com/container-platform/3.11/dev_guide/secrets.html#service-serving-certificate-secrets)  |
     | `NAMESPACE`  | Current namespace  |
 
-3. `processParameters.sh` : This script processes all the parameter files and generates `/tmp/eunomia_values_processed.yaml`. This script currently supports the following features:
+3. [`hierarchy`](https://github.com/KohlsTechnology/hierarchy) : processes all the parameter files and generates `/tmp/eunomia_values_processed.yaml`. It currently supports the following features:
     - Merging of all existing yaml files in the `CLONED_PARAMETER_GIT_DIR` location, into a single file for processing by the templating engine.
-    - Substitution of variables with environment variables.
-
-    This script can be further enhanced to e.g. support secrets injection.
+    - Substitution of variables with environment variables within the hierarchy.
+    - Substitution of variables with environment variables within the final yaml file.
 
 4. `processTemplate.sh` : This file needs to be overwritten in order to support a different templating engine. The contract is the following:
 
