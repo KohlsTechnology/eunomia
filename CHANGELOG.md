@@ -1,3 +1,20 @@
+## v0.1.9 (January 18, 2021)
+Starting with this release the minimum k8s version required for running Eunomia is 1.16.
+
+FEATURES:
+* N/A
+
+CHANGES:
+* Update to operator-sdk v0.17.1 [GH-374](https://github.com/KohlsTechnology/eunomia/pull/374)
+* Update to Go 1.15.5 [GH-377](https://github.com/KohlsTechnology/eunomia/pull/377)
+* Update k8s clients to 1.19 [GH-378](https://github.com/KohlsTechnology/eunomia/pull/378)
+* Document project name pronunciation [GH-379](https://github.com/KohlsTechnology/eunomia/pull/379)
+* Replace processParameters.sh with a new Go binary [GH-380](https://github.com/KohlsTechnology/eunomia/pull/380)
+
+
+BUG FIXES:
+* Fix resource deletion race condition [GH-376](https://github.com/KohlsTechnology/eunomia/pull/376)
+
 ## v0.1.8 (August 27, 2020)
 BUG FIXES:
 * Improve resource deletion logic [GH-364](https://github.com/KohlsTechnology/eunomia/pull/364)
