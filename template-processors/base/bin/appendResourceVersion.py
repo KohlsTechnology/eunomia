@@ -31,7 +31,7 @@ import yaml
 # Inputs:
 #
 # MANIFEST_DIR environment variable
-
+#test
 if __name__ == "__main__":
     logging.basicConfig(stream=sys.stdout, level=logging.INFO)
     logging.info("starting appendResourceVersion")
