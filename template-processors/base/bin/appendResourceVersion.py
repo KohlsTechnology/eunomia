@@ -16,12 +16,8 @@
 
 import logging
 import os
-from pathlib import Path
 import subprocess
-import sys
-import tempfile
 import yaml
-
 # appendResourceVersion - patches the YAML&JSON files in $MANIFEST_DIR,
 # adding the metadata.resourceVersion for each resource being managed.
 # This is intended to serve as a locking mechanism when applying resources
@@ -31,76 +27,144 @@ import yaml
 # Inputs:
 #
 # MANIFEST_DIR environment variable
+# pylint: disable=W1203
+LOG = logging.getLogger(__name__)
 
-if __name__ == "__main__":
-    logging.basicConfig(stream=sys.stdout, level=logging.INFO)
-    logging.info("starting appendResourceVersion")
-    manifest_dir = os.getenv('MANIFEST_DIR')
-    with open('/var/run/secrets/kubernetes.io/serviceaccount/token') as x: token = x.read()
-    files = list(Path(manifest_dir).rglob("*.yml")) + list(Path(manifest_dir).rglob("*.yaml")) + list(Path(manifest_dir).rglob("*.json"))
-    for filename in files:
-        logging.info("processing file {}".format(filename))
-        try:
-            data = yaml.safe_load(subprocess.run(["kubectl",
-                "-s",
-                "https://kubernetes.default.svc:443",
-                "--token",
-                token,
-                "--certificate-authority",
-                "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
-                "get",
-                "--ignore-not-found",
-                "-f",
-                filename,
-                "-o",
-                "yaml"], stdout=subprocess.PIPE).stdout)
-            if data is None:
-                logging.error("no kubectl get output for file {}".format(filename))
-                continue
-            if "kind" in data and data["kind"] == "List":
-                logging.info("file {} contains a list".format(filename))
-                if "items" in data and len(data["items"]) == 0:
-                    logging.info("file {} has list with zero items".format(filename))
-                    continue
-                resource_version = {}
-                for item in data["items"]:
-                    if "metadata" in item and "resourceVersion" in item["metadata"]:
-                        gvk_name = item["apiVersion"] + item["kind"] + item["metadata"]["name"]
-                        resource_version[gvk_name] = item["metadata"]["resourceVersion"]
-                        logging.info("got resource version {} for {}".format(item["metadata"]["resourceVersion"], gvk_name))
+def get_files(manifest_dir, file_types=(".yml", ".yaml", ".json")):
+    '''
+    Get files of file_type(s) from manifest dir
+    '''
+    files = []
+    for file in os.listdir(manifest_dir):
+        if file.endswith(file_types):
+            files.append(file)
+    return files
+
+def get_kube_token():
+    '''
+    Get kubernetes auth token
+    '''
+    with open('/var/run/secrets/kubernetes.io/serviceaccount/token') as token_file:
+        token = token_file.read()
+        return token
+
+def get_kubectl_data(filename, token):
+    '''
+    Get data using kubectl
+    '''
+    #TODO: why are we running a subprocess here?
+    data = yaml.safe_load(subprocess.run(["kubectl",
+                                          "-s",
+                                          "https://kubernetes.default.svc:443",
+                                          "--token",
+                                          token,
+                                          "--certificate-authority",
+                                          "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt",
+                                          "get",
+                                          "--ignore-not-found",
+                                          "-f",
+                                          filename,
+                                          "-o",
+                                          "yaml"], stdout=subprocess.PIPE).stdout)
+    return data
+
+def process_list(list, filename):
+    '''
+    Process list of resource items
+    '''
+    resource_name_version_dict = {}
+    for item in list["items"]:
+        if "metadata" in item and "resourceVersion" in item["metadata"]:
+            custom_resource_name = item["apiVersion"] + item["kind"] + item["metadata"]["name"]
+            resource_version = item["metadata"]["resourceVersion"]
+            resource_name_version_dict[custom_resource_name] = resource_version
+            logging.info(f"Got resource version {resource_version} for {custom_resource_name}")
+        else:
+            logging.error(f"Failed to get resource version for file {filename}")
+            #Item does not have resource version, continue to next item
+            continue
+        with open(filename, 'r+') as stream:
+            try:
+                new_docs = []
+                #Read existing document
+                docs = yaml.safe_load_all(stream)
+                for doc in docs:
+                    custom_resource_name = doc["apiVersion"] + doc["kind"] + doc["metadata"]["name"]
+                    scope = doc["spec"]["scope"]
+                    LOG.debug(f"Scope: {scope}")
+                    #If resource scope is cluster-wide append namespace to custom_resource_name so resource can be uniquely identified
+                    if scope.lower() == "cluster" and doc["metadata"]["namespace"]:
+                        custom_resource_name += doc["metadata"]["namespace"]
+                    if custom_resource_name in resource_name_version_dict:
+                        doc["metadata"]["resourceVersion"] = resource_name_version_dict[custom_resource_name]
                     else:
-                        logging.error("failed to get resource version for file {}".format(filename))
-                        continue
+                        LOG.error(f"Failed to patch resource version for {custom_resource_name} in file {filename}")
+                    new_docs.append(doc)
+                # Move pointer to beginning of file
+                stream.seek(0)
+                # Clear contents of file
+                stream.truncate()
+                # Dump resource with new version to file
+                yaml.safe_dump_all(new_docs, stream, explicit_start=True)
+            except yaml.YAMLError as exc:
+                LOG.error(f"Fatal error: {exc}", exc_info=True)
+
+
+
+def process_files(token, files):
+    '''
+    Overwrite resource version in manifest file with existing metadata.resourceVersion from Kubernetes.
+    This is intended to serve as a locking mechanism when applying resources
+    in which Kubernetes will fail the apply with a StatusConflict (HTTP status code 409)
+    Ref: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#concurrency-control-and-consistency
+    '''
+    for filename in files:
+        kube_data = get_kubectl_data(filename, token)
+        if kube_data is None:
+            LOG.error(f"No kubectl get output for file {filename}")
+            #No kube_data to process break from for loop
+            continue
+        elif "kind" in kube_data and kube_data["kind"] == "List":
+            if "items" in kube_data and kube_data["items"]:
+                LOG.info(f"File {filename} has list with zero items")
+                #No kube_data to process break from for loop
+                continue
+            LOG.info(f"file {filename} contains a list")
+            process_list(kube_data, filename)
+        else:
+            #not a list, do not need to loop through kube_data
+            LOG.info(f"File {filename} contains a {kube_data['kind']}")
+            if "metadata" in kube_data and "resourceVersion" in kube_data["metadata"]:
                 with open(filename, 'r+') as stream:
                     try:
-                        new_docs = []
-                        docs = yaml.safe_load_all(stream)
-                        for doc in docs:
-                            gvk_name = doc["apiVersion"] + doc["kind"] + doc["metadata"]["name"]
-                            if gvk_name in resource_version:
-                                doc["metadata"]["resourceVersion"] = resource_version[gvk_name]
-                            else:
-                                logging.error("failed to patch resource version for {} in file {}".format(gvk_name, filename))
-                            new_docs.append(doc)
+                        file_resource_version = yaml.safe_load(stream)
+                        LOG.info(f"got resource version {kube_data['metadata']['resourceVersion']} for file {filename}")
+                        # Overwrite file resource version with kube resource version, to prevent runtime conflict
+                        file_resource_version["metadata"]["resourceVersion"] = kube_data["metadata"]["resourceVersion"]
+                        # Move pointer to beginning of file
                         stream.seek(0)
+                        # Clear contents of file
                         stream.truncate()
-                        yaml.safe_dump_all(new_docs, stream, explicit_start=True)
+                        # Dump resource with new version to file
+                        yaml.safe_dump(file_resource_version, stream)
                     except yaml.YAMLError as exc:
-                        logging.error("fatal error", exc_info=True)
+                        LOG.error(f"Fatal error: {exc}", exc_info=True)
             else:
-                logging.info("file {} contains a {}".format(filename, data["kind"]))
-                if "metadata" in data and "resourceVersion" in data["metadata"]:
-                    with open(filename, 'r+') as stream:
-                        try:
-                            with_resource_version = yaml.safe_load(stream)
-                            logging.info("got resource version {} for file {}".format(data["metadata"]["resourceVersion"], filename))
-                            with_resource_version["metadata"]["resourceVersion"] = data["metadata"]["resourceVersion"]
-                            stream.seek(0)
-                            stream.truncate()
-                            yaml.safe_dump(with_resource_version, stream)
-                        except yaml.YAMLError as exc:
-                            logging.error("fatal error", exc_info=True)
-                else:
-                    logging.error("failed to patch resource version for file {}".format(filename))
-        except yaml.YAMLError as exc:
-            logging.error("fatal error", exc_info=True)
+                LOG.error(f"failed to patch resource version for file {filename}")
+
+def main(manifest_dir):
+    '''
+    Main method
+    '''
+    #Get all manifest files
+    files = get_files(manifest_dir)
+    #Get token to call Kubernetes
+    token = get_kube_token()
+    #Overwrite resource version in manifest file with existing resource version from kubernetes
+    process_files(token, files)
+
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    LOG.info("Starting appendResourceVersion...")
+    manifest_dir = os.getenv('MANIFEST_DIR')
+    main(manifest_dir)
