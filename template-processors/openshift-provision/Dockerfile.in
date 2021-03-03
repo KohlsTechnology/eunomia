@@ -6,7 +6,7 @@ ENV OC_VERSION="4.6" \
     OPENSHIFT_PROVISION_COMMIT="2be5a143d928dbdcaa036fd89043fd99803fba98"
 
 COPY files /files
-
+RUN pip3 install --upgrade pip setuptools
 RUN curl -O http://mirror.openshift.com/pub/openshift-v4/clients/oc/${OC_VERSION}/linux/oc.tar.gz && \
     tar --directory /usr/bin -zxvf oc.tar.gz oc && \
     git clone https://github.com/KohlsTechnology/ansible-role-openshift-provision.git /files/roles/openshift-provision && \
