@@ -37,7 +37,7 @@ def get_files(manifest_dir, file_types=(".yml", ".yaml", ".json")):
     files = []
     for file in os.listdir(manifest_dir):
         if file.endswith(file_types):
-            files.append(file)
+            files.append(os.path.join(manifest_dir, file))
     return files
 
 def get_kube_token():
@@ -52,7 +52,6 @@ def get_kubectl_data(filename, token):
     '''
     Get data using kubectl
     '''
-    #TODO: why are we running a subprocess here?
     data = yaml.safe_load(subprocess.run(["kubectl",
                                           "-s",
                                           "https://kubernetes.default.svc:443",
