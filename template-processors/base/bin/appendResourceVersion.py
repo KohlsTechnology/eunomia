@@ -65,6 +65,7 @@ def get_kubectl_data(filename, token):
                                           filename,
                                           "-o",
                                           "yaml"], stdout=subprocess.PIPE).stdout)
+    LOG.debug(f"kubectl output: {data}")
     return data
 
 def process_list(list, filename):
@@ -87,6 +88,7 @@ def process_list(list, filename):
                 new_docs = []
                 #Read existing document
                 docs = yaml.safe_load_all(stream)
+                LOG.debug(f"Existing file: {docs}")
                 for doc in docs:
                     custom_resource_name = doc["apiVersion"] + doc["kind"] + doc["metadata"]["name"]
                     scope = doc["spec"]["scope"]
@@ -105,6 +107,7 @@ def process_list(list, filename):
                 stream.truncate()
                 # Dump resource with new version to file
                 yaml.safe_dump_all(new_docs, stream, explicit_start=True)
+                LOG.debug(f"New file: {new_docs}")
             except yaml.YAMLError as exc:
                 LOG.error(f"Fatal error: {exc}", exc_info=True)
 
@@ -137,6 +140,7 @@ def process_files(token, files):
                 with open(filename, 'r+') as stream:
                     try:
                         file_resource_version = yaml.safe_load(stream)
+                        LOG.debug(f"Existing file, non-list: {file_resource_version}")
                         LOG.info(f"got resource version {kube_data['metadata']['resourceVersion']} for file {filename}")
                         # Overwrite file resource version with kube resource version, to prevent runtime conflict
                         file_resource_version["metadata"]["resourceVersion"] = kube_data["metadata"]["resourceVersion"]
@@ -146,6 +150,7 @@ def process_files(token, files):
                         stream.truncate()
                         # Dump resource with new version to file
                         yaml.safe_dump(file_resource_version, stream)
+                        LOG.debug(f"New file: {file_resource_version}")
                     except yaml.YAMLError as exc:
                         LOG.error(f"Fatal error: {exc}", exc_info=True)
             else:
@@ -163,7 +168,7 @@ def main(manifest_dir):
     process_files(token, files)
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
     LOG.info("Starting appendResourceVersion...")
     manifest_dir = os.getenv('MANIFEST_DIR')
     main(manifest_dir)
