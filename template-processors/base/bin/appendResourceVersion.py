@@ -75,10 +75,12 @@ def process_list(resource_list, filename):
     resource_name_version_dict = {}
     for item in resource_list["items"]:
         if "metadata" in item and "resourceVersion" in item["metadata"]:
-            custom_resource_name = item["apiVersion"] + item["kind"] + item["metadata"]["name"]
+            kube_custom_resource_name = item["apiVersion"] + item["kind"] + item["metadata"]["name"]
+            if "namespace" in item["metadata"]:
+                kube_custom_resource_name += item["metadata"]["namespace"]
             resource_version = item["metadata"]["resourceVersion"]
-            resource_name_version_dict[custom_resource_name] = resource_version
-            logging.info(f"Got resource version {resource_version} for {custom_resource_name}")
+            resource_name_version_dict[kube_custom_resource_name] = resource_version
+            logging.info(f"Got resource version {resource_version} for {kube_custom_resource_name}")
         else:
             logging.error(f"Failed to get resource version for file {filename}")
             #Item does not have resource version, continue to next item
@@ -88,18 +90,18 @@ def process_list(resource_list, filename):
                 new_docs = []
                 #Read existing document
                 docs = yaml.safe_load_all(stream)
-                LOG.debug(f"Existing file: {docs}")
                 for doc in docs:
+                    LOG.debug(f"Existing file: {doc}")
                     custom_resource_name = doc["apiVersion"] + doc["kind"] + doc["metadata"]["name"]
-                    scope = doc["spec"]["scope"]
-                    LOG.debug(f"Scope: {scope}")
-                    #If resource scope is cluster-wide append namespace to custom_resource_name so resource can be uniquely identified
-                    if scope.lower() == "cluster" and doc["metadata"]["namespace"]:
+                    #If resource has namespace metadata append namespace to custom_resource_name so resource can be uniquely identified
+                    #This is to resolve an issue with identifying cluster wide resources
+                    if "namespace" in item["metadata"]:
                         custom_resource_name += doc["metadata"]["namespace"]
-                    if custom_resource_name in resource_name_version_dict:
+                    if custom_resource_name in resource_name_version_dict.keys():
+                        LOG.debug(f"Overwrite resource version for {custom_resource_name}")
                         doc["metadata"]["resourceVersion"] = resource_name_version_dict[custom_resource_name]
                     else:
-                        LOG.error(f"Failed to patch resource version for {custom_resource_name} in file {filename}")
+                        LOG.info(f"Resource did not previously exist creating new resource {custom_resource_name} from file {filename}")
                     new_docs.append(doc)
                 # Move pointer to beginning of file
                 stream.seek(0)
