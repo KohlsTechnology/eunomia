@@ -68,12 +68,12 @@ def get_kubectl_data(filename, token):
     LOG.debug(f"kubectl output: {data}")
     return data
 
-def process_list(list, filename):
+def process_list(resource_list, filename):
     '''
     Process list of resource items
     '''
     resource_name_version_dict = {}
-    for item in list["items"]:
+    for item in resource_list["items"]:
         if "metadata" in item and "resourceVersion" in item["metadata"]:
             custom_resource_name = item["apiVersion"] + item["kind"] + item["metadata"]["name"]
             resource_version = item["metadata"]["resourceVersion"]
@@ -127,7 +127,7 @@ def process_files(token, files):
             #No kube_data to process break from for loop
             continue
         elif "kind" in kube_data and kube_data["kind"] == "List":
-            if "items" in kube_data and kube_data["items"]:
+            if "items" in kube_data and not kube_data["items"]:
                 LOG.info(f"File {filename} has list with zero items")
                 #No kube_data to process break from for loop
                 continue
