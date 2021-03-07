@@ -6,7 +6,7 @@ sudo: required
 language: go
 go_import_path: github.com/KohlsTechnology/eunomia
 go:
-- "1.15.5"
+- "1.15.8"
 env:
   global:
   - CHANGE_MINIKUBE_NONE_USER=true
