@@ -80,9 +80,9 @@ def process_list(resource_list, filename):
                 kube_custom_resource_name += item["metadata"]["namespace"]
             resource_version = item["metadata"]["resourceVersion"]
             resource_name_version_dict[kube_custom_resource_name] = resource_version
-            logging.info(f"Got resource version {resource_version} for {kube_custom_resource_name}")
+            LOG.info(f"Got resource version {resource_version} for {kube_custom_resource_name}")
         else:
-            logging.error(f"Failed to get resource version for file {filename}")
+            LOG.error(f"Failed to get resource version for file {filename}")
             #Item does not have resource version, continue to next item
             continue
         with open(filename, 'r+') as stream:
