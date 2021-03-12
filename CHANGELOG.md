@@ -1,3 +1,16 @@
+## v0.1.10 (March 13, 2021)
+
+FEATURES:
+* Helm chart allows for creating PodSecurityPolicy [GH-388](https://github.com/KohlsTechnology/eunomia/pull/388)
+
+CHANGES:
+* Update to Go 1.15.8 [GH-387](https://github.com/KohlsTechnology/eunomia/pull/387)
+
+
+BUG FIXES:
+* Fix resource deletion edge case [GH-384](https://github.com/KohlsTechnology/eunomia/pull/384)
+* Fix broken template processor builds [GH-386](https://github.com/KohlsTechnology/eunomia/pull/386)
+
 ## v0.1.9 (January 18, 2021)
 Starting with this release the minimum k8s version required for running Eunomia is 1.16.
 
