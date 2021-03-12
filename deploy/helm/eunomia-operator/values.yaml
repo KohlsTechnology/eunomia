@@ -61,6 +61,10 @@ eunomia:
         cpu: 200m
         memory: 256Mi
 
+    podSecurityPolicy:
+      # Specifies whether PodSecurityPolicy should be created.
+      enabled: false
+
     openshift:
       enabled: false
       route:
