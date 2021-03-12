@@ -95,7 +95,7 @@ def process_list(resource_list, filename):
                     custom_resource_name = doc["apiVersion"] + doc["kind"] + doc["metadata"]["name"]
                     #If resource has namespace metadata append namespace to custom_resource_name so resource can be uniquely identified
                     #This is to resolve an issue with identifying cluster wide resources
-                    if "namespace" in item["metadata"]:
+                    if "namespace" in doc["metadata"]:
                         custom_resource_name += doc["metadata"]["namespace"]
                     if custom_resource_name in resource_name_version_dict.keys():
                         LOG.debug(f"Overwrite resource version for {custom_resource_name}")
