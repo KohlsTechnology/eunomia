@@ -15,8 +15,6 @@ eunomia:
       tag: "latest"
       pullPolicy: Always
 
-    imagePullSecrets: []
-
     ingress:
       enabled: false
       annotations: {}

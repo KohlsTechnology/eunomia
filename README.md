@@ -320,62 +320,13 @@ This field specifies how to handle resources when the GitOpsConfig object is del
 
 ## Installing Eunomia
 
-### Installing on Kubernetes
+### Installing on Kubernetes Using Helm
 
-Simply use the helm chart to install it on your flavor of Kubernetes.
+See the [helm README](deploy/helm/eunomia-operator/README.md) for details.
 
-```shell
-# Deploy the operator
-helm template deploy/helm/eunomia-operator/ | kubectl apply -f -
-```
+### Installing on Kubernetes Using Operator Hub
 
-#### Installing with Kubernetes Ingress
-
-Update [values.yaml](deploy/helm/eunomia-operator/values.yaml) file for ingress configuration. If you don't want to change the file, you can enable ingress from command line as well.
-
-For running with default configuration
-
-```shell
-# Enabling eunomia ingress
-helm template deploy/helm/eunomia-operator/ --set eunomia.operator.ingress.enabled=true | kubectl apply -f - -n eunomia-operator
-```
-
-Also, you can pass the ingress configuration in command line itself. For example:-
-
-```shell
-# Updating eunomia ingress configuration
-helm template deploy/helm/eunomia-operator/ --set eunomia.operator.ingress.enabled=true \
---set eunomia.operator.ingress.hosts[0].host=hello-eunomia.info \
---set eunomia.operator.ingress.hosts[0].paths[0].path=/ \
---set eunomia.operator.ingress.hosts[0].paths[0].portName=webhook \
---set eunomia.operator.ingress.hosts[0].paths[1].path=/metrics \
---set eunomia.operator.ingress.hosts[0].paths[1].portName=metrics | kubectl apply -f - -n eunomia-operator
-```
-
-Replace the host `hello-eunomia.info` with suitable DNS name.
-
-#### Installing with Cloud Load Balancers
-
-Update [values.yaml](deploy/helm/eunomia-operator/values.yaml) file for the service configuration. If you don't want to change the file, you can enable ingress from command line as well.
-
-For running with default configuration
-
-```shell
-# Enabling eunomia with cloud load balancer
-helm template deploy/helm/eunomia-operator/ \
-  --set eunomia.operator.service.type=LoadBalancer \
-  --set eunomia.operator.service.annotations."cloud\.google\.com\/load-balancer-type"=Internal \
-  | kubectl apply -f - -n eunomia-operator
-```
-
-### Installing on OpenShift
-
-Use the below command to install Eunomia on OpenShift. This will also give you the route for the ingress webhook.
-
-```shell
-# Deploy the operator
-helm template deploy/helm/eunomia-operator/ --set eunomia.operator.openshift.route.enabled=true | oc apply -f -
-```
+See the [getting started document](GETTING_STARTED.md#install-eunomia-from-operatorhub) for details.
 
 ## Examples / Demos
 
