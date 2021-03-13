@@ -36,6 +36,16 @@ rules:
   - '*'
   verbs:
   - '*'
+{{- if .Values.eunomia.operator.podSecurityPolicy.enabled }}
+- apiGroups:
+  - policy
+  resourceNames:
+  - eunomia-operator
+  resources:
+  - podsecuritypolicies
+  verbs:
+  - use
+{{- end }}
 {{- if .Values.eunomia.operator.openshift.enabled }}
 - apiGroups:
   - template.openshift.io

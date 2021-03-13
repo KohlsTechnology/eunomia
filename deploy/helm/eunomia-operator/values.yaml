@@ -15,8 +15,6 @@ eunomia:
       tag: "latest"
       pullPolicy: Always
 
-    imagePullSecrets: []
-
     ingress:
       enabled: false
       annotations: {}
@@ -60,6 +58,10 @@ eunomia:
       requests:
         cpu: 200m
         memory: 256Mi
+
+    podSecurityPolicy:
+      # Specifies whether PodSecurityPolicy should be created.
+      enabled: false
 
     openshift:
       enabled: false
