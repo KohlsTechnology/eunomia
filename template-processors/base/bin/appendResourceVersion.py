@@ -85,35 +85,34 @@ def process_list(resource_list, filename):
             LOG.error(f"Failed to get resource version for file {filename}")
             #Item does not have resource version, continue to next item
             continue
-        with open(filename, 'r+') as stream:
-            try:
-                new_docs = []
-                #Read existing document
-                docs = yaml.safe_load_all(stream)
-                for doc in docs:
-                    LOG.debug(f"Existing file: {doc}")
-                    custom_resource_name = doc["apiVersion"] + doc["kind"] + doc["metadata"]["name"]
-                    #If resource has namespace metadata append namespace to custom_resource_name so resource can be uniquely identified
-                    #This is to resolve an issue with identifying cluster wide resources
-                    if "namespace" in doc["metadata"]:
-                        custom_resource_name += doc["metadata"]["namespace"]
-                    if custom_resource_name in resource_name_version_dict.keys():
-                        LOG.debug(f"Overwrite resource version for {custom_resource_name}")
-                        doc["metadata"]["resourceVersion"] = resource_name_version_dict[custom_resource_name]
-                    else:
-                        LOG.info(f"Resource did not previously exist creating new resource {custom_resource_name} from file {filename}")
-                    new_docs.append(doc)
-                # Move pointer to beginning of file
-                stream.seek(0)
-                # Clear contents of file
-                stream.truncate()
-                # Dump resource with new version to file
-                yaml.safe_dump_all(new_docs, stream, explicit_start=True)
-                LOG.debug(f"New file: {new_docs}")
-            except yaml.YAMLError as exc:
-                LOG.error(f"Fatal error: {exc}", exc_info=True)
 
-
+    with open(filename, 'r+') as stream:
+        try:
+            new_docs = []
+            #Read existing document
+            docs = yaml.safe_load_all(stream)
+            for doc in docs:
+                LOG.debug(f"Existing file: {doc}")
+                custom_resource_name = doc["apiVersion"] + doc["kind"] + doc["metadata"]["name"]
+                #If resource has namespace metadata append namespace to custom_resource_name so resource can be uniquely identified
+                #This is to resolve an issue with identifying cluster wide resources
+                if "namespace" in doc["metadata"]:
+                    custom_resource_name += doc["metadata"]["namespace"]
+                if custom_resource_name in resource_name_version_dict.keys():
+                    LOG.debug(f"Overwrite resource version for {custom_resource_name}")
+                    doc["metadata"]["resourceVersion"] = resource_name_version_dict[custom_resource_name]
+                else:
+                    LOG.info(f"Resource did not previously exist creating new resource {custom_resource_name} from file {filename}")
+                new_docs.append(doc)
+            # Move pointer to beginning of file
+            stream.seek(0)
+            # Clear contents of file
+            stream.truncate()
+            # Dump resource with new version to file
+            yaml.safe_dump_all(new_docs, stream, explicit_start=True)
+            LOG.debug(f"New file: {new_docs}")
+        except yaml.YAMLError as exc:
+            LOG.error(f"Fatal error: {exc}", exc_info=True)
 
 def process_files(token, files):
     '''
@@ -170,7 +169,7 @@ def main(manifest_dir):
     process_files(token, files)
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.DEBUG)
+#    logging.basicConfig(level=logging.DEBUG)
     LOG.info("Starting appendResourceVersion...")
     manifest_dir = os.getenv('MANIFEST_DIR')
     main(manifest_dir)
