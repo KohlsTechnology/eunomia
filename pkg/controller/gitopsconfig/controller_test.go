@@ -242,7 +242,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	// Create the deleteJob
 	var (
 		dummyInt32 int32 = 1
-		dummyBool  bool  = true
+		dummyBool        = true
 	)
 	err = cl.Create(context.Background(), &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{

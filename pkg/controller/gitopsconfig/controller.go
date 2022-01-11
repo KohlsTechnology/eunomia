@@ -545,7 +545,7 @@ func ownedCronJobs(ctx context.Context, kube client.Client, owner *gitopsv1alpha
 	for _, cronJob := range cronJobs.Items {
 		ownerRefs := cronJob.GetOwnerReferences()
 		for _, ownerRef := range ownerRefs {
-			if *ownerRef.Controller == true &&
+			if *ownerRef.Controller &&
 				ownerRef.APIVersion == owner.APIVersion &&
 				ownerRef.Kind == owner.Kind &&
 				ownerRef.Name == owner.ObjectMeta.Name {

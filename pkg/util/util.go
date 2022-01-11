@@ -96,7 +96,7 @@ func CreateJob(jobmergedata JobMergeData) (batch.Job, error) {
 	}
 	err = yaml.Unmarshal(b.Bytes(), &job)
 	if err != nil {
-		log.Error(err, "error unmarshalling a job manifest", "manifest", string(b.Bytes()))
+		log.Error(err, "error unmarshalling a job manifest", "manifest", b.String())
 		return job, fmt.Errorf("error unmarshalling a job manifest: %w", err)
 	}
 	return job, nil
@@ -113,7 +113,7 @@ func CreateCronJob(jobmergedata JobMergeData) (batchv1beta1.CronJob, error) {
 	}
 	err = yaml.Unmarshal(b.Bytes(), &cronjob)
 	if err != nil {
-		log.Error(err, "error unmarshalling a cron job manifest", "manifest", string(b.Bytes()))
+		log.Error(err, "error unmarshalling a cron job manifest", "manifest", b.String())
 		return cronjob, fmt.Errorf("error unmarshalling a cron job manifest: %w", err)
 	}
 	return cronjob, nil
