@@ -17,12 +17,11 @@ limitations under the License.
 package gitopsconfig
 
 import (
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
 	"k8s.io/client-go/kubernetes/scheme"
 	logf "sigs.k8s.io/controller-runtime/pkg/log"
-
-	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 func init() {
@@ -37,7 +36,7 @@ func init() {
 	logf.SetLogger(zap.Logger())
 
 	// initialize the templates
-	util.InitializeTemplates(
+	util.InitializeTemplates( //nolint:errcheck
 		"../../../build/job-templates/job.yaml",
 		"../../../build/job-templates/cronjob.yaml",
 	)

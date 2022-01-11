@@ -49,7 +49,7 @@ test-dirty: vendor generate
 	# TODO: also check that there are no untracked files, e.g. extra .go and .yaml ones
 
 .PHONY: test
-test: check-fmt lint vet check-shfmt shellcheck test-unit test-e2e
+test: lint-all check-shfmt shellcheck test-unit test-e2e
 
 .PHONY: test-e2e
 test-e2e:
@@ -57,26 +57,19 @@ test-e2e:
 
 .PHONY: test-unit
 test-unit:
-	go test -v -coverprofile=coverage.txt ./...
+	go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
 
 # Install CRDs into a cluster
 .PHONY: install
 install:
 	cat deploy/crds/*crd.yaml | kubectl apply -f-
 
-# Check if gofmt against code is clean
-.PHONY: check-fmt
-check-fmt:
-	test -z "$(shell gofmt -l . | grep -v ^vendor)"
+.PHONY: golangci-lint
+golangci-lint:
+	golangci-lint run
 
-.PHONY: lint
-lint:
-	LINT_INPUT="$(shell find . -type f -name \*.go | grep -v /vendor/ | grep -v zz_generated)"; golint -set_exit_status $$LINT_INPUT
-
-# Run go vet against code
-.PHONY: vet
-vet:
-	VET_INPUT="$(shell go list ./... | grep -v /vendor/)"; go vet $$VET_INPUT
+.PHONY: lint-all
+lint-all: golangci-lint
 
 # TODO: improve the command to also check scripts outside the scripts and template-processors dirs
 .PHONY: check-shfmt

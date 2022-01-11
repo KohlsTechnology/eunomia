@@ -21,17 +21,18 @@ import (
 	"fmt"
 	"testing"
 
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 	batchv1 "k8s.io/api/batch/v1"
 	batchv1beta1 "k8s.io/api/batch/v1beta1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/client-go/kubernetes/scheme"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+
+	//nolint:staticcheck
 	"sigs.k8s.io/controller-runtime/pkg/client/fake"
 	"sigs.k8s.io/controller-runtime/pkg/reconcile"
-
-	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 const (
@@ -99,7 +100,7 @@ func TestCRDInitialization(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -123,7 +124,7 @@ func TestPeriodicTrigger(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -153,7 +154,7 @@ func TestChangeTrigger(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -182,7 +183,7 @@ func TestWebhookTrigger(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -217,7 +218,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -243,7 +244,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	// Create the deleteJob
 	var (
 		dummyInt32 int32 = 1
-		dummyBool  bool  = true
+		dummyBool        = true
 	)
 	err = cl.Create(context.Background(), &batchv1.Job{
 		TypeMeta: metav1.TypeMeta{
@@ -278,7 +279,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	}
 
 	// Reconcile so that the controller can delete the finalizer
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -368,7 +369,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -418,7 +419,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	}
 
 	// There shouldn't be a delete job at this point, the reconciler should create one
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -454,7 +455,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -479,7 +480,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	}
 
 	// There shouldn't be a delete job at this point, the reconciler should create one
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -521,7 +522,7 @@ func TestCreateJob(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -542,7 +543,7 @@ func TestCreateJob(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 

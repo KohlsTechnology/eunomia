@@ -40,7 +40,7 @@ func WatchEvents(client kubernetes.Interface, events chan<- *eventv1beta1.Event,
 	}
 	go func() { // based on: https://stackoverflow.com/a/54930836
 		ch := watcher.ResultChan()
-		for {
+		for { //nolint:gosimple
 			select {
 			case change, ok := <-ch:
 				if !ok {
