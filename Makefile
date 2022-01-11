@@ -49,7 +49,7 @@ test-dirty: vendor generate
 	# TODO: also check that there are no untracked files, e.g. extra .go and .yaml ones
 
 .PHONY: test
-test: lint-all check-shfmt shellcheck test-unit test-e2e
+test: lint-all test-unit test-e2e
 
 .PHONY: test-e2e
 test-e2e:
@@ -70,18 +70,6 @@ golangci-lint:
 
 .PHONY: lint-all
 lint-all: golangci-lint
-
-# TODO: improve the command to also check scripts outside the scripts and template-processors dirs
-.PHONY: check-shfmt
-check-shfmt:
-	shfmt -i 4 -d ./scripts
-	shfmt -i 4 -d ./template-processors
-
-# TODO: improve the command to also check scripts without .sh extension
-# get_helm.sh is ignored because it is getting download from internet
-.PHONY: shellcheck
-shellcheck:
-	shellcheck $(shell find . -not -path "./vendor/*" -not -path "./get_helm.sh" -not -path "./ci/*" -name "*.sh")
 
 .PHONY: e2e-test-images
 e2e-test-images: build
