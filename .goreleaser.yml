@@ -1,0 +1,29 @@
+---
+project_name: eunomia
+env:
+  - CGO_ENABLED=0
+builds:
+  - ldflags:
+    - "-X {{.Env.VERSION_PKG}}.Branch={{.Env.BRANCH}}"
+    - "-X {{.Env.VERSION_PKG}}.BuildDate={{.Env.DATE}}"
+    - "-X {{.Env.VERSION_PKG}}.GitSHA1={{.Env.COMMIT}}"
+    goos:
+      - darwin
+      - linux
+      - windows
+    goarch:
+      - amd64
+    main: ./cmd/manager
+archives:
+- replacements:
+    darwin: Darwin
+    linux: Linux
+    windows: Windows
+    386: i386
+    amd64: x86_64
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{.Tag}}-next"
+changelog:
+  skip: false
