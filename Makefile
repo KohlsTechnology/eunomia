@@ -57,7 +57,7 @@ test-e2e:
 
 .PHONY: test-unit
 test-unit:
-	go test -v -coverprofile=coverage.txt ./...
+	go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
 
 # Install CRDs into a cluster
 .PHONY: install
