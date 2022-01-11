@@ -64,6 +64,11 @@ test-unit:
 install:
 	cat deploy/crds/*crd.yaml | kubectl apply -f-
 
+# Make sure goreleaser is working
+.PHONY: test-release
+test-release:
+	BRANCH=$(BRANCH) COMMIT=$(COMMIT) DATE=$(DATE) VERSION_PKG=$(VERSION_PKG) goreleaser release --snapshot --skip-publish --rm-dist
+
 .PHONY: golangci-lint
 golangci-lint:
 	golangci-lint run
