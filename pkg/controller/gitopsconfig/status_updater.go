@@ -19,12 +19,11 @@ package gitopsconfig
 import (
 	"context"
 
+	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
+	"github.com/KohlsTechnology/eunomia/pkg/util"
 	batchv1 "k8s.io/api/batch/v1"
 	"k8s.io/client-go/tools/cache"
 	"sigs.k8s.io/controller-runtime/pkg/client"
-
-	gitopsv1alpha1 "github.com/KohlsTechnology/eunomia/pkg/apis/eunomia/v1alpha1"
-	"github.com/KohlsTechnology/eunomia/pkg/util"
 )
 
 // statusUpdater updates Status of GitOpsConfig objects in the cluster when it

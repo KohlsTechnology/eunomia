@@ -24,6 +24,12 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/KohlsTechnology/eunomia/pkg/apis"
+	"github.com/KohlsTechnology/eunomia/pkg/controller"
+	"github.com/KohlsTechnology/eunomia/pkg/controller/gitopsconfig"
+	"github.com/KohlsTechnology/eunomia/pkg/handler"
+	"github.com/KohlsTechnology/eunomia/pkg/util"
+	"github.com/KohlsTechnology/eunomia/version"
 	"github.com/operator-framework/operator-sdk/pkg/k8sutil"
 	"github.com/operator-framework/operator-sdk/pkg/leader"
 	"github.com/operator-framework/operator-sdk/pkg/log/zap"
@@ -38,13 +44,6 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/manager"
 	"sigs.k8s.io/controller-runtime/pkg/manager/signals"
 	"sigs.k8s.io/controller-runtime/pkg/metrics"
-
-	"github.com/KohlsTechnology/eunomia/pkg/apis"
-	"github.com/KohlsTechnology/eunomia/pkg/controller"
-	"github.com/KohlsTechnology/eunomia/pkg/controller/gitopsconfig"
-	"github.com/KohlsTechnology/eunomia/pkg/handler"
-	"github.com/KohlsTechnology/eunomia/pkg/util"
-	"github.com/KohlsTechnology/eunomia/version"
 )
 
 // Change below variables to serve metrics on different host or port.
