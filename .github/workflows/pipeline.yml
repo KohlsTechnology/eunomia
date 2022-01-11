@@ -60,10 +60,10 @@ jobs:
       - name: Prepare
         id: prep
         run: |
-          DOCKER_IMAGE=quay.io/kohlstechnology/eunomia
-          VERSION=${GITHUB_REF#refs/tags/}
+          DOCKER_IMAGE="quay.io/kohlstechnology/eunomia"
+          VERSION="${GITHUB_REF#refs/tags/}"
           TAGS="${DOCKER_IMAGE}:${VERSION},${DOCKER_IMAGE}:latest"
-          echo ::set-output name=tags::${TAGS}
+          echo "::set-output name=tags::${TAGS}"
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v1
       - name: Login to quay.io
