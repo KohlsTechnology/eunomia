@@ -19,7 +19,6 @@ env:
   - OPERATOR_SDK_VERSION=v0.17.1 KUBE_VERSION=v1.18.2 MINIKUBE_VERSION=v1.15.1 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
 
 before_install:
-  - GO111MODULE=off go get -u golang.org/x/lint/golint
 # Next four lines of code create deploy key for travis to be able to push to the gh-pages branch.
 # See https://gist.github.com/qoomon/c57b0dc866221d91704ffef25d41adcf and
 # https://medium.com/@simon.legner/deploy-to-github-pages-using-travis-ci-and-deploy-keys-db84fed7a929 on how to do it.
