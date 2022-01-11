@@ -99,7 +99,7 @@ func TestCRDInitialization(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -123,7 +123,7 @@ func TestPeriodicTrigger(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -153,7 +153,7 @@ func TestChangeTrigger(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -182,7 +182,7 @@ func TestWebhookTrigger(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -217,7 +217,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -278,7 +278,7 @@ func TestDeleteRemovingFinalizer(t *testing.T) {
 	}
 
 	// Reconcile so that the controller can delete the finalizer
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -368,7 +368,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -418,7 +418,7 @@ func TestCreatingDeleteJob(t *testing.T) {
 	}
 
 	// There shouldn't be a delete job at this point, the reconciler should create one
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -454,7 +454,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -479,7 +479,7 @@ func TestDeleteWhileNamespaceDeleting(t *testing.T) {
 	}
 
 	// There shouldn't be a delete job at this point, the reconciler should create one
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -521,7 +521,7 @@ func TestCreateJob(t *testing.T) {
 	cl := fake.NewFakeClient(gitops)
 	r := &Reconciler{client: cl, scheme: scheme.Scheme}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 
@@ -542,7 +542,7 @@ func TestCreateJob(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	r.Reconcile(reconcile.Request{
+	r.Reconcile(reconcile.Request{ //nolint:errcheck
 		NamespacedName: util.GetNN(gitops),
 	})
 

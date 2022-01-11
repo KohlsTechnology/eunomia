@@ -124,7 +124,7 @@ func main() {
 		log.Info("CRONJOB_TEMPLATE not set. Using default job template.")
 		cjt = "/default-job-templates/cronjob.yaml"
 	}
-	util.InitializeTemplates(jt, cjt)
+	util.InitializeTemplates(jt, cjt) //nolint:errcheck
 	log.Info("Templates initialized correctly")
 
 	// Get a config to talk to the apiserver
@@ -185,7 +185,7 @@ func main() {
 
 	mux.HandleFunc("/healthz", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		w.Write([]byte("ok")) //nolint:errcheck
 	})
 
 	// Get namespaces (as there for sure will be some) directly from Kubernetes to ensure that
@@ -199,11 +199,11 @@ func main() {
 			return
 		}
 		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("ok"))
+		w.Write([]byte("ok")) //nolint:errcheck
 	})
 
 	log.Info("Starting the Web Server")
-	go http.ListenAndServe(":8080", mux)
+	go http.ListenAndServe(":8080", mux) //nolint:errcheck
 
 	log.Info("Starting the Cmd.")
 

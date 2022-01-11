@@ -37,7 +37,7 @@ func init() {
 	logf.SetLogger(zap.Logger())
 
 	// initialize the templates
-	util.InitializeTemplates(
+	util.InitializeTemplates( //nolint:errcheck
 		"../../../build/job-templates/job.yaml",
 		"../../../build/job-templates/cronjob.yaml",
 	)
