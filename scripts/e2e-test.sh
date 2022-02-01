@@ -188,9 +188,9 @@ export OPERATOR_NAMESPACE=test-eunomia-operator
 
 # If we're called as part of CI build on a PR, make sure we test the resources
 # (templates etc.) from the PR, instead of the master branch of the main repo
-if [ "${TRAVIS_PULL_REQUEST_BRANCH:-}" ]; then
-    export EUNOMIA_URI="https://github.com/${TRAVIS_PULL_REQUEST_SLUG}"
-    export EUNOMIA_REF="${TRAVIS_PULL_REQUEST_BRANCH}"
+if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    export EUNOMIA_URI="https://github.com/${GITHUB_REPOSITORY}"
+    export EUNOMIA_REF="${GITHUB_HEAD_REF}"
 fi
 echo "EUNOMIA_URI=${EUNOMIA_URI:-}"
 echo "EUNOMIA_REF=${EUNOMIA_REF:-}"
@@ -215,12 +215,12 @@ for NAMESPACE in eunomia-hello-world-demo eunomia-hello-world-demo-hierarchy eun
 done
 
 if [[ "${EUNOMIA_TEST_SKIP_IMAGES:-}" == "no" ]]; then
-    GOOS=linux make e2e-test-images
+    GOOS=linux CONTAINTER_IMAGE_TAG=dev make e2e-test-images
 fi
 
 # Pre-populate the Docker registry in kind with images built from the current commit
-echo "loading latest images into kind"
-IMAGES="$(docker images --filter reference='quay.io/kohlstechnology/eunomia*:latest' --format "{{.Repository}}:{{.Tag}}")"
+echo "loading dev images into kind"
+IMAGES="$(docker images --filter reference='quay.io/kohlstechnology/eunomia*:dev' --format "{{.Repository}}:{{.Tag}}")"
 if [ -z "${IMAGES}" ]; then
     echo "Something went wrong, could not get the list of eunomia images from docker"
     exit 1
