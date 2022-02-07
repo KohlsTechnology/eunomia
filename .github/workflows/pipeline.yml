@@ -59,6 +59,12 @@ jobs:
       uses: helm/kind-action@v1.2.0
       with:
         node_image: ${{ matrix.k8s-version }}
+    - name: Install operator-sdk
+      run: |
+        mkdir -p "$GITHUB_WORKSPACE/bin"
+        curl -o "$GITHUB_WORKSPACE/bin/operator-sdk" -L https://github.com/operator-framework/operator-sdk/releases/download/v0.17.1/operator-sdk-v0.17.1-x86_64-linux-gnu
+        echo "$GITHUB_WORKSPACE/bin" >> "$GITHUB_PATH"
+        chmod +x "$GITHUB_WORKSPACE/bin/operator-sdk"
     - name: Test E2E
       run: make test-e2e
   deploy:

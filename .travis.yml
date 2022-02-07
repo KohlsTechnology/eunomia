@@ -43,11 +43,7 @@ before_script:
     sudo mv minikube /usr/local/bin/
   fi
 - curl -LO https://git.io/get_helm.sh && chmod 700 get_helm.sh && ./get_helm.sh
-- curl -OJL https://github.com/operator-framework/operator-sdk/releases/download/${OPERATOR_SDK_VERSION}/operator-sdk-${OPERATOR_SDK_VERSION}-x86_64-linux-gnu
-- chmod +x operator-sdk-${OPERATOR_SDK_VERSION}-x86_64-linux-gnu
 - sudo mkdir -p /usr/local/bin/
-- sudo cp operator-sdk-${OPERATOR_SDK_VERSION}-x86_64-linux-gnu /usr/local/bin/operator-sdk
-- rm operator-sdk-${OPERATOR_SDK_VERSION}-x86_64-linux-gnu
 - curl -Lo shfmt https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64
 - sudo chmod +x shfmt && sudo mv shfmt /usr/local/bin/
 # K8S version 1.18.2 requires conntrack to run, otherwise minikube will throw the following error:
