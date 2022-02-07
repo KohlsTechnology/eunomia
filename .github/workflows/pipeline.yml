@@ -46,6 +46,17 @@ jobs:
         version: v1.0.0
     - name: Test GoReleaser
       run: make test-release
+  test-e2e:
+    strategy:
+      matrix:
+        k8s-version: ["kindest/node:v1.21.2", "kindest/node:v1.20.7"]
+        os: [ubuntu-latest]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Create k8s Kind Cluster
+        uses: helm/kind-action@v1.2.0
+        with:
+          node_image: ${{ matrix.k8s-version }}
   deploy:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: test
