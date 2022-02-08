@@ -8,63 +8,11 @@ go_import_path: github.com/KohlsTechnology/eunomia
 go:
 - "1.15.8"
 env:
-  global:
-  - CHANGE_MINIKUBE_NONE_USER=true
   matrix:
-  # NOTE: We can add 200 items to the build matrix, but only 3 run in parallel. So having more than three
-  # items in the build matrix will cause the tests to wait in a queue. We will need to select the k8s versions
-  # that we want to test carefully, or we risk having the tests run for a very long time.
-  - OPERATOR_SDK_VERSION=v0.17.1 KUBE_VERSION=v1.16.15 MINIKUBE_VERSION=v1.15.1 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
-  - OPERATOR_SDK_VERSION=v0.17.1 KUBE_VERSION=v1.17.14 MINIKUBE_VERSION=v1.15.1 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
   - OPERATOR_SDK_VERSION=v0.17.1 KUBE_VERSION=v1.18.2 MINIKUBE_VERSION=v1.15.1 SHFMT_VERSION=v3.0.1 EUNOMIA_TEST_ENV=minikube
 
-before_install:
-# Next four lines of code create deploy key for travis to be able to push to the gh-pages branch.
-# See https://gist.github.com/qoomon/c57b0dc866221d91704ffef25d41adcf and
-# https://medium.com/@simon.legner/deploy-to-github-pages-using-travis-ci-and-deploy-keys-db84fed7a929 on how to do it.
-# Lines use encrypted_18f270609d30_key and encrypted_18f270609d30_iv variables set in Travis settings to decrypt
-# github_deploy_key.enc file into github_deploy_key and then add this key to ssh-agent session. All of this happens only
-# if current build is on repository tag.
-  - |
-    if [[ "$TRAVIS_TAG" ]]; then
-      openssl aes-256-cbc -K $encrypted_18f270609d30_key -iv $encrypted_18f270609d30_iv -in github_deploy_key.enc -out github_deploy_key -d
-      chmod 600 github_deploy_key
-      eval $(ssh-agent -s)
-      ssh-add github_deploy_key
-    fi
-
 before_script:
-- curl -Lo kubectl https://storage.googleapis.com/kubernetes-release/release/${KUBE_VERSION}/bin/linux/amd64/kubectl
-- sudo chmod +x kubectl && sudo mv kubectl /usr/local/bin/
-- |
-  if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
-    curl -Lo minikube https://storage.googleapis.com/minikube/releases/${MINIKUBE_VERSION}/minikube-linux-amd64
-    sudo chmod +x minikube
-    sudo mv minikube /usr/local/bin/
-  fi
 - curl -LO https://git.io/get_helm.sh && chmod 700 get_helm.sh && ./get_helm.sh
-- sudo mkdir -p /usr/local/bin/
-- curl -Lo shfmt https://github.com/mvdan/sh/releases/download/${SHFMT_VERSION}/shfmt_${SHFMT_VERSION}_linux_amd64
-- sudo chmod +x shfmt && sudo mv shfmt /usr/local/bin/
-# K8S version 1.18.2 requires conntrack to run, otherwise minikube will throw the following error:
-#   Exiting due to GUEST_MISSING_CONNTRACK: Sorry, Kubernetes 1.18.2 requires conntrack to be installed in root's path
-- |
-  if [[ "${KUBE_VERSION}" == "v1.18.2" ]]; then
-    sudo apt-get install conntrack
-  fi
-- |
-  if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
-    sudo minikube start --vm-driver=none --kubernetes-version=${KUBE_VERSION}
-    minikube update-context
-  elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
-    bash -x ci/prepare-host minishift
-    bash -x ci/start-cluster minishift ${MINISHIFT_VERSION}
-  fi
-- JSONPATH='{range .items[*]}{@.metadata.name}:{range @.status.conditions[*]}{@.type}={@.status};{end}{end}'; until kubectl get nodes -o jsonpath="$JSONPATH" 2>&1 | grep -q "Ready=True"; do sleep 1; done
-
-
-script:
-  - make test-dirty test
 
 jobs:
   include:
@@ -78,11 +26,7 @@ jobs:
       script: make travis-release
 
 stages:
-  - test
   - name: deploy
     if: type = push AND branch = master AND fork = false
   - name: deploy-release
     if: tag =~ /^v\d+\.\d+\.\d+$/ AND fork = false
-
-after_success:
-  - bash <(curl -s https://codecov.io/bash)

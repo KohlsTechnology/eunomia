@@ -31,6 +31,8 @@ jobs:
         skip-go-installation: true
         skip-pkg-cache: true
         skip-build-cache: true
+    - name: Test Dirty
+      run: make test-dirty
     - name: Test
       run: make test-unit
     - name: Upload coverage to Codecov
