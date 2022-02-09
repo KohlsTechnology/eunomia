@@ -20,19 +20,17 @@ export OPERATOR_SDK_VERSION="v0.17.1"
 
 usage() {
     cat <<EOT
-e2e-test.sh [-e|--env=(minikube|minishift|kind)] [-p|--pause] [-n|--noimages]
+e2e-test.sh [-p|--pause] [-n|--noimages]
             [-d|--nodeployment] [-r|--run=<test name>]
 
-Execute the end-to-end tests on a local minikube, minishift, or kind.
+Execute the end-to-end tests on a local kind cluster.
 
--e|--env=(minikube|minishift|kind) sets the environment the tests will be run under
 -p|--pause Pauses after each test step to help with debugging
 -d|--nodeployment Skip the deployment of the operator
 -n|--noimages Skip building the images
 -r|--run=<test name> Only run the specified Go e2e test. This will skip all others.
 
 You can also specify the settings via environment variables (command line parameters take precedence).
-EUNOMIA_TEST_ENV=(minikube|minishift|kind)
 EUNOMIA_TEST_PAUSE=yes
 EUNOMIA_TEST_SKIP_IMAGES=yes
 EUNOMIA_TEST_SKIP_DEPLOYMENT=yes
@@ -129,15 +127,6 @@ while (("$#")); do
         export EUNOMIA_TEST_PAUSE=yes
         shift
         ;;
-    -e | --env) # set the test environment
-        if [ -n "$2" ] && [ "${2:0:1}" != "-" ]; then
-            export EUNOMIA_TEST_ENV=$2
-            shift 2
-        else
-            echo "Error: Argument for $1 is missing" >&2
-            exit 1
-        fi
-        ;;
     -n | --noimages) # skip building images
         export EUNOMIA_TEST_SKIP_IMAGES=yes
         shift
@@ -174,21 +163,9 @@ done
 eval set -- "$PARAMS"
 
 # Default settings
-export EUNOMIA_TEST_ENV=${EUNOMIA_TEST_ENV:-minikube}
 export EUNOMIA_TEST_PAUSE=${EUNOMIA_TEST_PAUSE:-no}
 export EUNOMIA_TEST_SKIP_IMAGES=${EUNOMIA_TEST_SKIP_IMAGES:-no}
 export EUNOMIA_TEST_SKIP_DEPLOYMENT=${EUNOMIA_TEST_SKIP_DEPLOYMENT:-no}
-
-case "${EUNOMIA_TEST_ENV:-}" in
-minikube) ;;
-minishift) ;;
-kind) ;;
-*)
-    echo "Error: invalid test environment '${EUNOMIA_TEST_ENV}' specified"
-    usage
-    exit 1
-    ;;
-esac
 
 case "${EUNOMIA_TEST_PAUSE:-}" in
 yes) ;;
@@ -201,7 +178,6 @@ no) ;;
     ;;
 esac
 
-echo "Test environment set to : '${EUNOMIA_TEST_ENV}'"
 echo "Pausing between tests: ${EUNOMIA_TEST_PAUSE}"
 
 export JOB_TEMPLATE=${EUNOMIA_PATH}/build/job-templates/job.yaml
@@ -212,31 +188,17 @@ export OPERATOR_NAMESPACE=test-eunomia-operator
 
 # If we're called as part of CI build on a PR, make sure we test the resources
 # (templates etc.) from the PR, instead of the master branch of the main repo
-if [ "${TRAVIS_PULL_REQUEST_BRANCH:-}" ]; then
-    export EUNOMIA_URI="https://github.com/${TRAVIS_PULL_REQUEST_SLUG}"
-    export EUNOMIA_REF="${TRAVIS_PULL_REQUEST_BRANCH}"
+if [ "${GITHUB_ACTIONS:-}" = "true" ]; then
+    export EUNOMIA_URI="https://github.com/${GITHUB_REPOSITORY}"
+    export EUNOMIA_REF="${GITHUB_HEAD_REF}"
 fi
 echo "EUNOMIA_URI=${EUNOMIA_URI:-}"
 echo "EUNOMIA_REF=${EUNOMIA_REF:-}"
 
-# Check if minikube is running
-if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
-    minikube status || {
-        echo "Minikube is not running, aborting tests"
-        exit 1
-    }
-# Check if minishift is running
-elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
-    minishift status || {
-        echo "Minishift is not running, aborting tests"
-        exit 1
-    }
-elif [[ "${EUNOMIA_TEST_ENV}" == "kind" ]]; then
-    kind export kubeconfig || {
-        echo "KIND is not running, aborting tests"
-        exit 1
-    }
-fi
+kind export kubeconfig || {
+    echo "KIND is not running, aborting tests"
+    exit 1
+}
 
 # Ensure clean workspace
 if [[ "${EUNOMIA_TEST_SKIP_DEPLOYMENT:-}" == "no" ]]; then
@@ -252,39 +214,23 @@ for NAMESPACE in eunomia-hello-world-demo eunomia-hello-world-demo-hierarchy eun
     fi
 done
 
-# Pre-populate the Docker registry in minikube/minishift with images built from the current commit
-# See also: https://stackoverflow.com/q/42564058
-if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
-    eval "$(minikube docker-env)"
-elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
-    eval "$(minishift docker-env)"
-fi
-
 if [[ "${EUNOMIA_TEST_SKIP_IMAGES:-}" == "no" ]]; then
-    GOOS=linux make e2e-test-images
+    GOOS=linux CONTAINTER_IMAGE_TAG=dev make e2e-test-images
 fi
 
-if [[ "${EUNOMIA_TEST_ENV}" == "kind" ]]; then
-    echo "loading latest images into kind"
-    IMAGES="$(docker images --filter reference='quay.io/kohlstechnology/eunomia*:latest' --format "{{.Repository}}:{{.Tag}}")"
-    if [ -z "${IMAGES}" ]; then
-        echo "Something went wrong, could not get the list of eunomia images from docker"
-        exit 1
-    fi
-    for IMAGE in ${IMAGES}; do
-        kind load docker-image "${IMAGE}"
-    done
+# Pre-populate the Docker registry in kind with images built from the current commit
+echo "loading dev images into kind"
+IMAGES="$(docker images --filter reference='quay.io/kohlstechnology/eunomia*:dev' --format "{{.Repository}}:{{.Tag}}")"
+if [ -z "${IMAGES}" ]; then
+    echo "Something went wrong, could not get the list of eunomia images from docker"
+    exit 1
 fi
+for IMAGE in ${IMAGES}; do
+    kind load docker-image "${IMAGE}"
+done
 
-# Get minikube/minishift IP address
-# shellcheck disable=SC2155
-if [[ "${EUNOMIA_TEST_ENV}" == "minikube" ]]; then
-    export EUNOMIA_TEST_ENV_IP=$(minikube ip)
-elif [[ "${EUNOMIA_TEST_ENV}" == "minishift" ]]; then
-    export EUNOMIA_TEST_ENV_IP=$(minishift ip)
-elif [[ "${EUNOMIA_TEST_ENV}" == "kind" ]]; then
-    export EUNOMIA_TEST_ENV_IP=127.0.0.1
-fi
+# Get kind IP address
+export EUNOMIA_TEST_ENV_IP=127.0.0.1
 
 # TestReadinessAndLivelinessProbes is accessing operator via newly created service and
 # it needs to know what is the port to connect to. This value should be consistent with

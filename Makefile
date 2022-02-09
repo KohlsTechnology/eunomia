@@ -2,6 +2,7 @@
 # Image URL to use all building/pushing image targets
 REGISTRY ?= quay.io
 REPOSITORY ?= $(REGISTRY)/kohlstechnology
+CONTAINER_IMAGE_TAG ?= latest
 
 COMMIT := $(shell git rev-parse HEAD)
 BRANCH := $(shell git symbolic-ref --short -q HEAD || echo HEAD)
@@ -78,7 +79,7 @@ lint-all: golangci-lint
 
 .PHONY: e2e-test-images
 e2e-test-images: build
-	TRAVIS_TAG=latest ./scripts/build-images.sh ${REPOSITORY}
+	CONTAINER_IMAGE_TAG=$(CONTAINER_IMAGE_TAG) ./scripts/build-images.sh ${REPOSITORY}
 
 # Deploy images to Quay.io
 .PHONY: travis-deploy-images

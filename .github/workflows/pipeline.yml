@@ -46,6 +46,28 @@ jobs:
         version: v1.0.0
     - name: Test GoReleaser
       run: make test-release
+  test-e2e:
+    strategy:
+      matrix:
+        k8s-version: ["kindest/node:v1.21.2", "kindest/node:v1.20.7"]
+        os: [ubuntu-latest]
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+    - name: Create k8s Kind Cluster
+      uses: helm/kind-action@v1.2.0
+      with:
+        cluster_name: kind
+        node_image: ${{ matrix.k8s-version }}
+    - name: Install operator-sdk
+      run: |
+        mkdir -p "$GITHUB_WORKSPACE/bin"
+        curl -o "$GITHUB_WORKSPACE/bin/operator-sdk" -L https://github.com/operator-framework/operator-sdk/releases/download/v0.17.1/operator-sdk-v0.17.1-x86_64-linux-gnu
+        echo "$GITHUB_WORKSPACE/bin" >> "$GITHUB_PATH"
+        chmod +x "$GITHUB_WORKSPACE/bin/operator-sdk"
+    - name: Test E2E
+      run: make test-e2e
   deploy:
     if: startsWith(github.ref, 'refs/tags/v')
     needs: test
