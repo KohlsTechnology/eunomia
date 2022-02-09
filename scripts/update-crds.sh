@@ -18,7 +18,7 @@
 
 set -euxo pipefail
 
-OPERATOR_SDK_VERSION="v0.17.1"
+OPERATOR_SDK_VERSION="v0.18.2"
 
 OS_TYPE="$(uname -s)" # Linux or Darwin
 if [ "${OS_TYPE}" == "Darwin" ]; then

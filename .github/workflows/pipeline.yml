@@ -65,7 +65,7 @@ jobs:
     - name: Install operator-sdk
       run: |
         mkdir -p "$GITHUB_WORKSPACE/bin"
-        curl -o "$GITHUB_WORKSPACE/bin/operator-sdk" -L https://github.com/operator-framework/operator-sdk/releases/download/v0.17.1/operator-sdk-v0.17.1-x86_64-linux-gnu
+        curl -o "$GITHUB_WORKSPACE/bin/operator-sdk" -L https://github.com/operator-framework/operator-sdk/releases/download/v0.18.2/operator-sdk-v0.18.2-x86_64-linux-gnu
         echo "$GITHUB_WORKSPACE/bin" >> "$GITHUB_PATH"
         chmod +x "$GITHUB_WORKSPACE/bin/operator-sdk"
     - name: Test E2E

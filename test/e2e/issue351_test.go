@@ -1,3 +1,4 @@
+//go:build e2e
 // +build e2e
 
 /*
@@ -140,7 +141,7 @@ func TestIssue351MultipleJobRun(t *testing.T) {
 		t.Error(err)
 	}
 
-	deploymentList, err := framework.Global.KubeClient.AppsV1().Deployments(ctx.namespace).List(metav1.ListOptions{})
+	deploymentList, err := framework.Global.KubeClient.AppsV1().Deployments(ctx.namespace).List(ctx, metav1.ListOptions{})
 	if err != nil {
 		t.Error(err)
 	}

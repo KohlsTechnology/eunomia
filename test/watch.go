@@ -17,6 +17,7 @@ limitations under the License.
 package test
 
 import (
+	"context"
 	"time"
 
 	eventv1beta1 "k8s.io/api/events/v1beta1"
@@ -30,9 +31,9 @@ import (
 // the provided name. The watch is expected to finish after specified timeout
 // (NOTE: rounded down to seconds). Returns a function that, when called, stops
 // the watch and frees its associated resources.
-func WatchEvents(client kubernetes.Interface, events chan<- *eventv1beta1.Event, namespace, name string, timeout time.Duration) (closer func(), err error) {
+func WatchEvents(ctx context.Context, client kubernetes.Interface, events chan<- *eventv1beta1.Event, namespace, name string, timeout time.Duration) (closer func(), err error) {
 	timeoutSeconds := int64(timeout / time.Second)
-	watcher, err := client.EventsV1beta1().Events(namespace).Watch(metav1.ListOptions{
+	watcher, err := client.EventsV1beta1().Events(namespace).Watch(ctx, metav1.ListOptions{
 		TimeoutSeconds: &timeoutSeconds,
 	})
 	if err != nil {

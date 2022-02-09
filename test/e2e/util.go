@@ -1,3 +1,4 @@
+//go:build e2e
 // +build e2e
 
 /*
@@ -57,7 +58,7 @@ type podWatchList struct {
 // GetPod retrieves a given pod based on namespace, the pod name prefix, and the image used
 // Original Source https://github.com/jaegertracing/jaeger-operator/blob/master/test/e2e/utils.go
 func GetPod(t *testing.T, namespace, namePrefix, containsImage string, kubeclient kubernetes.Interface) (*v1.Pod, error) {
-	pods, err := kubeclient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+	pods, err := kubeclient.CoreV1().Pods(namespace).List(goctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve pods in namespace %q: %w", namespace, err)
 	}
@@ -79,7 +80,7 @@ func GetPod(t *testing.T, namespace, namePrefix, containsImage string, kubeclien
 // GetPodLogs retrieves logs of a given pod
 func GetPodLogs(pod *v1.Pod, kubeclient kubernetes.Interface) (string, error) {
 	req := kubeclient.CoreV1().Pods(pod.Namespace).GetLogs(pod.Name, &v1.PodLogOptions{Timestamps: true})
-	logs, err := req.Stream()
+	logs, err := req.Stream(goctx.TODO())
 	if err != nil {
 		return "", fmt.Errorf("could not get logs for pod %q: %w", pod.Name, err)
 	}
@@ -139,7 +140,7 @@ func WaitForPodWithImageAndStatus(t *testing.T, f *framework.Framework, namespac
 	})
 	if err != nil {
 		pods := []string{}
-		podsList, _ := f.KubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+		podsList, _ := f.KubeClient.CoreV1().Pods(namespace).List(goctx.TODO(), metav1.ListOptions{})
 		for _, p := range podsList.Items {
 			images := []string{}
 			for _, c := range p.Spec.Containers {
@@ -196,7 +197,7 @@ func WaitForPodsWithStatus(t *testing.T, f *framework.Framework, namespace strin
 
 // GetCronJob retrieves a given cronJob based on namespace, and the cronJob name prefix
 func GetCronJob(namespace, namePrefix string, kubeclient kubernetes.Interface) (*batchv1beta1.CronJob, error) {
-	cronJobs, err := kubeclient.BatchV1beta1().CronJobs(namespace).List(metav1.ListOptions{})
+	cronJobs, err := kubeclient.BatchV1beta1().CronJobs(namespace).List(goctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve cronjobs in namespace %q: %w", namespace, err)
 	}
@@ -211,7 +212,7 @@ func GetCronJob(namespace, namePrefix string, kubeclient kubernetes.Interface) (
 
 // GetJob retrieves a given Job based on namespace, and the Job name prefix
 func GetJob(namespace, namePrefix string, kubeclient kubernetes.Interface) (*batchv1.Job, error) {
-	jobs, err := kubeclient.BatchV1().Jobs(namespace).List(metav1.ListOptions{})
+	jobs, err := kubeclient.BatchV1().Jobs(namespace).List(goctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		return nil, fmt.Errorf("cannot retrieve jobs in namespace %q: %w", namespace, err)
 	}
@@ -227,7 +228,7 @@ func GetJob(namespace, namePrefix string, kubeclient kubernetes.Interface) (*bat
 // WaitForJobCreation looks for the existance of a Job with a job name prefix
 func WaitForJobCreation(namespace, namePrefix string, kubeclient kubernetes.Interface) error {
 	err := wait.Poll(retryInterval, 60*time.Second, func() (done bool, err error) {
-		jobs, err := kubeclient.BatchV1().Jobs(namespace).List(metav1.ListOptions{})
+		jobs, err := kubeclient.BatchV1().Jobs(namespace).List(goctx.TODO(), metav1.ListOptions{})
 		if err != nil {
 			return false, err
 		}
@@ -247,7 +248,7 @@ func DumpJobsLogsOnError(t *testing.T, f *framework.Framework, namespace string)
 	if !t.Failed() {
 		return
 	}
-	podsList, err := f.KubeClient.CoreV1().Pods(namespace).List(metav1.ListOptions{})
+	podsList, err := f.KubeClient.CoreV1().Pods(namespace).List(goctx.TODO(), metav1.ListOptions{})
 	if err != nil {
 		t.Logf("failed to list pods in namespace %s: %s", namespace, err)
 		return
