@@ -82,14 +82,10 @@ e2e-test-images: build
 	CONTAINER_IMAGE_TAG=$(CONTAINER_IMAGE_TAG) ./scripts/build-images.sh ${REPOSITORY}
 
 # Deploy images to Quay.io
-.PHONY: travis-deploy-images
-travis-deploy-images: build
-	docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD} ${REGISTRY}
+.PHONY: deploy-images
+deploy-images: build
+	docker login -u ${QUAY_USER} -p ${QUAY_TOKEN} ${REGISTRY}
 	./scripts/build-images.sh ${REPOSITORY} true
 
-.PHONY: publish-chart-repo
-publish-chart-repo:
-	./scripts/build/publish-chart-repo.sh
-
-.PHONY: travis-release
-travis-release: travis-deploy-images publish-chart-repo
+.PHONY: release
+release: deploy-images

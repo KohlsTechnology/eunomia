@@ -1,17 +1,5 @@
 # Eunomia GitOps Operator for Kubernetes
 
-<!---
-This doesn't work yet. Maybe someday it will.
-
-## TL;DR:
-
-```shell
-helm repo add eunomia-operator https://kohlstechnology.github.io/eunomia/
-helm install my-release eunomia-operator/eunomia-operator
-```
-
--->
-
 ## Introduction
 
 This chart bootstraps a eunomia operator deployment on [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
@@ -83,33 +71,6 @@ Use the below command to install Eunomia on OpenShift. This will also give you t
 # Deploy the operator
 helm template deploy/helm/eunomia-operator/ --set eunomia.operator.openshift.route.enabled=true | oc apply -f -
 ```
-
-<!---
-This doesn't work yet. Maybe someday it will.
-
-## Installing the Chart
-
-To install the chart with the release name `my-release`:
-
-```shell
-helm install my-release eunomia-operator/eunomia-operator
-```
-
-The command deploys _eunomia_ on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
-
-> **Tip**: List all releases using `helm list`
-
-## Uninstalling the Chart
-
-To uninstall/delete the `my-release` deployment:
-
-```shell
-helm delete my-release
-```
-
-The command removes all the Kubernetes components associated with the chart and deletes the release.
-
--->
 
 ## Configuration
 
