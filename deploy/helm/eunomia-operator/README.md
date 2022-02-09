@@ -19,7 +19,7 @@ helm template deploy/helm/eunomia-operator/ | kubectl apply -f -
 
 ### Installing with Kubernetes Ingress
 
-Update [values.yaml](values.yaml) file for ingress configuration. If you don't want to change the file, you can enable ingress from command line as well.
+Update [values.yaml](values.yaml) file for ingress configuration. If you don't want to change the file, you can enable ingress from command-line as well.
 
 For running with default configuration
 
@@ -28,7 +28,7 @@ For running with default configuration
 helm template deploy/helm/eunomia-operator/ --set eunomia.operator.ingress.enabled=true | kubectl apply -f - -n eunomia-operator
 ```
 
-Also, you can pass the ingress configuration in command line itself. For example:-
+Also, you can pass the ingress configuration in command-line itself. For example:-
 
 ```shell
 # Updating eunomia ingress configuration
@@ -44,7 +44,7 @@ Replace the host `hello-eunomia.info` with suitable DNS name.
 
 ### Installing with Cloud Load Balancers
 
-Update [values.yaml](values.yaml) file for the service configuration. If you don't want to change the file, you can enable ingress from command line as well.
+Update [values.yaml](values.yaml) file for the service configuration. If you don't want to change the file, you can enable ingress from command-line as well.
 
 For running with default configuration
 
