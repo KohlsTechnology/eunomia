@@ -1,17 +1,5 @@
 # Eunomia GitOps Operator for Kubernetes
 
-<!---
-This doesn't work yet. Maybe someday it will.
-
-## TL;DR:
-
-```shell
-helm repo add eunomia-operator https://kohlstechnology.github.io/eunomia/
-helm install my-release eunomia-operator/eunomia-operator
-```
-
--->
-
 ## Introduction
 
 This chart bootstraps a eunomia operator deployment on [Kubernetes](http://kubernetes.io) cluster using the [Helm](https://helm.sh) package manager.
@@ -31,7 +19,7 @@ helm template deploy/helm/eunomia-operator/ | kubectl apply -f -
 
 ### Installing with Kubernetes Ingress
 
-Update [values.yaml](values.yaml) file for ingress configuration. If you don't want to change the file, you can enable ingress from command line as well.
+Update [values.yaml](values.yaml) file for ingress configuration. If you don't want to change the file, you can enable ingress from command-line as well.
 
 For running with default configuration
 
@@ -40,7 +28,7 @@ For running with default configuration
 helm template deploy/helm/eunomia-operator/ --set eunomia.operator.ingress.enabled=true | kubectl apply -f - -n eunomia-operator
 ```
 
-Also, you can pass the ingress configuration in command line itself. For example:-
+Also, you can pass the ingress configuration in command-line itself. For example:-
 
 ```shell
 # Updating eunomia ingress configuration
@@ -56,7 +44,7 @@ Replace the host `hello-eunomia.info` with suitable DNS name.
 
 ### Installing with Cloud Load Balancers
 
-Update [values.yaml](values.yaml) file for the service configuration. If you don't want to change the file, you can enable ingress from command line as well.
+Update [values.yaml](values.yaml) file for the service configuration. If you don't want to change the file, you can enable ingress from command-line as well.
 
 For running with default configuration
 
@@ -83,33 +71,6 @@ Use the below command to install Eunomia on OpenShift. This will also give you t
 # Deploy the operator
 helm template deploy/helm/eunomia-operator/ --set eunomia.operator.openshift.route.enabled=true | oc apply -f -
 ```
-
-<!---
-This doesn't work yet. Maybe someday it will.
-
-## Installing the Chart
-
-To install the chart with the release name `my-release`:
-
-```shell
-helm install my-release eunomia-operator/eunomia-operator
-```
-
-The command deploys _eunomia_ on the Kubernetes cluster in the default configuration. The [configuration](#configuration) section lists the parameters that can be configured during installation.
-
-> **Tip**: List all releases using `helm list`
-
-## Uninstalling the Chart
-
-To uninstall/delete the `my-release` deployment:
-
-```shell
-helm delete my-release
-```
-
-The command removes all the Kubernetes components associated with the chart and deletes the release.
-
--->
 
 ## Configuration
 
