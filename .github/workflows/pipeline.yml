@@ -51,7 +51,7 @@ jobs:
   test-e2e:
     strategy:
       matrix:
-        k8s-version: ["kindest/node:v1.21.2", "kindest/node:v1.20.7"]
+        k8s-version: ["kindest/node:v1.22.5", "kindest/node:v1.21.2", "kindest/node:v1.20.7"]
         os: [ubuntu-latest]
     runs-on: ubuntu-latest
     steps:
