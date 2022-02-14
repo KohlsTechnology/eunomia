@@ -10,8 +10,8 @@ First of all, you will need access to a Kubernetes or an OpenShift cluster. The 
 - [Minikube](https://kubernetes.io/docs/setup/minikube/) - local Kubernetes cluster
 - [Minishift](https://github.com/minishift/minishift/releases) - local OpenShift cluster
 - [Kind](https://kind.sigs.k8s.io/) - local Kubernetes cluster in Docker
-- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) - command line tool for controlling Kubernetes cluster
-- [openshift-cli](https://docs.openshift.com/container-platform/3.11/cli_reference/get_started_cli.html#installing-the-cli) - command line tool for controlling OpenShift cluster
+- [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/) - command-line tool for controlling Kubernetes cluster
+- [openshift-cli](https://docs.openshift.com/container-platform/3.11/cli_reference/get_started_cli.html#installing-the-cli) - command-line tool for controlling OpenShift cluster
 
 #### Installing on a Mac
 
@@ -99,7 +99,7 @@ To install golint, follow the [installation instruction](https://github.com/gola
 
 To check out this repository:
 
-1. Create a [fork](https://help.github.com/en/articles/fork-a-repo) of this repo
+1. Create a [fork](https://help.github.com/en/articles/fork-a-repo) of this repository
 2. Create the directories and clone your fork
 
 ```shell

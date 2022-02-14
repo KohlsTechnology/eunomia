@@ -53,7 +53,12 @@ jobs:
       - name: Lint Code Base
         uses: github/super-linter@v4
         env:
+          FILTER_REGEX_EXCLUDE: .*vendor/.*
           VALIDATE_ALL_CODEBASE: false
           VALIDATE_DOCKERFILE_HADOLINT: false
+          VALIDATE_GO: false
+          VALIDATE_JSCPD: false
+          VALIDATE_KUBERNETES_KUBEVAL: false
+          VALIDATE_MARKDOWN: false
           DEFAULT_BRANCH: master
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

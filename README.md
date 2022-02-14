@@ -145,7 +145,7 @@ Some helm charts might require the configuration to be part of the chart itself 
 
 Separating the charts (templateSource) from the actual configuration (parameterSource) is a best practice. This allows you to separate your code (templates) from your configuration, which helps tremendously with change management.
 
-One way to go about this is to use the config repo as a submodule and point to the master branch. During development you can of course point against another branch, just make sure you correct it in `.gitmodules` before the PR gets merged.
+One way to go about this is to use the config repository as a submodule and point to the master branch. During development you can of course point against another branch, just make sure you correct it in `.gitmodules` before the PR gets merged.
 
 #### Add submodule to track master branch
 
@@ -153,7 +153,7 @@ One way to go about this is to use the config repo as a submodule and point to t
 git submodule add -b master <repo-url>
 ```
 
-#### Checking out a repo with submodules
+#### Checking out a repository with submodules
 
 ```
 git clone <repo-url>
