@@ -8,6 +8,10 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/KohlsTechnology/eunomia)](https://goreportcard.com/report/github.com/KohlsTechnology/eunomia)
 [![codecov](https://codecov.io/gh/KohlsTechnology/eunomia/branch/master/graph/badge.svg)](https://codecov.io/gh/KohlsTechnology/eunomia)
 
+## Project Deprication and Archival
+
+**As of March 9, 2022 this project is no longer maintained. This repository is being archived(marked as read only).**
+
 ## Who is Eunomia
 
 According to Wikipedia:
